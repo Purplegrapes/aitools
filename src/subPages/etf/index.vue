@@ -1,106 +1,481 @@
 <script setup lang="ts">
-import type { IEventReturn } from 'alova/client'
-import { useRequest } from 'alova/client'
-import Apis from '@/api'
+import { calculateTabScrollPositions, mergeAllColumns, navbar } from './data'
 
 definePage({
   name: 'etf',
   layout: 'default',
   style: {
-    navigationBarTitleText: 'ETF 工具',
+    navigationBarTitleText: 'ETF估值表',
   },
 })
 
-/**
- * 一级 Tab 导航配置
- */
-const navbar = [
-  { label: '行情', name: 'quotation' },
-  { label: '估值', name: 'valuation' },
-  { label: '业绩', name: 'performance' },
-  { label: '费率', name: 'rate' },
-]
+const router = useRouter()
+const GlobalToast = useGlobalToast()
 
 /**
- * 当前激活的一级 tab
+ * 当前选中的导航
  */
-const activeTab = ref('quotation')
+const activeNav = ref<'quotation' | 'valuation' | 'performance' | 'rate'>('quotation')
 
 /**
- * 当前激活的二级 tab (分类 code)
+ * 当前选中的分类Tab
  */
-const activeCategory = ref('watchlist')
+const activeTab = ref('all')
 
 /**
- * 获取分类列表 - 使用 useRequest hook
+ * 导航栏配置
+ */
+const navbarItems = navbar
+
+/**
+ * 获取ETF列表 - 使用 useRequest
  */
 const {
-  data: categories,
-  loading,
-  onError,
-} = useRequest(Apis.etf.getTabList(), {
+  data: etfListData,
+  loading: etfLoading,
+} = useRequest(() => (Apis as any).etf.etfInfoList(), {
   immediate: true,
 })
 
 /**
- * 监听分类数据加载完成，设置默认选中第一个分类
+ * ETF列表数据
  */
-watchEffect(() => {
-  if (categories.value?.data && categories.value.data.length > 0) {
-    activeCategory.value = categories.value.data[0].code
+const etfList = computed(() => etfListData.value?.data || [])
+
+/**
+ * 业绩数据
+ */
+const performanceData = ref<Record<string, any>>({})
+
+/**
+ * 获取业绩数据
+ */
+const { send: fetchPerformanceData } = useRequest(
+  () => {
+    const codes = etfList.value.map((item: any) => `${item.code}`)
+    const factorCodes = [
+      'f_mkt_return_1w',
+      'f_mkt_return_1m',
+      'f_mkt_return_3m',
+      'f_mkt_return_6m',
+      'f_mkt_return_1y',
+      'f_mkt_return_3y',
+    ]
+    return (Apis as any).etf.factorValue({
+      data: {
+        securityCodes: codes,
+        factorCodes,
+        securityType: 'ETF',
+      },
+    })
+  },
+  {
+    immediate: false,
+  },
+).onSuccess((res) => {
+  performanceData.value = (res.data as any) || {}
+})
+
+/**
+ * 估值数据
+ */
+const valuationData = ref([])
+
+/**
+ * 获取估值数据
+ */
+const { send: fetchValuationData } = useRequest(
+  () => (Apis as any).etf.valuationDetail({
+    params: {
+      source: 'lsd',
+      category_code: '6',
+    },
+  }),
+  {
+    immediate: false,
+  },
+).onSuccess((res) => {
+  valuationData.value = (res as any)?.data?.data.valuations || []
+  // 获取完估值数据后，获取业绩数据
+  fetchPerformanceData()
+})
+
+/**
+ * 实时行情数据
+ */
+const realtimeData = ref([])
+
+/**
+ * 定时器引用
+ */
+let realtimeTimer: ReturnType<typeof setInterval> | null = null
+
+/**
+ * 获取实时行情 - 使用 useRequest
+ */
+const { send: fetchRealtime } = useRequest(
+  () => {
+    const params = {
+      securityCodes: etfList.value.map((item: any) => item.code),
+      assetType: 'ETF',
+    }
+    return (Apis as any).etf.realtime({
+      data: params,
+    })
+  },
+  {
+    immediate: false,
+  },
+).onSuccess((res) => {
+  realtimeData.value = (res as any)?.data || []
+  // 如果交易状态为false，停止定时器
+  if ((res as any)?.[0]?.tradeInfo?.status === false) {
+    if (realtimeTimer) {
+      clearInterval(realtimeTimer)
+      realtimeTimer = null
+    }
+  }
+}).onError((error) => {
+  console.error('fetchRealtime error:', error)
+})
+
+// ETF列表加载完成后，获取估值数据
+watch(etfList, (list) => {
+  if (list && list.length > 0) {
+    fetchValuationData()
+    // 启动实时行情定时器
+    fetchRealtime()
+    realtimeTimer = setInterval(fetchRealtime, 15000)
+  }
+}, { immediate: true })
+
+// 组件卸载时清除定时器
+onUnmounted(() => {
+  if (realtimeTimer) {
+    clearInterval(realtimeTimer)
+    realtimeTimer = null
   }
 })
 
 /**
- * 错误处理
+ * 获取分类列表 - 使用 useRequest
  */
-onError((error) => {
-  console.error('获取分类列表失败:', error)
+const {
+  data: categoryData,
+} = useRequest(() => (Apis as any).etf.getTabList(), {
+  immediate: true,
+}).onError((error) => {
+  GlobalToast.error(error.error?.message || '获取分类列表失败')
 })
 
 /**
- * 一级 Tab 切换事件
+ * 分类列表
  */
-function onTabChange(value: string | number) {
-  activeTab.value = value as string
-  console.log('切换一级 Tab:', value)
+const categoryList = computed(() => {
+  const data = categoryData.value?.data || []
+  return [
+    ...data.map((item: any) => ({
+      name: item.code,
+      code: item.code,
+      label: item.name,
+    })),
+  ]
+})
+
+/**
+ * 获取数据日期 - 使用 useRequest
+ */
+const {
+  data: dataDateData,
+} = useRequest(() => (Apis as any).etf.getAshare(), {
+  immediate: true,
+})
+
+/**
+ * 数据日期
+ */
+const dataDate = computed(() => dataDateData.value || '-')
+
+/**
+ * 获取显示报价配置 - 使用 useRequest
+ */
+const {
+  data: showQuoteData,
+} = useRequest(() => (Apis as any).etf.showQuote(), {
+  immediate: true,
+})
+
+/**
+ * 是否显示报价列
+ */
+const showQuote = computed(() => showQuoteData.value?.data || false)
+
+/**
+ * 表格列定义 - 合并所有列
+ */
+const columns = computed(() => mergeAllColumns(showQuote.value))
+
+/**
+ * 每个 tab 的滚动位置
+ */
+const tabScrollPositions = computed(() => calculateTabScrollPositions(showQuote.value))
+
+/**
+ * 当前滚动位置
+ */
+const scrollLeft = ref(0)
+
+/**
+ * 自定义表格组件引用
+ */
+const tableRef = ref()
+
+/**
+ * 根据分类筛选后的数据
+ */
+const filteredList = computed(() => {
+  const list = etfList.value || []
+  const filtered = activeTab.value === 'all'
+    ? list
+    : activeTab.value === 'watchlist'
+      ? list.filter((item: any) => item.watchList)
+      : list.filter((item: any) => item.categoryCode === activeTab.value)
+
+  // 合并估值和业绩数据
+  return filtered.map((item: any) => {
+    // 使用 trackIndexCode 从估值数据中获取对应的估值信息
+    const valuation = valuationData.value?.find((it: any) => it.index_code === item.trackIndexCode)
+    const perfKey = `${item.code}`
+    const performance = performanceData.value
+    const realData = realtimeData.value.find((it: any) => it?.code === item?.code) || {}
+    // 合并业绩数据
+    const performanceFields: Record<string, any> = {}
+    if (performance.f_mkt_return_1w?.[perfKey] !== undefined)
+      performanceFields.f_mkt_return_1w = performance.f_mkt_return_1w[perfKey]
+    if (performance.f_mkt_return_1m?.[perfKey] !== undefined)
+      performanceFields.f_mkt_return_1m = performance.f_mkt_return_1m[perfKey]
+    if (performance.f_mkt_return_3m?.[perfKey] !== undefined)
+      performanceFields.f_mkt_return_3m = performance.f_mkt_return_3m[perfKey]
+    if (performance.f_mkt_return_6m?.[perfKey] !== undefined)
+      performanceFields.f_mkt_return_6m = performance.f_mkt_return_6m[perfKey]
+    if (performance.f_mkt_return_1y?.[perfKey] !== undefined)
+      performanceFields.f_mkt_return_1y = performance.f_mkt_return_1y[perfKey]
+    if (performance.f_mkt_return_3y?.[perfKey] !== undefined)
+      performanceFields.f_mkt_return_3y = performance.f_mkt_return_3y[perfKey]
+    return {
+      ...item,
+      ...realData,
+      ...valuation,
+      ...performanceFields,
+    }
+  })
+})
+
+/**
+ * 可显示的分类Tab
+ */
+const visibleTabs = computed(() => {
+  const list = etfList.value || []
+  return categoryList.value.filter((tab) => {
+    if (tab.name === 'watchlist')
+      return list.some((item: any) => item.watchList)
+    if (tab.name === 'all')
+      return true
+    return list.some((item: any) => item.categoryCode === tab.name)
+  })
+})
+
+/**
+ * 监听滚动位置变化，更新导航状态
+ */
+function handleScrollChange(value: number) {
+  scrollLeft.value = value
+  // 根据滚动位置判断当前在哪个 tab
+  const positions = tabScrollPositions.value
+  const tolerance = 50 // 容差值
+
+  if (value < positions.valuation - tolerance) {
+    activeNav.value = 'quotation'
+  }
+  else if (value >= positions.valuation - tolerance && value < positions.performance - tolerance) {
+    activeNav.value = 'valuation'
+  }
+  else if (value >= positions.performance - tolerance && value < positions.rate - tolerance) {
+    activeNav.value = 'performance'
+  }
+  else {
+    activeNav.value = 'rate'
+  }
 }
 
 /**
- * 二级 Tab 切换事件
+ * 导航切换 - 滚动到对应位置
  */
-function onCategoryChange(value: string | number) {
-  activeCategory.value = value as string
-  // TODO: 根据选中的分类获取对应的 ETF 列表数据
-  console.log('切换分类:', value)
+function handleNavChange({ name }: any) {
+  activeNav.value = name
+  // 滚动到对应 tab 的位置
+  const targetScrollLeft = tabScrollPositions.value[name as keyof typeof tabScrollPositions.value] || 0
+  scrollLeft.value = targetScrollLeft
+  nextTick(() => {
+    tableRef.value?.scrollTo(targetScrollLeft)
+  })
+}
+
+/**
+ * 分类Tab切换
+ */
+function handleTabChange({ name }: any) {
+  activeTab.value = name
+}
+
+/**
+ * 行点击 - 跳转详情
+ */
+function handleRowClick(row: any) {
+  router.push({
+    name: 'etf-detail',
+    query: {
+      code: row.code,
+      name: row.name,
+    },
+  })
+}
+
+/**
+ * 自选按钮点击 - 使用 useRequest
+ */
+function handleOptionalClick(row: any) {
+  const requestFn = row.watchList
+    ? () => (Apis as any).etf.watchlistDel({ pathParams: { code: row.code } })
+    : () => (Apis as any).etf.watchlistAdd({ data: { code: row.code } })
+
+  const { send } = useRequest(requestFn, {
+    immediate: true,
+  }).onSuccess((res) => {
+    const data = (res as any)?.data
+    if (data?.success) {
+      GlobalToast.success(row.watchList ? '移除自选成功' : '添加自选成功')
+      // 直接更新本地状态
+      const list = etfListData.value?.data
+      const index = list?.findIndex((item: any) => item.code === row.code)
+      if (index !== undefined && index >= 0) {
+        list[index].watchList = !row.watchList
+      }
+    }
+    else {
+      GlobalToast.error((res as any)?.msg || '操作失败')
+    }
+  }).onError((error) => {
+    GlobalToast.error(error.error?.message || '操作失败')
+  })
+
+  send()
 }
 </script>
 
 <template>
-  <view class="min-h-screen bg-gray-100">
-    <!-- 一级 Tab 导航 -->
-    <wd-tabs v-model="activeTab" @change="onTabChange">
-      <wd-tab v-for="tab in navbar" :key="tab.name" :name="tab.name" :title="tab.label" />
-    </wd-tabs>
-
-    <!-- 二级 Tab 导航 (分类) -->
-    <wd-tabs v-model="activeCategory" sticky @change="onCategoryChange">
-      <wd-tab v-for="category in categories?.data || []" :key="category.id" :name="category.code" :title="category.name" />
-    </wd-tabs>
-
-    <!-- 内容区域 -->
-    <view class="p-3">
-      <wd-loadmore v-if="loading" status="loading" />
-      <wd-cell-group v-else border>
-        <wd-cell title="当前一级 Tab" :value="activeTab" />
-        <wd-cell title="当前二级 Tab" :value="categories?.data?.find((c: any) => c.code === activeCategory)?.name || ''" />
-      </wd-cell-group>
+  <view class="etf-home">
+    <!-- 顶部导航 -->
+    <view class="nav-wrapper">
+      <wd-tabs v-model="activeNav" @click="handleNavChange">
+        <wd-tab
+          v-for="item in navbarItems"
+          :key="item.name"
+          :title="item.label"
+          :name="item.name"
+        />
+      </wd-tabs>
     </view>
 
-    <!-- 底部提示 -->
-    <wd-divider />
-    <view class="pb-4 text-center">
-      <wd-text text="数据仅供参考，不构成投资建议" type="info" align="center" size="12px" />
+    <!-- 头部信息 -->
+    <view class="header">
+      <view class="title">
+        <text>ETF估值表</text>
+      </view>
+      <view class="desc">
+        <text>{{ dataDate }}更新</text>
+      </view>
     </view>
+
+    <!-- 分类Tab -->
+    <view class="tabs-wrapper">
+      <wd-tabs v-model="activeTab" sticky @click="handleTabChange">
+        <wd-tab
+          v-for="item in visibleTabs"
+          :key="item.name"
+          :title="item.label"
+          :name="item.name"
+        />
+      </wd-tabs>
+    </view>
+
+    <!-- 表格区域 -->
+    <view class="table-wrapper">
+      <custom-table
+        ref="tableRef"
+        :columns="columns"
+        :data-source="filteredList"
+        :loading="etfLoading"
+        :scroll-left="scrollLeft"
+        :row-click="handleRowClick"
+        :optional-click="handleOptionalClick"
+        @update:scroll-left="handleScrollChange"
+      />
+    </view>
+
+    <!-- 底部安全区域 -->
+    <view class="safe-area-bottom" />
   </view>
 </template>
+
+<style scoped lang="scss">
+.etf-home {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+
+  .nav-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background-color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .header {
+    background-color: #fff;
+    padding: 24rpx;
+    margin-bottom: 8rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .title {
+      font-size: 28rpx;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .desc {
+      font-size: 24rpx;
+      color: #999;
+    }
+  }
+
+  .tabs-wrapper {
+    position: sticky;
+    top: 40px;
+    z-index: 998;
+    background-color: #fff;
+    margin-bottom: 8rpx;
+  }
+
+  .table-wrapper {
+    background-color: #fff;
+    min-height: 400rpx;
+  }
+
+  .safe-area-bottom {
+    height: env(safe-area-inset-bottom);
+  }
+}
+</style>

@@ -7,7 +7,9 @@ import { alovaInstance } from '../core/instance'
  * 微信扫码登录
  */
 export function wechatBind(key: string) {
-  return alovaInstance.Get(`/api/v1/user/wechat/bind?key=${key}`)
+  return alovaInstance.Get('/api/v1/user/wechat/bind', {
+    params: { key },
+  })
 }
 
 /**
@@ -68,14 +70,16 @@ export function watchlistDel(code: string) {
  * 估值详情
  */
 export function valuationDetail() {
-  return alovaInstance.Get(`/djapi/fundx/base/vip/valuation/show/detail?source=lsd&category_code=6`)
+  return alovaInstance.Get('/djapi/fundx/base/vip/valuation/show/detail')
 }
 
 /**
  * 估值展示
  */
 export function valuationShow(id: string | number) {
-  return alovaInstance.Get(`/djapi/fundx/base/vip/valuation/show?id=${id}&source=lsd`)
+  return alovaInstance.Get('/djapi/fundx/base/vip/valuation/show', {
+    params: { id: String(id), source: 'lsd' },
+  })
 }
 
 /**
@@ -95,7 +99,9 @@ export function factorExposure(params: {
  * 实时分钟行情
  */
 export function realtimeLine(code: string) {
-  return alovaInstance.Get(`/api/realtime/k-line/${code}?assetType=ETF&frequency=MINUTE`)
+  return alovaInstance.Get(`/api/realtime/k-line/${code}`, {
+    params: { assetType: 'ETF', frequency: 'MINUTE' },
+  })
 }
 
 /**
@@ -109,5 +115,7 @@ export function etfInfo(code: string) {
  * 显示报价配置
  */
 export function showQuote() {
-  return alovaInstance.Get(`/api/v1/config?k=show_quote`)
+  return alovaInstance.Get('/api/v1/config', {
+    params: { k: 'show_quote' },
+  })
 }

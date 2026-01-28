@@ -84,20 +84,8 @@ function openUrl(url: string) {
 
     <demo-block title="工具链介绍" transparent>
       <wd-cell-group border custom-class="rounded-2! overflow-hidden">
-        <wd-cell title="🧩 WotUI组件库" is-link @click="openUrl('https://wot-ui.cn/')" />
         <wd-cell title="📊 ETF 工具" is-link @click="navigateTo('etf')" />
         <wd-cell title="🧠 Agent Skills" is-link @click="navigateTo('skills')" />
-
-        <wd-cell title="🚦 Router 路由管理" is-link @click="navigateTo('router')" />
-        <wd-cell title="🌐 Alova 网络请求" is-link @click="navigateTo('request')" />
-        <wd-cell title="🎨 Icon 图标" is-link @click="navigateTo('icon')" />
-        <wd-cell title="✨ Unocss 原子化" is-link @click="navigateTo('styles')" />
-        <wd-cell title="🍍 Pinia 持久化" is-link @click="navigateTo('pinia')" />
-        <wd-cell title="💬 Fedback 反馈组件" is-link @click="navigateTo('feedback')" />
-        <wd-cell title="🌱 CreateUni 脚手架" is-link @click="navigateTo('create-uni') " />
-        <wd-cell title="🔄 CI/CD 持续集成" is-link @click="navigateTo('ci')" />
-        <wd-cell title="🦾  uni-ku/root" is-link @click="navigateTo('root')" />
-        <wd-cell title="📊 uni-echarts" is-link @click="navigateTo('echarts')" />
       </wd-cell-group>
     </demo-block>
 
