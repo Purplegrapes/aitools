@@ -177,6 +177,34 @@
             "navigationBarBackgroundColor": "#f9fafb",
             "navigationBarTextStyle": "black"
           }
+        },
+        // #endif
+        // #ifdef H5 || MP-WEIXIN
+        {
+          "path": "etf/index",
+          "type": "page",
+          "name": "etf",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "ETF 工具"
+          }
+        },
+        // #endif
+        // #ifdef H5
+        {
+          "path": "etf/detail",
+          "type": "page",
+          "name": "etf-detail",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "ETF 详情"
+          }
+        },
+        // #endif
+        // #ifdef MP-WEIXIN
+        {
+          "path": "etf/detail",
+          "type": "page"
         }
         // #endif
       ]

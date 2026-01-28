@@ -8,6 +8,8 @@ type _LocationUrl =
   "/pages/about/index" |
   "/subPages/ci/index" |
   "/subPages/create-uni/index" |
+  "/subPages/etf/detail" |
+  "/subPages/etf/index" |
   "/subPages/feedback/index" |
   "/subPages/icon/index" |
   "/subPages/pinia/index" |
