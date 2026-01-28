@@ -4,8 +4,9 @@ import alovaInstance from './core/instance'
 // Export the global Apis object from the generated code
 import { createApis, withConfigType } from './createApis'
 
-// Export ETF API module
+// Export API modules
 export * as etfApi from './modules/etf'
+export * as userApi from './modules/user'
 
 // Export the alova instance for direct use if needed
 export { alovaInstance }

@@ -1,5 +1,22 @@
 <script setup lang="ts">
-onLaunch(() => {})
+import { useUserStore } from '@/store/userStore'
+
+const userStore = useUserStore()
+
+onLaunch(async () => {
+  // 自动登录：检查是否有 token，如果没有则尝试登录
+  if (!userStore.token) {
+    try {
+      await userStore.accountLogin({
+        username: 'admin',
+        password: 'OIAyWw8Y0Uo8',
+      })
+    }
+    catch (err) {
+      console.log('自动登录失败:', err)
+    }
+  }
+})
 </script>
 
 <style lang="scss">

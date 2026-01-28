@@ -15,6 +15,22 @@ function getBaseURL() {
   // #endif
 }
 
+/**
+ * 获取存储的 token
+ */
+function getToken(): string {
+  try {
+    const userStore = uni.getStorageSync('user')
+    if (userStore && userStore.token) {
+      return userStore.token
+    }
+  }
+  catch {
+    return ''
+  }
+  return ''
+}
+
 export const alovaInstance = createAlova({
   baseURL: getBaseURL(),
   ...AdapterUniapp({
@@ -22,6 +38,14 @@ export const alovaInstance = createAlova({
   }),
   statesHook: vueHook,
   beforeRequest: (method) => {
+    // 从本地存储获取 token
+    const token = getToken()
+
+    // 添加 token 到请求头
+    if (token) {
+      method.config.headers.Authorization = `${token}`
+    }
+
     // Add content type for POST/PUT/PATCH requests
     if (['POST', 'PUT', 'PATCH'].includes(method.type)) {
       method.config.headers['Content-Type'] = 'application/json'
@@ -35,7 +59,7 @@ export const alovaInstance = createAlova({
     // Log request in development
     if (import.meta.env.MODE === 'development') {
       console.log(`[Alova Request] ${method.type} ${method.url}`, method.data || method.config.params)
-      console.log(`[API Base URL] ${import.meta.env.VITE_API_BASE_URL}`)
+      console.log(`[API Base URL] ${getBaseURL()}`)
       console.log(`[Environment] ${import.meta.env.VITE_ENV_NAME}`)
     }
   },
