@@ -84,15 +84,16 @@ const tableWidth = computed(() => {
 /**
  * 监听外部滚动位置变化
  */
-watch(() => props.scrollLeft, (newVal) => {
-  currentScrollLeft.value = newVal
-})
+// watch(() => props.scrollLeft, (newVal) => {
+//   currentScrollLeft.value = newVal
+// })
 
 /**
  * 处理滚动事件
  */
 function handleScroll(e: any) {
-  currentScrollLeft.value = e.detail.scrollLeft
+  console.log('handleScroll', e.detail.scrollLeft)
+  // currentScrollLeft.value = e.detail.scrollLeft
   emit('update:scrollLeft', e.detail.scrollLeft)
 }
 
@@ -229,11 +230,17 @@ function getValuationConfig(row: any) {
     <!-- 可滚动的表格容器 -->
     <scroll-view
       class="w-full"
+      enable-flex
+      enhanced
+      using-sticky
+      :bounces="false"
+      :show-scrollbar="false"
+      enable-passive
+      scroll-anchoring
       scroll-x
       scroll-y
       :scroll-left="currentScrollLeft"
-      :style="{ height: 'calc(100vh - 280rpx)' }"
-      show-scrollbar
+      :style="{ height: 'calc(100vh - 350rpx)' }"
       @scroll="handleScroll"
     >
       <view class="flex flex-col" :style="{ width: `${tableWidth}rpx` }">

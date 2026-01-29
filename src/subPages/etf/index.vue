@@ -354,7 +354,7 @@ const visibleTabs = computed(() => {
  * 监听滚动位置变化，更新导航状态
  */
 function handleScrollChange(value: number) {
-  scrollLeft.value = value
+  // scrollLeft.value = value
   // 根据滚动位置判断当前在哪个 tab
   const positions = tabScrollPositions.value
   const tolerance = SCROLL_TOLERANCE
