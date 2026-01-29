@@ -235,6 +235,16 @@ const computedValuationDataSource = computed(() => {
   }]
 })
 
+// ==================== 辅助函数 ====================
+/**
+ * 根据价格涨跌返回对应颜色类名
+ */
+function getPriceColorClass(value: number | undefined | null) {
+  if (value === undefined || value === null || value === 0)
+    return 'text-gray-600'
+  return value > 0 ? 'text-red-500' : 'text-green-500'
+}
+
 // ==================== 图表配置 ====================
 const quotationOption = ref<EChartsOption>({
   color: ['#FCCA01'],
@@ -538,6 +548,12 @@ function handleTabsChange({ name }: { name: TabValue }) {
   showChartTip.value = false
 
   if (name === 'quotation') {
+    // 先清除已存在的定时器
+    if (timer) {
+      clearInterval(timer)
+      timer = null
+    }
+    // 创建新的定时器
     timer = setInterval(() => {
       fetchRealtimeLineData()
       realtimeParams.value = {
@@ -644,6 +660,11 @@ watch([processedFactorData, processedRealtimeLineData, currentValuationData], ([
 }, { deep: true })
 
 onShow(() => {
+  // 先清除已存在的定时器，防止重复创建
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
   if (currentData.value.code) {
     timer = setInterval(() => {
       loadRealtimeData(currentData.value.code)
@@ -671,7 +692,7 @@ onUnload(() => {
 </script>
 
 <template>
-  <view class="min-h-screen bg-gray-100 pb-[env(safe-area-inset-bottom)]">
+  <view class="min-h-screen bg-gray-50 pb-[env(safe-area-inset-bottom)]">
     <!-- Sticky Tabs -->
     <wd-sticky :z-index="99">
       <wd-tabs v-model="tabValue" sticky @click="handleTabsChange">
@@ -681,72 +702,116 @@ onUnload(() => {
       </wd-tabs>
     </wd-sticky>
 
-    <!-- 详情折叠面板 -->
-    <view class="border-b border-gray-200">
+    <!-- 内容区域 -->
+    <view class="p-2 space-y-3">
+      <!-- 详情卡片 -->
       <wd-collapse v-model="collapseValue">
-        <wd-collapse-item title="详情" name="detail">
-          {{ currentData.investIdea || '--' }}
+        <wd-collapse-item title="投资说明" name="detail">
+          <text class="text-sm text-gray-600 leading-relaxed">
+            {{ currentData.investIdea || '暂无说明' }}
+          </text>
         </wd-collapse-item>
       </wd-collapse>
     </view>
 
-    <!-- 数据展示区域 -->
-    <view class="flex gap-12 bg-white p-6">
-      <!-- 行情数据 -->
-      <view v-if="tabValue === 'quotation'" class="flex-1">
-        <view v-if="segmentedValue.quotation === '日内' && configShow" class="h-25 flex items-center justify-between text-7">
-          <text class="text-gray-500">
-            当前价格
-          </text>
-          <text class="text-gray-800">
-            {{ currentData.currentPrice || '--' }}
-          </text>
-        </view>
-        <view v-else class="h-25 flex items-center justify-between text-7">
-          <text class="text-gray-500">
-            后复权收盘价
-          </text>
-          <text class="text-gray-800">
-            {{ currentData.quotationData?.[currentData.quotationData?.length - 1]?.f_mkt_close_price_adj || '--' }}
-          </text>
-        </view>
+    <!-- 关键指标卡片 -->
+    <view class="rounded-2xl bg-white p-5 shadow-sm">
+      <view class="mb-4">
+        <text class="text-sm text-gray-800 font-semibold">
+          关键指标
+        </text>
       </view>
-
-      <!-- 估值数据 -->
-      <view v-else class="flex-1">
-        <view class="h-25 flex items-center justify-between text-7">
-          <text class="text-gray-500">
-            当前PE
-          </text>
-          <text class="text-gray-800">
-            {{ currentValuationData.pe || '--' }}
-          </text>
+      <view class="grid grid-cols-3 gap-4">
+        <!-- 行情数据 -->
+        <view v-if="tabValue === 'quotation'" class="space-y-2">
+          <view v-if="segmentedValue.quotation === '日内' && configShow" class="text-center">
+            <text class="mb-1 block text-xs text-gray-500">
+              当前价格
+            </text>
+            <text class="text-xl font-bold" :class="getPriceColorClass(currentData.riseFall)">
+              {{ currentData.currentPrice || '--' }}
+            </text>
+          </view>
+          <view v-else class="text-center">
+            <text class="mb-1 block text-xs text-gray-500">
+              后复权收盘价
+            </text>
+            <text class="text-xl font-bold">
+              {{ currentData.quotationData?.[currentData.quotationData?.length - 1]?.f_mkt_close_price_adj || '--' }}
+            </text>
+          </view>
+          <view class="text-center">
+            <text class="mb-1 block text-xs text-gray-500">
+              折溢价率
+            </text>
+            <text class="text-base font-semibold" :class="getPriceColorClass(currentData.premiumRate)">
+              {{ formatPercentage(currentData.premiumRate) }}
+            </text>
+          </view>
         </view>
-        <view class="h-25 flex items-center justify-between text-7">
-          <text class="text-gray-500">
-            当前PB
-          </text>
-          <text class="text-gray-800">
-            {{ currentValuationData.pb || '--' }}
-          </text>
-        </view>
-      </view>
 
-      <!-- 通用数据 -->
-      <view class="flex-1">
-        <view v-if="segmentedValue.quotation !== '日内'" class="h-25 flex items-center justify-between text-7">
-          <text class="text-gray-500">
-            数据日期
-          </text>
-          <text class="text-gray-800">
-            {{ currentData.date }}
-          </text>
+        <!-- 估值数据 -->
+        <view v-else class="space-y-2">
+          <view class="text-center">
+            <text class="mb-1 block text-xs text-gray-500">
+              市盈率 (PE)
+            </text>
+            <text class="text-xl text-blue-600 font-bold">
+              {{ currentValuationData.pe || '--' }}
+            </text>
+          </view>
+          <view class="text-center">
+            <text class="mb-1 block text-xs text-gray-500">
+              市净率 (PB)
+            </text>
+            <text class="text-xl text-orange-600 font-bold">
+              {{ currentValuationData.pb || '--' }}
+            </text>
+          </view>
+          <view class="text-center">
+            <text class="mb-1 block text-xs text-gray-500">
+              股息率
+            </text>
+            <text class="text-base text-green-600 font-semibold">
+              {{ formatPercentage(currentValuationData.dividend_yield) }}
+            </text>
+          </view>
+        </view>
+
+        <!-- 通用数据 -->
+        <view class="space-y-2">
+          <view class="text-center">
+            <text class="mb-1 block text-xs text-gray-500">
+              净资产(亿)
+            </text>
+            <text class="text-lg text-gray-800 font-semibold">
+              {{ formatAssets(currentData.fundNetAssets) }}
+            </text>
+          </view>
+          <view v-if="segmentedValue.quotation !== '日内'" class="text-center">
+            <text class="mb-1 block text-xs text-gray-500">
+              年涨跌幅
+            </text>
+            <text class="text-base font-semibold" :class="getPriceColorClass(currentData.yearRiseFall)">
+              {{ formatPercentage(currentData.yearRiseFall) }}
+            </text>
+          </view>
+        </view>
+        <view class="space-y-2">
+          <view class="text-center">
+            <text class="mb-1 block text-xs text-gray-500">
+              数据日期
+            </text>
+            <text class="text-sm text-gray-700">
+              {{ currentData.date || '--' }}
+            </text>
+          </view>
         </view>
       </view>
     </view>
 
     <!-- 分段选择器 -->
-    <view class="bg-white p-6">
+    <view class="p-2">
       <wd-segmented
         v-if="tabValue === 'quotation'"
         v-model:value="segmentedValue.quotation"
@@ -764,7 +829,7 @@ onUnload(() => {
     </view>
 
     <!-- 图表 -->
-    <view class="h-125 bg-white p-6">
+    <view class="h-80 bg-white p-2">
       <UniEcharts
         v-if="tabValue === 'quotation'"
         :option="quotationOption"
@@ -778,7 +843,7 @@ onUnload(() => {
     </view>
 
     <!-- 图表 Tooltip -->
-    <view v-if="showChartTip" class="bg-white p-5 text-6 text-gray-800">
+    <view v-if="showChartTip" class="bg-white p-5 text-sm text-gray-800">
       <view class="mb-2 font-bold">
         {{ handleData?.name || handleData?.[0]?.name || '' }}
       </view>
@@ -818,20 +883,6 @@ onUnload(() => {
           </text>
         </view>
       </view>
-    </view>
-
-    <!-- 表格 -->
-    <view class="bg-white p-6">
-      <CustomTable
-        v-if="tabValue === 'quotation'"
-        :columns="columns.quotation"
-        :data-source="computedQuotationDataSource"
-      />
-      <CustomTable
-        v-else
-        :columns="columns.valuation"
-        :data-source="computedValuationDataSource"
-      />
     </view>
   </view>
 </template>
