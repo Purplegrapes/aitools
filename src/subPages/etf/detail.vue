@@ -785,7 +785,7 @@ onUnload(() => {
               净资产(亿)
             </text>
             <text class="text-lg text-gray-800 font-semibold">
-              {{ formatAssets(currentData.fundNetAssets) }}
+              {{ currentData.fundNetAssets ? formatAssets(currentData.fundNetAssets) : '--' }}
             </text>
           </view>
           <view v-if="segmentedValue.quotation !== '日内'" class="text-center">

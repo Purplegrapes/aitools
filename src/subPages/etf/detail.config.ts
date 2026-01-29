@@ -1,6 +1,7 @@
 /**
  * ETF 详情页配置
  */
+import { formatAssets } from './data'
 
 /**
  * Tab 配置
@@ -42,6 +43,19 @@ export interface Column {
   format?: (value: any) => string
 }
 
+/**
+ * 格式化百分比（用于表格显示，不乘以100）
+ */
+function formatPercentage(value: number | string | undefined, decimals = 2): string {
+  if (value === null || value === undefined || value === '')
+    return '--'
+  const num = Number(value)
+  if (Number.isNaN(num))
+    return '--'
+  const sign = num > 0 ? '+' : ''
+  return `${sign}${num.toFixed(decimals)}%`
+}
+
 export const columns: Record<TabValue, Column[]> = {
   quotation: [
     { props: 'premiumRate', label: '折溢价率', width: 70, format: v => formatPercentage(v) },
@@ -53,28 +67,4 @@ export const columns: Record<TabValue, Column[]> = {
     { props: 'roe', label: 'ROE(%)', width: 60, format: v => v?.toFixed(2) || '--' },
     { props: 'dividend_yield', label: '股息率(%)', width: 80, format: v => v?.toFixed(2) || '--' },
   ],
-}
-
-// 引入格式化函数
-function formatPercentage(value: number | string | undefined, decimals = 2): string {
-  if (value === null || value === undefined || value === '')
-    return '--'
-  const num = Number(value)
-  if (Number.isNaN(num))
-    return '--'
-  const sign = num > 0 ? '+' : ''
-  return `${sign}${num.toFixed(decimals)}%`
-}
-
-function formatAssets(value: number | string | undefined): string {
-  if (value === null || value === undefined || value === '')
-    return '--'
-  const num = Number(value)
-  if (Number.isNaN(num))
-    return '--'
-  if (num >= 10000 && num < 100000000)
-    return `${(num / 10000).toFixed(2)}万`
-  if (num >= 100000000)
-    return `${(num / 100000000).toFixed(2)}亿`
-  return num.toFixed(2)
 }

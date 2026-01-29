@@ -135,8 +135,8 @@ const { send: fetchRealtime } = useRequest(
       realtimeTimer = null
     }
   }
-}).onError((error) => {
-  console.error('fetchRealtime error:', error)
+}).onError(() => {
+  // Silent error handling - errors are logged by Alova
 })
 
 // ETF列表加载完成后，获取估值数据
@@ -376,9 +376,9 @@ function handleOptionalClick(row: any) {
 </script>
 
 <template>
-  <view class="etf-home">
+  <view class="min-h-screen bg-[#f5f5f5]">
     <!-- 顶部导航 -->
-    <view class="nav-wrapper">
+    <view class="sticky top-0 z-[999] mb-1 bg-white">
       <wd-tabs v-model="activeNav" @click="handleNavChange">
         <wd-tab
           v-for="item in navbarItems"
@@ -390,17 +390,13 @@ function handleOptionalClick(row: any) {
     </view>
 
     <!-- 头部信息 -->
-    <view class="header">
-      <view class="title">
-        <text>ETF估值表</text>
-      </view>
-      <view class="desc">
-        <text>{{ dataDate }}更新</text>
-      </view>
+    <view class="bg-white mb-2 flex items-center justify-between p-12rpx">
+      <text class="font-bold text-base text-[#333]">ETF估值表</text>
+      <text class="text-sm text-[#999]">{{ dataDate }}更新</text>
     </view>
 
     <!-- 分类Tab -->
-    <view class="tabs-wrapper">
+    <view class="sticky top-10 z-[998] mb-2 bg-white">
       <wd-tabs v-model="activeTab" sticky @click="handleTabChange">
         <wd-tab
           v-for="item in visibleTabs"
@@ -412,7 +408,7 @@ function handleOptionalClick(row: any) {
     </view>
 
     <!-- 表格区域 -->
-    <view class="table-wrapper">
+    <view class="min-h-200 bg-white">
       <custom-table
         ref="tableRef"
         :columns="columns"
@@ -426,58 +422,6 @@ function handleOptionalClick(row: any) {
     </view>
 
     <!-- 底部安全区域 -->
-    <view class="safe-area-bottom" />
+    <view class="h-[env(safe-area-inset-bottom)]" />
   </view>
 </template>
-
-<style scoped lang="scss">
-.etf-home {
-  min-height: 100vh;
-  background-color: #f5f5f5;
-
-  .nav-wrapper {
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    background-color: #fff;
-    margin-bottom: 4px;
-  }
-
-  .header {
-    background-color: #fff;
-    padding: 24rpx;
-    margin-bottom: 8rpx;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .title {
-      font-size: 28rpx;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .desc {
-      font-size: 24rpx;
-      color: #999;
-    }
-  }
-
-  .tabs-wrapper {
-    position: sticky;
-    top: 40px;
-    z-index: 998;
-    background-color: #fff;
-    margin-bottom: 8rpx;
-  }
-
-  .table-wrapper {
-    background-color: #fff;
-    min-height: 400rpx;
-  }
-
-  .safe-area-bottom {
-    height: env(safe-area-inset-bottom);
-  }
-}
-</style>
