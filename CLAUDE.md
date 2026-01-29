@@ -2,250 +2,104 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+---
+description: 项目基本信息、工作流和常用命令
+globs: package.json, src/**/*
+alwaysApply: true
+---
 
-This is a **uni-app ETF mini-program** built on the Wot Starter template (based on vitesse-uni-app). It uses Vue 3 + TypeScript + Vite and supports multiple platforms (H5, WeChat Mini Program, Alipay, etc.).
+# 项目信息与工作流
 
-**Tech Stack**: Vue 3 (Composition API), Vite, TypeScript, Pinia, UnoCSS, Wot Design Uni, Alova, @wot-ui/router, ECharts
+## 🚀 快速开始
+- **开发**: `pnpm dev` (H5), `pnpm dev:mp-weixin` (微信小程序)。
+- **构建**: `pnpm build:h5`, `pnpm build:mp-weixin`。
+- **Lint**: `pnpm lint:fix`。
+- **预览**: `dist/` 目录。
 
-## Common Commands
+## 📂 目录结构概览
+- `src/pages`: 应用视图 (基于文件的路由)。
+- `src/components`: 可复用的 UI 组件。
+- `src/store`: Pinia 状态管理模块。
+- `src/api`: Alova.js API 定义。
+- `src/uni_modules`: Uni-app 模块 (包含 wot-design-uni)。
 
-```bash
-# Development (H5 by default)
-pnpm dev                  # H5 development server with Vite proxy
-pnpm dev:mp-weixin        # WeChat Mini Program
-pnpm dev:mp-alipay        # Alipay Mini Program
-pnpm dev:h5:ssr           # H5 with SSR
+## 🤝 Git 工作流
+- **提交**: 符合 Conventional Commits 规范 (`feat:`, `fix:`, `chore:`, `refactor:`)。
+- **主要工具**: `commitizen` (通过 `pnpm commit` 使用)。
 
-# Build for production
-pnpm build                # H5 production build
-pnpm build:mp-weixin      # WeChat Mini Program production
-pnpm build:h5:staging     # H5 staging build
-pnpm build:h5:production  # H5 production build
+## 🛠️ 代码生成
+- **API**: 使用 `pnpm alova-gen` 重新生成 API 定义。
+- **Skills**: 使用 `.agent/skills` 中的 skill 进行脚手架生成:
+    - `pinia-store-generator`
+    - `uni-page-generator`
+    - `alova-api-module`
 
-# Code quality
-pnpm lint                 # Run ESLint
-pnpm lint:fix             # Fix ESLint issues automatically
-pnpm type-check           # Run TypeScript type checking
+---
+description: 核心技术栈、架构和代码规范
+globs: src/store/**/*, src/api/**/*, src/router/**/*, src/pages/**/*, pages.config.ts, alova.config.ts
+alwaysApply: false
+---
 
-# API generation (from OpenAPI spec)
-pnpm alova-gen            # Generate API methods from OpenAPI/Swagger spec
+# 技术栈与架构
 
-# Testing (if configured)
-pnpm test                 # Run tests
-```
+## 🏗️ 架构概览
+本项目采用分层架构：
+- **表现层**: `src/pages` (视图) + `src/components` (UI 逻辑)
+- **状态层**: `src/store` (Pinia)
+- **数据层**: `src/api` (Alova.js)
 
-## Architecture Overview
+## 📦 状态管理 (Pinia)
+- **库**: Pinia
+- **持久化**: 使用 `src/store/persist.ts` 进行本地存储。
+- **模式**: 详见 `pinia-store-generator` skill。
+- **规则**: 始终使用 `defineStore` 并遵循 `use{Name}Store` 的命名规范。
+- **Skill**: 使用 **`pinia-store-generator`** 快速创建新的 store。
 
-### File-Based Routing with SubPackages
+## 🌐 API 层 (Alova.js)
+- **库**: Alova.js
+- **结构**:
+    - `src/api/core`: 拦截器和实例配置。
+    - `src/api/apiDefinitions.ts`: 自动生成的 API 定义。
+- **Mock**: 支持在 `src/api/mock` 中编写 Mock 数据。
+- **Skill**: 使用 **`alova-api-module`** 创建新的 API 模块和 Mock 数据。
 
-Pages are automatically routed based on file structure:
+## 🛣️ 路由
+- **库**: `@wot-ui/router` (API) + `vite-plugin-uni-pages` (文件系统路由)
+- **配置**: `pages.config.ts` 控制 `pages.json` 的生成。
+- **导航**: 使用 `useRouter()` 进行 push/replace/back 操作。
+- **Skill**: 参考 **`wot-router-usage`** 了解导航模式和守卫用法。
+- **Skill**: 使用 **`uni-page-generator`** 创建带路由配置的新页面。
 
-- **Main pages**: `src/pages/` - Generates routes like `/pages/index`
-- **Sub-packages**: `src/subPages/` - Generates routes like `/subPages/etf/index`
-- **Echarts sub-package**: `src/subEcharts/` - Chart demo pages
-- **Async echarts sub-package**: `src/subAsyncEcharts/` - Async-loaded charts
+---
+description: UI/UX 指南、样式规范和组件使用
+globs: **/*.vue, **/*.scss, src/components/**/*, src/uni_modules/**/*, uno.config.ts
+alwaysApply: false
+---
 
-Route configuration is in `src/pages.json` (auto-generated from `pages.config.ts`). Use `definePage()` in component `<script setup>` to set page metadata (name, layout, style).
+# UI 与样式指南
 
-### Layout System
+## 🎨 样式系统
+- **引擎**: UnoCSS (原子化 CSS) 是**首选**的样式方案。
+- **配置**: `uno.config.ts`。
+- **预处理**: SCSS 用于复杂的组件样式（极少需要）。
+- **主题**: 通过 `src/theme.json` 和 CSS 变量支持亮色/暗色模式切换。
 
-Layouts are in `src/layouts/`. Specify layout in page component:
-```vue
-<script setup>
-definePage({
-  layout: 'tabbar'  // Uses src/layouts/tabbar.vue
-})
-</script>
-```
+### UnoCSS 约定
+- 使用工具类: `flex`, `items-center`, `text-primary`, `m-4`.
+- 响应式前缀: `sm:`, `md:` (在移动端优先的 uni-app 中较少使用)。
+- 图标: 通过 UnoCSS preset 使用 `i-carbon-{icon-name}`。
 
-Available layouts: `default`, `tabbar`
+## 🧩 组件库
+- **核心库**: `wot-design-uni` (`wd-` 前缀)。
+- **文档**: [wot-design-uni](https://wot-ui.cn).
+- **自定义组件**: 在 `src/components` 中创建。
 
-### Auto-Import System
+## 📢 全局反馈
+- **Toast/Message**: 请勿直接使用 `uni.showToast`。
+- **标准**: 使用 `GlobalToast`, `GlobalMessage`, `GlobalLoading` 组件。
+- **Skill**: 参考 **`global-feedback`** skill 查看使用示例。
 
-**Components** (from `src/components/`, `src/business/`) and **composables** (from `src/composables/`) are auto-imported via `unplugin-auto-import` and `@uni-helper/vite-plugin-uni-components`.
-
-Wot Design Uni components (prefix: `wd-`) and uni-echarts components are also auto-imported.
-
-**No need to manually import**:
-- Vue APIs (ref, computed, reactive, etc.)
-- VueUse composables
-- Pinia APIs (defineStore, store functions)
-- uni-app lifecycle (onLaunch, onShow, etc.)
-- Router APIs (useRouter, useRoute)
-- Wot Design composables (useToast, useMessage, useNotify)
-- Alova composables (useRequest, usePagination)
-- All files from `src/composables/`, `src/store/`, `src/utils/`, `src/api/`
-
-### API Layer (Alova)
-
-**Architecture**: `alovaInstance` → `beforeRequest hook` → `uniapp adapter` → `mock adapter (optional)` → `response handlers` → `API modules`
-
-**Key files**:
-- `src/api/core/instance.ts` - Main Alova instance with hooks
-- `src/api/core/handlers.ts` - Response/error handlers (401/403 redirects)
-- `src/api/core/middleware.ts` - Delay loading and global loading middleware
-- `src/api/mock/` - Mock adapter with simulated network delay
-
-**Base URL**:
-- H5: Empty (uses Vite proxy to `https://cngz.yhlsd.com`)
-- Other platforms: `VITE_API_BASE_URL` environment variable
-
-**Adding new API endpoints**: Create functions in `src/api/modules/` using the pattern:
-```typescript
-export function functionName(params) {
-  return alovaInstance.Method(url, params)
-}
-```
-
-**Using `useRequest` for API calls**:
-Always use Alova's `useRequest` composable for data fetching:
-```typescript
-// Simple request
-const { data, loading, error, send } = useRequest(apiFunction(), {
-  immediate: false,
-})
-
-// Request with parameters
-const { send: fetchDetail } = useRequest(
-  (id: string) => getDetail(id),
-  { immediate: false },
-)
-
-// Manual trigger
-await send()
-await fetchDetail('123')
-```
-
-### Theme System (Dual Mode)
-
-**1. System Theme** (`useTheme()`): Lightweight, follows system theme only
-**2. Manual Theme** (`useManualTheme()`): Full control with light/dark toggle + theme color selection
-
-Theme colors are defined via CSS variables and `theme.json` for native platform styling.
-
-### Conditional Compilation
-
-Use uni-app conditional compilation for platform-specific code:
-```typescript
-// #ifdef H5
-// H5-only code
-// #endif
-
-// #ifdef MP-WEIXIN
-// WeChat Mini Program only
-// #endif
-
-// #ifndef H5
-// All platforms EXCEPT H5
-// #endif
-```
-
-### Root Component (uni-ku)
-
-This project uses `uni-ku/root` which replaces traditional `App.vue` with `App.ku.vue`. Global providers and components are defined here, not in App.vue.
-
-## Key Configuration Files
-
-| File | Purpose |
-|------|---------|
-| `vite.config.ts` | Build config, plugins, proxy, auto-imports |
-| `pages.config.ts` | Page routing, tab bar, global styles |
-| `manifest.config.ts` | Platform-specific app configuration |
-| `uno.config.ts` | Atomic CSS engine configuration |
-| `alova.config.ts` | OpenAPI-to-API generator settings |
-| `src/theme.json` | Native theme colors for light/dark modes |
-
-## State Management (Pinia)
-
-Stores are in `src/store/`. All stores except `temp` are automatically persisted via `uni.setStorageSync()`.
-
-Key stores:
-- `useUserStore` - User authentication and data
-- `useManualThemeStore` - Manual theme control
-- `useThemeStore` - System theme (auto-detect)
-- Global UI stores: toast, message, loading
-
-## Environment Variables
-
-- `.env.development` - Development environment
-- `.env.staging` - Staging environment
-- `.env.production` - Production environment
-
-Variables: `VITE_API_BASE_URL`, `VITE_ENV_NAME`
-
-## Platform-Specific Notes
-
-**WeChat Mini Program (MP-WEIXIN)**:
-- Privacy popup appears on first launch (`src/components/PrivacyPopup.vue`)
-- Dark mode enabled via `theme.json`
-- SubPackages optimization enabled
-
-**H5**:
-- Vite proxy handles `/api` and `/djapi` endpoints
-- Full router functionality available
-
-## Coding Standards
-
-### Styling with UnoCSS
-
-**Use UnoCSS for all styling** - This is an atomic CSS engine. Do not use SCSS or CSS modules.
-
-**UnoCSS conventions**:
-```vue
-<!-- ✅ Correct - Use UnoCSS utility classes -->
-<view class="flex items-center justify-between p-4 bg-white">
-  <text class="text-gray-800 text-16">Content</text>
-</view>
-
-<!-- ❌ Wrong - Do not use SCSS -->
-<style lang="scss" scoped>
-.container {
-  display: flex;
-  padding: 16rpx;
-}
-</style>
-```
-
-**Common UnoCSS patterns**:
-| Layout | `flex`, `grid`, `items-center`, `justify-between`, `gap-4` |
-| Spacing | `p-4` (padding), `m-4` (margin), `gap-4` (gap) |
-| Colors | `bg-white`, `text-gray-800`, `border-gray-200` |
-| Sizing | `w-full`, `h-100`, `min-h-screen` |
-| Typography | `text-14`, `font-bold`, `text-center` |
-| Borders | `border`, `border-b`, `rounded-lg` |
-| Positioning | `relative`, `absolute`, `sticky`, `z-10` |
-
-**Responsive units**:
-- Use `rpx` for responsive sizing: `text-24rpx`
-- Use `text-XX` where XX = fontSize/2 (e.g., `text-14` = 28rpx)
-
-### Data Fetching with Alova
-
-**Always use `useRequest` composable** for API calls:
-```typescript
-// Simple request with manual trigger
-const { data, loading, send } = useRequest(apiFunction(), {
-  immediate: false,
-})
-
-// Request with dynamic parameters
-const { send: fetchDetail } = useRequest(
-  (id: string) => getDetail(id),
-  { immediate: false },
-)
-
-// Trigger the request
-await send()
-await fetchDetail('123')
-
-// Watch data changes
-watch(data, (newData) => {
-  console.log('Data updated:', newData)
-})
-```
-
-**Available hooks**:
-- `useRequest` - Single request
-- `usePagination` - Paginated requests
-- `useFetcher` - Manual request management
+## 📱 布局
+- **系统**: `vite-plugin-uni-layouts`。
+- **默认**: `src/layouts/default.vue`。
+- **TabBar**: `src/layouts/tabbar.vue`。

@@ -40,13 +40,13 @@ export interface Column {
   fixed?: boolean
   align?: string
   show?: boolean
-  format?: (value: any) => string
+  format?: (value: unknown) => string
 }
 
 /**
  * 格式化百分比（用于表格显示，不乘以100）
  */
-function formatPercentage(value: number | string | undefined, decimals = 2): string {
+function formatPercentage(value: unknown, decimals = 2): string {
   if (value === null || value === undefined || value === '')
     return '--'
   const num = Number(value)
@@ -56,15 +56,27 @@ function formatPercentage(value: number | string | undefined, decimals = 2): str
   return `${sign}${num.toFixed(decimals)}%`
 }
 
+/**
+ * 格式化数字
+ */
+function formatNumber(value: unknown, decimals = 2): string {
+  if (value === null || value === undefined || value === '')
+    return '--'
+  const num = Number(value)
+  if (Number.isNaN(num))
+    return '--'
+  return num.toFixed(decimals)
+}
+
 export const columns: Record<TabValue, Column[]> = {
   quotation: [
     { props: 'premiumRate', label: '折溢价率', width: 70, format: v => formatPercentage(v) },
-    { props: 'fundNetAssets', label: '净资产(亿)', width: 80, format: v => v?.toFixed(2) || '--' },
-    { props: 'tradeAmountIntraDay', label: '成交额', width: 70, format: v => formatAssets(v) },
+    { props: 'fundNetAssets', label: '净资产(亿)', width: 80, format: v => formatNumber(v) },
+    { props: 'tradeAmountIntraDay', label: '成交额', width: 70, format: v => formatAssets(v as number | null | undefined) },
     { props: 'riseFall', label: '涨跌幅', width: 60, format: v => formatPercentage(v) },
   ],
   valuation: [
-    { props: 'roe', label: 'ROE(%)', width: 60, format: v => v?.toFixed(2) || '--' },
-    { props: 'dividend_yield', label: '股息率(%)', width: 80, format: v => v?.toFixed(2) || '--' },
+    { props: 'roe', label: 'ROE(%)', width: 60, format: v => formatNumber(v) },
+    { props: 'dividend_yield', label: '股息率(%)', width: 80, format: v => formatNumber(v) },
   ],
 }

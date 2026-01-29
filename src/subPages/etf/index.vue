@@ -1,4 +1,13 @@
 <script setup lang="ts">
+import type {
+  ApiResponse,
+  CategoryData,
+  EtfInfo,
+  PerformanceData,
+  RealtimeData,
+  ValuationData,
+  WotTabEvent,
+} from './types'
 import { calculateTabScrollPositions, mergeAllColumns, navbar } from './data'
 
 definePage({
@@ -45,14 +54,14 @@ const etfList = computed(() => etfListData.value?.data || [])
 /**
  * 业绩数据
  */
-const performanceData = ref<Record<string, any>>({})
+const performanceData = ref<PerformanceData>({})
 
 /**
  * 获取业绩数据
  */
 const { send: fetchPerformanceData } = useRequest(
   () => {
-    const codes = etfList.value.map((item: any) => `${item.code}`)
+    const codes = etfList.value.map((item: EtfInfo) => `${item.code}`)
     const factorCodes = [
       'f_mkt_return_1w',
       'f_mkt_return_1m',
@@ -73,13 +82,13 @@ const { send: fetchPerformanceData } = useRequest(
     immediate: false,
   },
 ).onSuccess((res) => {
-  performanceData.value = (res.data as any) || {}
+  performanceData.value = (res.data as PerformanceData) || {}
 })
 
 /**
  * 估值数据
  */
-const valuationData = ref([])
+const valuationData = ref<ValuationData[]>([])
 
 /**
  * 获取估值数据
@@ -95,7 +104,7 @@ const { send: fetchValuationData } = useRequest(
     immediate: false,
   },
 ).onSuccess((res) => {
-  valuationData.value = (res as any)?.data?.data.valuations || []
+  valuationData.value = (res as ApiResponse & { data?: { data?: { valuations?: ValuationData[] } } })?.data?.data?.valuations || []
   // 获取完估值数据后，获取业绩数据
   fetchPerformanceData()
 })
@@ -103,7 +112,7 @@ const { send: fetchValuationData } = useRequest(
 /**
  * 实时行情数据
  */
-const realtimeData = ref([])
+const realtimeData = ref<RealtimeData[]>([])
 
 /**
  * 定时器引用
@@ -116,7 +125,7 @@ let realtimeTimer: ReturnType<typeof setInterval> | null = null
 const { send: fetchRealtime } = useRequest(
   () => {
     const params = {
-      securityCodes: etfList.value.map((item: any) => item.code),
+      securityCodes: etfList.value.map((item: EtfInfo) => item.code),
       assetType: 'ETF',
     }
     return (Apis as any).etf.realtime({
@@ -127,9 +136,10 @@ const { send: fetchRealtime } = useRequest(
     immediate: false,
   },
 ).onSuccess((res) => {
-  realtimeData.value = (res as any)?.data || []
+  const data = (res as ApiResponse<RealtimeData[]>)?.data
+  realtimeData.value = data || []
   // 如果交易状态为false，停止定时器
-  if ((res as any)?.[0]?.tradeInfo?.status === false) {
+  if (data?.[0]?.tradeInfo?.status === false) {
     if (realtimeTimer) {
       clearInterval(realtimeTimer)
       realtimeTimer = null
@@ -172,9 +182,9 @@ const {
  * 分类列表
  */
 const categoryList = computed(() => {
-  const data = categoryData.value?.data || []
+  const data = (categoryData.value?.data as CategoryData[]) || []
   return [
-    ...data.map((item: any) => ({
+    ...data.map((item: CategoryData) => ({
       name: item.code,
       code: item.code,
       label: item.name,
@@ -238,18 +248,18 @@ const filteredList = computed(() => {
   const filtered = activeTab.value === 'all'
     ? list
     : activeTab.value === 'watchlist'
-      ? list.filter((item: any) => item.watchList)
-      : list.filter((item: any) => item.categoryCode === activeTab.value)
+      ? list.filter((item: EtfInfo) => item.watchList)
+      : list.filter((item: EtfInfo) => item.categoryCode === activeTab.value)
 
   // 合并估值和业绩数据
-  return filtered.map((item: any) => {
+  return filtered.map((item: EtfInfo) => {
     // 使用 trackIndexCode 从估值数据中获取对应的估值信息
-    const valuation = valuationData.value?.find((it: any) => it.index_code === item.trackIndexCode)
+    const valuation = valuationData.value?.find((it: ValuationData) => it.index_code === item.trackIndexCode)
     const perfKey = `${item.code}`
     const performance = performanceData.value
-    const realData = realtimeData.value.find((it: any) => it?.code === item?.code) || {}
+    const realData = realtimeData.value.find((it: RealtimeData) => it?.code === item?.code) || {}
     // 合并业绩数据
-    const performanceFields: Record<string, any> = {}
+    const performanceFields: Partial<PerformanceData> = {}
     if (performance.f_mkt_return_1w?.[perfKey] !== undefined)
       performanceFields.f_mkt_return_1w = performance.f_mkt_return_1w[perfKey]
     if (performance.f_mkt_return_1m?.[perfKey] !== undefined)
@@ -278,10 +288,10 @@ const visibleTabs = computed(() => {
   const list = etfList.value || []
   return categoryList.value.filter((tab) => {
     if (tab.name === 'watchlist')
-      return list.some((item: any) => item.watchList)
+      return list.some((item: EtfInfo) => item.watchList)
     if (tab.name === 'all')
       return true
-    return list.some((item: any) => item.categoryCode === tab.name)
+    return list.some((item: EtfInfo) => item.categoryCode === tab.name)
   })
 })
 
@@ -311,8 +321,8 @@ function handleScrollChange(value: number) {
 /**
  * 导航切换 - 滚动到对应位置
  */
-function handleNavChange({ name }: any) {
-  activeNav.value = name
+function handleNavChange({ name }: WotTabEvent) {
+  activeNav.value = name as 'quotation' | 'valuation' | 'performance' | 'rate'
   // 滚动到对应 tab 的位置
   const targetScrollLeft = tabScrollPositions.value[name as keyof typeof tabScrollPositions.value] || 0
   scrollLeft.value = targetScrollLeft
@@ -324,14 +334,14 @@ function handleNavChange({ name }: any) {
 /**
  * 分类Tab切换
  */
-function handleTabChange({ name }: any) {
+function handleTabChange({ name }: WotTabEvent) {
   activeTab.value = name
 }
 
 /**
  * 行点击 - 跳转详情
  */
-function handleRowClick(row: any) {
+function handleRowClick(row: EtfInfo & RealtimeData) {
   router.push({
     path: '/subPages/etf/detail',
     query: {
@@ -346,7 +356,7 @@ function handleRowClick(row: any) {
 /**
  * 自选按钮点击 - 使用 useRequest
  */
-function handleOptionalClick(row: any) {
+function handleOptionalClick(row: EtfInfo) {
   const requestFn = row.watchList
     ? () => (Apis as any).etf.watchlistDel({ pathParams: { code: row.code } })
     : () => (Apis as any).etf.watchlistAdd({ data: { code: row.code } })
@@ -354,21 +364,21 @@ function handleOptionalClick(row: any) {
   const { send } = useRequest(requestFn, {
     immediate: true,
   }).onSuccess((res) => {
-    const data = (res as any)?.data
+    const data = (res as ApiResponse<{ success?: boolean }>)?.data
     if (data?.success) {
       GlobalToast.success(row.watchList ? '移除自选成功' : '添加自选成功')
       // 直接更新本地状态
-      const list = etfListData.value?.data
-      const index = list?.findIndex((item: any) => item.code === row.code)
+      const list = etfListData.value?.data as EtfInfo[] | undefined
+      const index = list?.findIndex((item: EtfInfo) => item.code === row.code)
       if (index !== undefined && index >= 0) {
         list[index].watchList = !row.watchList
       }
     }
     else {
-      GlobalToast.error((res as any)?.msg || '操作失败')
+      GlobalToast.error((res as ApiResponse)?.msg || '操作失败')
     }
   }).onError((error) => {
-    GlobalToast.error(error.error?.message || '操作失败')
+    GlobalToast.error((error as ApiResponse)?.error?.message || '操作失败')
   })
 
   send()
@@ -390,9 +400,13 @@ function handleOptionalClick(row: any) {
     </view>
 
     <!-- 头部信息 -->
-    <view class="bg-white mb-2 flex items-center justify-between p-12rpx">
-      <text class="font-bold text-base text-[#333]">ETF估值表</text>
-      <text class="text-sm text-[#999]">{{ dataDate }}更新</text>
+    <view class="mb-2 flex items-center justify-between bg-white p-12rpx">
+      <text class="text-base text-[#333] font-bold">
+        ETF估值表
+      </text>
+      <text class="text-sm text-[#999]">
+        {{ dataDate }}更新
+      </text>
     </view>
 
     <!-- 分类Tab -->
