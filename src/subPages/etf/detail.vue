@@ -1,165 +1,837 @@
 <script setup lang="ts">
+/**
+ * ETF 详情页
+ * 展示 ETF 的行情和估值数据
+ */
+import type { EChartsOption } from 'echarts'
+import type { TabValue } from './detail.config'
+import {
+  etfInfo,
+  factorExposure,
+  realtime,
+  realtimeLine,
+  showQuote,
+  valuationShow,
+} from '@/api/modules/etf'
+import { calculatePreviousDates, formatAssets, formatPercentage, formatRiseFall } from '@/utils/format'
+import { columns, segmentedList, tabs } from './detail.config'
+
 definePage({
   name: 'etf-detail',
   layout: 'default',
   style: {
-    navigationBarTitleText: 'ETF 详情',
+    navigationBarTitleText: 'ETF详情',
   },
 })
 
-const router = useRouter()
+const route = useRoute()
 
-/**
- * 获取路由参数
- */
-const query = computed(() => router.currentRoute.value.query as { code?: string })
-const code = computed(() => query.value.code || '')
-
-/**
- * ETF 详情数据
- */
-const etfDetail = ref({
-  code: '588110',
-  name: '中证1000ETF',
-  price: 4.256,
-  change: 0.015,
-  changePercent: 0.35,
-  netValue: 4.255,
-  discount: 0.02,
-  scale: 125.6,
-  day1: 0.5,
-  month1: 2.3,
-  month3: 5.6,
-  month6: 12.3,
-  year1: 18.5,
+// ==================== 路由参数 ====================
+const query = computed(() => route.query as {
+  code?: string
+  name?: string
+  djId?: string
+  date?: string
 })
 
-/**
- * 涨跌颜色
- */
-function getChangeColor(value: number) {
-  return value > 0 ? 'text-red-500' : value < 0 ? 'text-green-500' : 'text-gray-500'
+// ==================== 状态 ====================
+const tabValue = ref<TabValue>('quotation')
+const collapseValue = ref<string[]>([])
+const showChartTip = ref(false)
+const handleData = ref<any>(null)
+
+// 分段选择器值
+const segmentedValue = ref<Record<string, string>>({
+  quotation: '1年',
+  valuation: '1年',
+})
+
+// 当前日期
+const currentDate = ref('')
+
+// 定时器
+let timer: ReturnType<typeof setInterval> | null = null
+let tooltipTimer: ReturnType<typeof setTimeout> | null = null
+
+// ==================== API 请求 (useRequest) ====================
+// 显示报价配置
+const { data: configData, send: fetchShowQuote } = useRequest(showQuote(), {
+  immediate: false,
+})
+
+// ETF 信息
+const etfCode = ref('')
+const { data: etfInfoData, send: fetchEtfInfo } = useRequest(
+  () => etfInfo(etfCode.value),
+  { immediate: false },
+)
+
+// 历史行情数据
+const factorParams = ref<any>(null)
+const { data: factorData, send: fetchFactorExposure } = useRequest(
+  () => factorExposure(factorParams.value),
+  { immediate: false },
+)
+
+// 实时分钟行情
+const realtimeCode = ref('')
+const { data: realtimeLineData, send: fetchRealtimeLineData } = useRequest(
+  () => realtimeLine(realtimeCode.value),
+  { immediate: false },
+)
+
+// 实时数据
+const realtimeParams = ref<any>(null)
+const { data: realtimeData, send: fetchRealtimeData } = useRequest(
+  () => realtime(realtimeParams.value),
+  { immediate: false },
+)
+
+// 估值数据
+const valuationId = ref<string | number>('')
+const { data: valuationData, send: fetchValuationShow } = useRequest(
+  () => valuationShow(valuationId.value),
+  { immediate: false },
+)
+
+// ==================== 计算属性 ====================
+// 配置显示状态
+const configShow = computed(() => {
+  if (configData.value?.success === true) {
+    return configData.value?.data ?? false
+  }
+  return false
+})
+
+// 动态分段列表
+const dynamicSegmentedList = computed(() => {
+  if (configShow.value) {
+    return segmentedList as unknown as Record<TabValue, Array<{ label: string, value: string, key: string }>>
+  }
+  return {
+    quotation: segmentedList.quotation.filter(item => item.key !== 'day'),
+    valuation: segmentedList.valuation,
+  } as unknown as Record<TabValue, Array<{ label: string, value: string, key: string }>>
+})
+
+// 处理后的历史行情数据
+const processedFactorData = computed(() => {
+  if (!factorData.value?.dates)
+    return []
+
+  const newData = factorData.value.dates?.map((item: string, index: number) => {
+    const data: any = {}
+    factorData.value.factorExposures?.forEach((it: any) => {
+      data[it.factorCode] = it.values[index]
+    })
+    return {
+      name: item,
+      value: [item, data?.f_mkt_close_price_adj],
+      ...data,
+    }
+  })
+
+  return newData
+})
+
+// 处理后的实时分钟行情数据
+const processedRealtimeLineData = computed(() => {
+  if (!realtimeLineData.value || !realtimeData.value)
+    return []
+
+  const res = realtimeLineData.value as any
+  const real = realtimeData.value as any
+
+  if (!Array.isArray(res))
+    return []
+
+  const result = res?.map((item: any) => {
+    return {
+      name: item.timestamp?.split(' ')?.[1],
+      date: item.timestamp?.split(' ')?.[0],
+      value: [item.timestamp?.split(' ')?.[1], item.currentPrice],
+      riseFall: item?.currentPrice / real?.[0]?.preClosePrice - 1,
+      tradeAmountIntraDay: item?.tradeAmountIntraDay,
+      currentPrice: item.currentPrice,
+    }
+  }) ?? []
+  return result
+})
+
+// 当前数据（合并所有数据源）
+const currentData = computed(() => {
+  const base: any = {
+    code: etfCode.value,
+    name: '',
+    currentPrice: 0,
+    premiumRate: realtimeData.value?.[0]?.premiumRate || 0,
+    fundNetAssets: 0,
+    tradeAmountIntraDay: 0,
+    riseFall: 0,
+    yearRiseFall: 0,
+    date: currentDate.value,
+    dayData: processedRealtimeLineData.value,
+    quotationData: processedFactorData.value,
+    f_mkt_amount: processedFactorData.value?.[processedFactorData.value?.length - 1]?.f_mkt_amount,
+    f_mkt_close_price: processedFactorData.value?.[processedFactorData.value?.length - 1]?.f_mkt_close_price_adj,
+  }
+
+  if (etfInfoData.value?.success === true && etfInfoData.value?.data) {
+    Object.assign(base, etfInfoData.value.data)
+  }
+
+  if (processedRealtimeLineData.value.length > 0) {
+    const lastData = processedRealtimeLineData.value[processedRealtimeLineData.value.length - 1]
+    base.currentPrice = lastData.currentPrice
+    base.riseFall = lastData.riseFall
+    base.tradeAmountIntraDay = lastData.tradeAmountIntraDay
+  }
+
+  return base
+})
+
+// 当前估值数据
+const currentValuationData = computed(() => {
+  // API 可能直接返回数组，或者返回 {result_code: 0, data: {...}} 格式
+  if (Array.isArray(valuationData.value)) {
+    // API 直接返回数组，取第一个元素作为估值数据
+    return valuationData.value?.[0] ?? {}
+  }
+  if (valuationData.value?.result_code === 0) {
+    return valuationData.value?.data ?? {}
+  }
+  return {}
+})
+
+// 表格数据源
+const computedQuotationDataSource = computed(() => {
+  const data = currentData.value
+  const base: any = {
+    premiumRate: data?.premiumRate,
+    fundNetAssets: data?.fundNetAssets,
+  }
+
+  if (segmentedValue.value.quotation === '日内') {
+    return [{
+      ...base,
+      tradeAmountIntraDay: data?.tradeAmountIntraDay,
+      riseFall: data?.riseFall,
+    }]
+  }
+  else {
+    return [{
+      ...base,
+      tradeAmountIntraDay: data?.f_mkt_amount,
+      riseFall: data?.yearRiseFall,
+    }]
+  }
+})
+
+const computedValuationDataSource = computed(() => {
+  const data = currentValuationData.value
+  return [{
+    roe: data?.roe,
+    dividend_yield: data?.dividend_yield,
+  }]
+})
+
+// ==================== 图表配置 ====================
+const quotationOption = ref<EChartsOption>({
+  color: ['#FCCA01'],
+  grid: { bottom: '10%', right: '5%' },
+  legend: { show: false },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: { animation: false },
+    formatter: (params: any) => {
+      handleData.value = params?.[0]?.data
+      showChartTip.value = true
+      if (tooltipTimer)
+        clearTimeout(tooltipTimer)
+      tooltipTimer = setTimeout(() => {
+        showChartTip.value = false
+      }, 3000)
+      return ''
+    },
+  },
+  xAxis: [{
+    type: 'category',
+    splitLine: { show: false },
+    boundaryGap: ['0%', '0%'],
+    axisLabel: {
+      formatter: (v: string) => {
+        if (segmentedValue.value.quotation === '日内') {
+          const parts = v.split(':')
+          return `${parts[0]}:${parts[1]}`
+        }
+        else {
+          const parts = v?.split('-')
+          return `${parts[0]}-${parts[1]}`
+        }
+      },
+    },
+  }],
+  yAxis: [{
+    type: 'value',
+    name: '当前价格',
+    min: 'dataMin',
+    splitLine: { show: false },
+  }],
+  series: [{
+    name: '当前价格',
+    type: 'line',
+    showSymbol: false,
+    smooth: true,
+    data: [],
+    lineStyle: { width: 1 },
+  }],
+})
+
+const valuationOption = ref<EChartsOption>({
+  grid: { bottom: '15%' },
+  color: ['#4095E5', '#FCCA01'],
+  legend: { bottom: '5', icon: 'rect', show: true },
+  tooltip: {
+    trigger: 'axis',
+    formatter: (params: any) => {
+      handleData.value = params
+      showChartTip.value = true
+      if (tooltipTimer)
+        clearTimeout(tooltipTimer)
+      tooltipTimer = setTimeout(() => {
+        showChartTip.value = false
+      }, 3000)
+      return ''
+    },
+  },
+  xAxis: [{
+    type: 'time',
+    splitLine: { show: false },
+    boundaryGap: ['0%', '0%'],
+    splitNumber: 5,
+    min: 'dataMin',
+    axisLabel: {
+      formatter: { year: '{yyyy}', month: '{yyyy}-{MM}' },
+    },
+  }],
+  yAxis: [
+    {
+      type: 'value',
+      position: 'left',
+      name: '市盈率',
+      min: 'dataMin',
+      splitLine: { show: false },
+    },
+    {
+      type: 'value',
+      name: '市净率',
+      position: 'right',
+      min: 'dataMin',
+      splitLine: { show: false },
+    },
+  ],
+  series: [
+    {
+      name: '市盈率',
+      type: 'line',
+      showSymbol: false,
+      smooth: true,
+      data: [],
+      lineStyle: { width: 1 },
+    },
+    {
+      name: '市净率',
+      type: 'line',
+      showSymbol: false,
+      smooth: true,
+      data: [],
+      lineStyle: { width: 1 },
+    },
+  ],
+})
+
+// ==================== 图表更新 ====================
+function computesQuotationOption() {
+  const key = segmentedValue.value.quotation
+  const newData = currentData.value.quotationData
+
+  // 数据校验：如果是日内，需要 dayData；否则需要 quotationData
+  if (key === '日内') {
+    if (!currentData.value.dayData || currentData.value.dayData.length === 0)
+      return
+  }
+  else {
+    if (!newData || newData.length === 0)
+      return
+  }
+
+  if (key === '日内') {
+    quotationOption.value.series = [{
+      name: '当前价格',
+      type: 'line',
+      showSymbol: false,
+      smooth: true,
+      data: currentData.value.dayData,
+      lineStyle: { width: 1 },
+    }]
+    quotationOption.value.yAxis = [{
+      type: 'value',
+      name: '当前价格',
+      min: 'dataMin',
+      splitLine: { show: false },
+    }]
+    quotationOption.value.xAxis = [{
+      type: 'category',
+      splitLine: { show: false },
+      boundaryGap: ['0%', '0%'],
+      axisLabel: {
+        formatter: (v: string) => {
+          const parts = v.split(':')
+          return `${parts[0]}:${parts[1]}`
+        },
+      },
+      data: currentData.value.dayData?.map((item: any) => item?.name),
+    }]
+  }
+  else if (key === '全部') {
+    const riseFallData = formatRiseFall(newData)
+    quotationOption.value.series = [{
+      name: '后复权价',
+      type: 'line',
+      showSymbol: false,
+      smooth: true,
+      data: riseFallData,
+      lineStyle: { width: 1 },
+    }]
+    quotationOption.value.yAxis = [{
+      type: 'value',
+      name: '后复权价',
+      min: 'dataMin',
+      splitLine: { show: false },
+    }]
+    quotationOption.value.xAxis = [{
+      type: 'category',
+      splitLine: { show: false },
+      boundaryGap: ['0%', '0%'],
+      axisLabel: {
+        formatter: (v: string) => {
+          const parts = v?.split('-')
+          return `${parts[0]}-${parts[1]}`
+        },
+      },
+      data: riseFallData?.map((item: any) => item?.name),
+    }]
+  }
+  else {
+    const i = segmentedList.quotation.find(item => item.value === key)?.key
+    const date = calculatePreviousDates(currentData.value.date)[i as keyof ReturnType<typeof calculatePreviousDates>]
+    const index = newData?.findIndex((item: any) => item.name > date)
+
+    if (index !== -1) {
+      const riseFallData = formatRiseFall(newData.slice(index))
+      quotationOption.value.series = [{
+        name: '后复权价',
+        type: 'line',
+        showSymbol: false,
+        smooth: true,
+        data: riseFallData,
+        lineStyle: { width: 1 },
+      }]
+      quotationOption.value.yAxis = [{
+        type: 'value',
+        name: '后复权价',
+        min: 'dataMin',
+        splitLine: { show: false },
+      }]
+      quotationOption.value.xAxis = [{
+        type: 'category',
+        splitLine: { show: false },
+        boundaryGap: ['0%', '0%'],
+        axisLabel: {
+          formatter: (v: string) => {
+            const parts = v?.split('-')
+            return `${parts[0]}-${parts[1]}`
+          },
+        },
+        data: riseFallData?.map((item: any) => item?.name),
+      }]
+    }
+  }
+
+  quotationOption.value = { ...quotationOption.value }
 }
 
-/**
- * 返回首页
- */
-function goBack() {
-  router.back()
+function computesValuationOption() {
+  const key = segmentedValue.value.valuation
+
+  const pbTrends = currentValuationData.value?.pb_trends?.map((item: any) => ({
+    ...item,
+    name: item.time,
+    value: [item.time, item.pb],
+  }))
+
+  const peTrends = currentValuationData.value?.pe_trends?.map((item: any) => ({
+    ...item,
+    name: item.time,
+    value: [item.time, item.pe],
+  }))
+
+  // 数据校验
+  if (!pbTrends || pbTrends.length === 0 || !peTrends || peTrends.length === 0)
+    return
+
+  if (key === '全部') {
+    valuationOption.value.series = [
+      {
+        name: '市盈率',
+        type: 'line',
+        showSymbol: false,
+        smooth: true,
+        data: peTrends,
+        lineStyle: { width: 1 },
+      },
+      {
+        name: '市净率',
+        type: 'line',
+        showSymbol: false,
+        smooth: true,
+        data: pbTrends,
+        lineStyle: { width: 1 },
+      },
+    ]
+  }
+  else {
+    const i = segmentedList.valuation.find(item => item.value === key)?.key
+    const date = calculatePreviousDates(currentData.value.date)[i as keyof ReturnType<typeof calculatePreviousDates>]
+
+    const peIndex = peTrends?.findIndex((item: any) => item.name > date)
+    const pbIndex = pbTrends?.findIndex((item: any) => item.name > date)
+
+    const newPbTrends = formatRiseFall(pbTrends?.slice(pbIndex))
+    const newPeTrends = formatRiseFall(peTrends?.slice(peIndex))
+
+    valuationOption.value.series = [
+      {
+        name: '市盈率',
+        type: 'line',
+        showSymbol: false,
+        smooth: true,
+        data: newPeTrends,
+        lineStyle: { width: 1 },
+      },
+      {
+        name: '市净率',
+        type: 'line',
+        showSymbol: false,
+        smooth: true,
+        data: newPbTrends,
+        lineStyle: { width: 1 },
+      },
+    ]
+  }
+
+  valuationOption.value = { ...valuationOption.value }
 }
+
+// ==================== 事件处理 ====================
+function handleTabsChange({ name }: { name: TabValue }) {
+  showChartTip.value = false
+
+  if (name === 'quotation') {
+    timer = setInterval(() => {
+      fetchRealtimeLineData()
+      realtimeParams.value = {
+        securityCodes: [currentData.value.code],
+        assetType: 'ETF',
+      }
+      fetchRealtimeData()
+    }, 15000)
+    computesQuotationOption()
+  }
+  else {
+    if (timer) {
+      clearInterval(timer)
+      timer = null
+    }
+    computesValuationOption()
+  }
+}
+
+function handleQuotationSegmentedClick() {
+  computesQuotationOption()
+}
+
+function handleValuationSegmentedClick() {
+  computesValuationOption()
+}
+
+// ==================== 数据加载函数 ====================
+function loadEtfData(code: string) {
+  etfCode.value = code
+  fetchEtfInfo()
+}
+
+function loadFactorData(code: string) {
+  factorParams.value = {
+    securityCode: code,
+    factorCodes: [
+      'f_mkt_close_price',
+      'f_mkt_close_price_adj',
+      'f_mkt_day_yield',
+      'f_mkt_amount',
+    ],
+    from: '2000-01-01',
+    to: currentDate.value,
+  }
+  fetchFactorExposure()
+}
+
+function loadRealtimeData(code: string) {
+  realtimeCode.value = code
+  fetchRealtimeLineData()
+  realtimeParams.value = {
+    securityCodes: [code],
+    assetType: 'ETF',
+  }
+  fetchRealtimeData()
+}
+
+// ==================== 生命周期 ====================
+onMounted(() => {
+  if (query.value.name) {
+    uni.setNavigationBarTitle({
+      title: query.value.name,
+    })
+  }
+
+  const { code, djId, date } = query.value
+  if (code) {
+    currentDate.value = date || new Date().toISOString().split('T')[0]
+
+    fetchShowQuote()
+    loadEtfData(code)
+    loadFactorData(code)
+    loadRealtimeData(code)
+
+    if (djId) {
+      valuationId.value = djId
+      fetchValuationShow()
+    }
+  }
+})
+
+// 监听数据变化，更新图表
+watch([processedFactorData, processedRealtimeLineData, currentValuationData], ([factor, realtime, valuation]) => {
+  if (tabValue.value === 'quotation') {
+    // 检查数据是否就绪
+    const key = segmentedValue.value.quotation
+    const hasDayData = realtime && realtime.length > 0
+    const hasHistoryData = factor && factor.length > 0
+
+    if (key === '日内' && !hasDayData)
+      return
+    if (key !== '日内' && !hasHistoryData)
+      return
+
+    computesQuotationOption()
+  }
+  else {
+    // 估值数据校验
+    if (!valuation || Object.keys(valuation).length === 0)
+      return
+    computesValuationOption()
+  }
+}, { deep: true })
+
+onShow(() => {
+  if (currentData.value.code) {
+    timer = setInterval(() => {
+      loadRealtimeData(currentData.value.code)
+    }, 15000)
+  }
+})
+
+onHide(() => {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+})
+
+onUnload(() => {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+  if (tooltipTimer) {
+    clearTimeout(tooltipTimer)
+    tooltipTimer = null
+  }
+})
 </script>
 
 <template>
-  <view class="min-h-screen bg-gray-100">
-    <!-- 顶部信息卡片 -->
-    <view class="bg-white p-4 mb-2">
-      <view class="mb-4 flex items-center justify-between">
-        <view>
-          <text class="text-xl font-bold text-gray-800">
-            {{ etfDetail.name }}
+  <view class="min-h-screen bg-gray-100 pb-[env(safe-area-inset-bottom)]">
+    <!-- Sticky Tabs -->
+    <wd-sticky :z-index="99">
+      <wd-tabs v-model="tabValue" sticky @click="handleTabsChange">
+        <block v-for="item in tabs" :key="item.name">
+          <wd-tab :title="item.label" :name="item.name" />
+        </block>
+      </wd-tabs>
+    </wd-sticky>
+
+    <!-- 详情折叠面板 -->
+    <view class="border-b border-gray-200">
+      <wd-collapse v-model="collapseValue">
+        <wd-collapse-item title="详情" name="detail">
+          {{ currentData.investIdea || '--' }}
+        </wd-collapse-item>
+      </wd-collapse>
+    </view>
+
+    <!-- 数据展示区域 -->
+    <view class="flex gap-12 bg-white p-6">
+      <!-- 行情数据 -->
+      <view v-if="tabValue === 'quotation'" class="flex-1">
+        <view v-if="segmentedValue.quotation === '日内' && configShow" class="h-25 flex items-center justify-between text-7">
+          <text class="text-gray-500">
+            当前价格
           </text>
-          <text class="ml-2 text-sm text-gray-500">
-            {{ etfDetail.code }}
+          <text class="text-gray-800">
+            {{ currentData.currentPrice || '--' }}
+          </text>
+        </view>
+        <view v-else class="h-25 flex items-center justify-between text-7">
+          <text class="text-gray-500">
+            后复权收盘价
+          </text>
+          <text class="text-gray-800">
+            {{ currentData.quotationData?.[currentData.quotationData?.length - 1]?.f_mkt_close_price_adj || '--' }}
           </text>
         </view>
       </view>
 
-      <!-- 价格信息 -->
-      <view class="flex items-baseline justify-between border-b border-gray-100 pb-4 mb-4">
-        <view>
-          <text class="text-3xl font-bold text-gray-800">
-            {{ etfDetail.price.toFixed(3) }}
+      <!-- 估值数据 -->
+      <view v-else class="flex-1">
+        <view class="h-25 flex items-center justify-between text-7">
+          <text class="text-gray-500">
+            当前PE
           </text>
-          <text class="ml-2 text-base" :class="getChangeColor(etfDetail.change)">
-            {{ etfDetail.change > 0 ? '+' : '' }}{{ etfDetail.change.toFixed(3) }}
-            ({{ etfDetail.changePercent > 0 ? '+' : '' }}{{ etfDetail.changePercent.toFixed(2) }}%)
+          <text class="text-gray-800">
+            {{ currentValuationData.pe || '--' }}
+          </text>
+        </view>
+        <view class="h-25 flex items-center justify-between text-7">
+          <text class="text-gray-500">
+            当前PB
+          </text>
+          <text class="text-gray-800">
+            {{ currentValuationData.pb || '--' }}
           </text>
         </view>
       </view>
 
-      <!-- 关键指标 -->
-      <view class="grid grid-cols-4 gap-2">
-        <view class="text-center">
-          <view class="text-sm text-gray-500">净值</view>
-          <view class="text-base font-bold text-gray-800">
-            {{ etfDetail.netValue.toFixed(3) }}
-          </view>
-        </view>
-        <view class="text-center">
-          <view class="text-sm text-gray-500">折溢价</view>
-          <view class="text-base font-bold" :class="getChangeColor(etfDetail.discount)">
-            {{ etfDetail.discount > 0 ? '+' : '' }}{{ etfDetail.discount.toFixed(2) }}%
-          </view>
-        </view>
-        <view class="text-center">
-          <view class="text-sm text-gray-500">规模(亿)</view>
-          <view class="text-base font-bold text-gray-800">
-            {{ etfDetail.scale.toFixed(2) }}
-          </view>
-        </view>
-        <view class="text-center">
-          <view class="text-sm text-gray-500">状态</view>
-          <view class="text-base font-bold text-green-500">
-            正常
-          </view>
+      <!-- 通用数据 -->
+      <view class="flex-1">
+        <view v-if="segmentedValue.quotation !== '日内'" class="h-25 flex items-center justify-between text-7">
+          <text class="text-gray-500">
+            数据日期
+          </text>
+          <text class="text-gray-800">
+            {{ currentData.date }}
+          </text>
         </view>
       </view>
     </view>
 
-    <!-- 收益表现 -->
-    <view class="bg-white p-4 mb-2">
-      <view class="mb-4 text-base font-bold text-gray-800">
-        收益表现
+    <!-- 分段选择器 -->
+    <view class="bg-white p-6">
+      <wd-segmented
+        v-if="tabValue === 'quotation'"
+        v-model:value="segmentedValue.quotation"
+        :options="dynamicSegmentedList.quotation"
+        :disabled="!currentData.quotationData"
+        @click="handleQuotationSegmentedClick"
+      />
+      <wd-segmented
+        v-else
+        v-model:value="segmentedValue.valuation"
+        :options="dynamicSegmentedList.valuation"
+        :disabled="!currentValuationData"
+        @click="handleValuationSegmentedClick"
+      />
+    </view>
+
+    <!-- 图表 -->
+    <view class="h-125 bg-white p-6">
+      <UniEcharts
+        v-if="tabValue === 'quotation'"
+        :option="quotationOption"
+        style="height: 100%; width: 100%;"
+      />
+      <UniEcharts
+        v-else
+        :option="valuationOption"
+        style="height: 100%; width: 100%;"
+      />
+    </view>
+
+    <!-- 图表 Tooltip -->
+    <view v-if="showChartTip" class="bg-white p-5 text-6 text-gray-800">
+      <view class="mb-2 font-bold">
+        {{ handleData?.name || handleData?.[0]?.name || '' }}
       </view>
-      <view class="grid grid-cols-5 gap-2">
-        <view class="text-center rounded-lg bg-gray-50 p-2">
-          <view class="text-xs text-gray-500">近1周</view>
-          <view class="text-base font-bold" :class="getChangeColor(etfDetail.day1)">
-            {{ etfDetail.day1 > 0 ? '+' : '' }}{{ etfDetail.day1 }}%
-          </view>
+      <!-- 行情 tooltip -->
+      <view v-if="tabValue === 'quotation'">
+        <view class="mb-2 flex gap-5">
+          <text>{{ segmentedValue.quotation === '日内' ? '历史价格' : '后复权价' }}</text>
+          <text :style="{ color: '#FCCA01' }">
+            {{ segmentedValue.quotation === '日内' ? handleData?.currentPrice : handleData?.f_mkt_close_price_adj }}
+          </text>
         </view>
-        <view class="text-center rounded-lg bg-gray-50 p-2">
-          <view class="text-xs text-gray-500">近1月</view>
-          <view class="text-base font-bold" :class="getChangeColor(etfDetail.month1)">
-            {{ etfDetail.month1 > 0 ? '+' : '' }}{{ etfDetail.month1 }}%
-          </view>
+        <view class="mb-2 flex gap-5">
+          <text>涨跌幅</text>
+          <text :style="{ color: '#FCCA01' }">
+            {{ formatPercentage(handleData?.riseFall) }}
+          </text>
         </view>
-        <view class="text-center rounded-lg bg-gray-50 p-2">
-          <view class="text-xs text-gray-500">近3月</view>
-          <view class="text-base font-bold" :class="getChangeColor(etfDetail.month3)">
-            {{ etfDetail.month3 > 0 ? '+' : '' }}{{ etfDetail.month3 }}%
-          </view>
+        <view class="mb-2 flex gap-5">
+          <text>成交额</text>
+          <text :style="{ color: '#FCCA01' }">
+            {{ segmentedValue.quotation === '日内' ? formatAssets(handleData?.tradeAmountIntraDay) : formatAssets(handleData?.f_mkt_amount) }}
+          </text>
         </view>
-        <view class="text-center rounded-lg bg-gray-50 p-2">
-          <view class="text-xs text-gray-500">近6月</view>
-          <view class="text-base font-bold" :class="getChangeColor(etfDetail.month6)">
-            {{ etfDetail.month6 > 0 ? '+' : '' }}{{ etfDetail.month6 }}%
-          </view>
+      </view>
+      <!-- 估值 tooltip -->
+      <view v-if="tabValue === 'valuation'">
+        <view class="mb-2 flex gap-5">
+          <text>PE</text>
+          <text :style="{ color: '#4095E5' }">
+            {{ handleData?.[0]?.data?.pe || '--' }}
+          </text>
         </view>
-        <view class="text-center rounded-lg bg-gray-50 p-2">
-          <view class="text-xs text-gray-500">近1年</view>
-          <view class="text-base font-bold" :class="getChangeColor(etfDetail.year1)">
-            {{ etfDetail.year1 > 0 ? '+' : '' }}{{ etfDetail.year1 }}%
-          </view>
+        <view class="mb-2 flex gap-5">
+          <text>PB</text>
+          <text :style="{ color: '#FCCA01' }">
+            {{ handleData?.[1]?.data?.pb || '--' }}
+          </text>
         </view>
       </view>
     </view>
 
-    <!-- 操作按钮 -->
-    <view class="bg-white p-4">
-      <view class="flex gap-3">
-        <wd-button type="primary" block @click="goBack">
-          返回列表
-        </wd-button>
-        <wd-button type="success" block>
-          加入自选
-        </wd-button>
-      </view>
-    </view>
-
-    <!-- 风险提示 -->
-    <view class="mt-4 px-4 text-center text-xs text-gray-400">
-      基金有风险，投资需谨慎
+    <!-- 表格 -->
+    <view class="bg-white p-6">
+      <CustomTable
+        v-if="tabValue === 'quotation'"
+        :columns="columns.quotation"
+        :data-source="computedQuotationDataSource"
+      />
+      <CustomTable
+        v-else
+        :columns="columns.valuation"
+        :data-source="computedValuationDataSource"
+      />
     </view>
   </view>
 </template>

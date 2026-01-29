@@ -98,6 +98,25 @@ export function functionName(params) {
 }
 ```
 
+**Using `useRequest` for API calls**:
+Always use Alova's `useRequest` composable for data fetching:
+```typescript
+// Simple request
+const { data, loading, error, send } = useRequest(apiFunction(), {
+  immediate: false,
+})
+
+// Request with parameters
+const { send: fetchDetail } = useRequest(
+  (id: string) => getDetail(id),
+  { immediate: false },
+)
+
+// Manual trigger
+await send()
+await fetchDetail('123')
+```
+
 ### Theme System (Dual Mode)
 
 **1. System Theme** (`useTheme()`): Lightweight, follows system theme only
@@ -165,3 +184,68 @@ Variables: `VITE_API_BASE_URL`, `VITE_ENV_NAME`
 **H5**:
 - Vite proxy handles `/api` and `/djapi` endpoints
 - Full router functionality available
+
+## Coding Standards
+
+### Styling with UnoCSS
+
+**Use UnoCSS for all styling** - This is an atomic CSS engine. Do not use SCSS or CSS modules.
+
+**UnoCSS conventions**:
+```vue
+<!-- ✅ Correct - Use UnoCSS utility classes -->
+<view class="flex items-center justify-between p-4 bg-white">
+  <text class="text-gray-800 text-16">Content</text>
+</view>
+
+<!-- ❌ Wrong - Do not use SCSS -->
+<style lang="scss" scoped>
+.container {
+  display: flex;
+  padding: 16rpx;
+}
+</style>
+```
+
+**Common UnoCSS patterns**:
+| Layout | `flex`, `grid`, `items-center`, `justify-between`, `gap-4` |
+| Spacing | `p-4` (padding), `m-4` (margin), `gap-4` (gap) |
+| Colors | `bg-white`, `text-gray-800`, `border-gray-200` |
+| Sizing | `w-full`, `h-100`, `min-h-screen` |
+| Typography | `text-14`, `font-bold`, `text-center` |
+| Borders | `border`, `border-b`, `rounded-lg` |
+| Positioning | `relative`, `absolute`, `sticky`, `z-10` |
+
+**Responsive units**:
+- Use `rpx` for responsive sizing: `text-24rpx`
+- Use `text-XX` where XX = fontSize/2 (e.g., `text-14` = 28rpx)
+
+### Data Fetching with Alova
+
+**Always use `useRequest` composable** for API calls:
+```typescript
+// Simple request with manual trigger
+const { data, loading, send } = useRequest(apiFunction(), {
+  immediate: false,
+})
+
+// Request with dynamic parameters
+const { send: fetchDetail } = useRequest(
+  (id: string) => getDetail(id),
+  { immediate: false },
+)
+
+// Trigger the request
+await send()
+await fetchDetail('123')
+
+// Watch data changes
+watch(data, (newData) => {
+  console.log('Data updated:', newData)
+})
+```
+
+**Available hooks**:
+- `useRequest` - Single request
+- `usePagination` - Paginated requests
+- `useFetcher` - Manual request management

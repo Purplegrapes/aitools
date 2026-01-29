@@ -44,7 +44,7 @@
           "name": "etf-detail",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "ETF 详情"
+            "navigationBarTitleText": "ETF详情"
           }
         },
         {

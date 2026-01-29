@@ -333,10 +333,12 @@ function handleTabChange({ name }: any) {
  */
 function handleRowClick(row: any) {
   router.push({
-    name: 'etf-detail',
+    path: '/subPages/etf/detail',
     query: {
+      djId: row.danjuanId,
       code: row.code,
       name: row.name,
+      date: dataDate.value,
     },
   })
 }
