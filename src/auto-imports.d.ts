@@ -16,6 +16,7 @@ declare global {
   const apiDefinitions: typeof import('./api/apiDefinitions')['default']
   const asyncComputed: typeof import('@vueuse/core')['asyncComputed']
   const autoResetRef: typeof import('@vueuse/core')['autoResetRef']
+  const calculatePreviousDates: typeof import('./utils/format')['calculatePreviousDates']
   const computed: typeof import('vue')['computed']
   const computedAsync: typeof import('@vueuse/core')['computedAsync']
   const computedEager: typeof import('@vueuse/core')['computedEager']
@@ -42,10 +43,15 @@ declare global {
   const defineComponent: typeof import('vue')['defineComponent']
   const defineStore: typeof import('pinia')['defineStore']
   const eagerComputed: typeof import('@vueuse/core')['eagerComputed']
+  const echarts: typeof import('./utils/echarts')['default']
   const effectScope: typeof import('vue')['effectScope']
   const etfApi: typeof import('./api/index')['etfApi']
   const extendRef: typeof import('@vueuse/core')['extendRef']
+  const formatAssets: typeof import('./utils/format')['formatAssets']
+  const formatPercentage: typeof import('./utils/format')['formatPercentage']
+  const formatRiseFall: typeof import('./utils/format')['formatRiseFall']
   const getActivePinia: typeof import('pinia')['getActivePinia']
+  const getChangeColor: typeof import('./utils/format')['getChangeColor']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentPath: typeof import('./utils/index')['getCurrentPath']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
@@ -373,6 +379,7 @@ declare module 'vue' {
     readonly apiDefinitions: UnwrapRef<typeof import('./api/apiDefinitions')['default']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
+    readonly calculatePreviousDates: UnwrapRef<typeof import('./utils/format')['calculatePreviousDates']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly computedAsync: UnwrapRef<typeof import('@vueuse/core')['computedAsync']>
     readonly computedEager: UnwrapRef<typeof import('@vueuse/core')['computedEager']>
@@ -399,10 +406,15 @@ declare module 'vue' {
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly defineStore: UnwrapRef<typeof import('pinia')['defineStore']>
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
+    readonly echarts: UnwrapRef<typeof import('./utils/echarts')['default']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly etfApi: UnwrapRef<typeof import('./api/index')['etfApi']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
+    readonly formatAssets: UnwrapRef<typeof import('./utils/format')['formatAssets']>
+    readonly formatPercentage: UnwrapRef<typeof import('./utils/format')['formatPercentage']>
+    readonly formatRiseFall: UnwrapRef<typeof import('./utils/format')['formatRiseFall']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
+    readonly getChangeColor: UnwrapRef<typeof import('./utils/format')['getChangeColor']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentPath: UnwrapRef<typeof import('./utils/index')['getCurrentPath']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>

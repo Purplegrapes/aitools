@@ -10,7 +10,6 @@ import type {
   EtfDetailData,
   QuotationDataPoint,
   RealtimeLineItem,
-  ValuationData,
   ValuationTrendPoint,
 } from './types'
 import {
@@ -605,7 +604,7 @@ function loadRealtimeData(code: string) {
 onMounted(() => {
   if (query.value.name) {
     uni.setNavigationBarTitle({
-      title: query.value.name,
+      title: decodeURIComponent(query.value.name),
     })
   }
 
@@ -819,16 +818,8 @@ onUnload(() => {
 
     <!-- 图表 -->
     <view class="h-80 bg-white p-2">
-      <UniEcharts
-        v-if="tabValue === 'quotation'"
-        :option="quotationOption"
-        style="height: 100%; width: 100%;"
-      />
-      <UniEcharts
-        v-else
-        :option="valuationOption"
-        style="height: 100%; width: 100%;"
-      />
+      <uni-echarts v-if="tabValue === 'quotation'" custom-class="h-300px" :option="quotationOption" />
+      <uni-echarts v-else custom-class="h-300px" :option="valuationOption" />
     </view>
 
     <!-- 图表 Tooltip -->
