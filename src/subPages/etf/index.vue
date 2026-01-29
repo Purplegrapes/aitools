@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type {
-  ApiResponse,
   CategoryData,
   EtfInfo,
   PerformanceData,
@@ -8,7 +7,19 @@ import type {
   ValuationData,
   WotTabEvent,
 } from './types'
-import { calculateTabScrollPositions, mergeAllColumns, navbar } from './data'
+import {
+  REALTIME_POLLING_INTERVAL,
+  SCROLL_TOLERANCE,
+} from './constants'
+import {
+  calculateTabScrollPositions,
+  mergeAllColumns,
+  navbar,
+} from './data'
+import {
+  isApiResponse,
+  isNestedValuationDetailResponse,
+} from './types'
 
 definePage({
   name: 'etf',
@@ -35,6 +46,66 @@ const activeTab = ref('all')
  * 导航栏配置
  */
 const navbarItems = navbar
+
+/**
+ * 根据分类筛选 ETF 列表
+ */
+function filterByCategory(list: EtfInfo[], category: string): EtfInfo[] {
+  if (category === 'all')
+    return list
+  if (category === 'watchlist')
+    return list.filter((item: EtfInfo) => item.watchList)
+  return list.filter((item: EtfInfo) => item.categoryCode === category)
+}
+
+/**
+ * 提取 ETF 的业绩数据
+ */
+function extractPerformanceFields(
+  code: string,
+  performance: PerformanceData,
+): Partial<PerformanceData> {
+  const perfKey = `${code}`
+  const fields: Partial<PerformanceData> = {}
+  const periodKeys = [
+    'f_mkt_return_1w',
+    'f_mkt_return_1m',
+    'f_mkt_return_3m',
+    'f_mkt_return_6m',
+    'f_mkt_return_1y',
+    'f_mkt_return_3y',
+  ] as const
+
+  for (const key of periodKeys) {
+    const record = performance[key]
+    if (record && perfKey in record) {
+      ;(fields as Record<string, unknown>)[key] = record[perfKey]
+    }
+  }
+
+  return fields
+}
+
+/**
+ * 合并 ETF 的所有数据源
+ */
+function mergeEtfData(
+  item: EtfInfo,
+  valuationData: ValuationData[],
+  performanceData: PerformanceData,
+  realtimeData: RealtimeData[],
+): EtfInfo & Partial<RealtimeData> & Partial<ValuationData> & Partial<PerformanceData> {
+  const valuation = valuationData.find((it: ValuationData) => it.index_code === item.trackIndexCode)
+  const performanceFields = extractPerformanceFields(item.code, performanceData)
+  const realData = realtimeData.find((it: RealtimeData) => it?.code === item?.code) || {}
+
+  return {
+    ...item,
+    ...realData,
+    ...valuation,
+    ...performanceFields,
+  }
+}
 
 /**
  * 获取ETF列表 - 使用 useRequest
@@ -82,7 +153,9 @@ const { send: fetchPerformanceData } = useRequest(
     immediate: false,
   },
 ).onSuccess((res) => {
-  performanceData.value = (res.data as PerformanceData) || {}
+  if (isApiResponse<PerformanceData>(res)) {
+    performanceData.value = res.data || {}
+  }
 })
 
 /**
@@ -104,7 +177,12 @@ const { send: fetchValuationData } = useRequest(
     immediate: false,
   },
 ).onSuccess((res) => {
-  valuationData.value = (res as ApiResponse & { data?: { data?: { valuations?: ValuationData[] } } })?.data?.data?.valuations || []
+  if (isNestedValuationDetailResponse(res)) {
+    valuationData.value = res?.data?.data?.valuations || []
+  }
+  else {
+    valuationData.value = []
+  }
   // 获取完估值数据后，获取业绩数据
   fetchPerformanceData()
 })
@@ -136,14 +214,19 @@ const { send: fetchRealtime } = useRequest(
     immediate: false,
   },
 ).onSuccess((res) => {
-  const data = (res as ApiResponse<RealtimeData[]>)?.data
-  realtimeData.value = data || []
-  // 如果交易状态为false，停止定时器
-  if (data?.[0]?.tradeInfo?.status === false) {
-    if (realtimeTimer) {
-      clearInterval(realtimeTimer)
-      realtimeTimer = null
+  if (isApiResponse<RealtimeData[]>(res)) {
+    const data = res.data
+    realtimeData.value = data || []
+    // 如果交易状态为false，停止定时器
+    if (data?.[0]?.tradeInfo?.status === false) {
+      if (realtimeTimer) {
+        clearInterval(realtimeTimer)
+        realtimeTimer = null
+      }
     }
+  }
+  else {
+    realtimeData.value = []
   }
 }).onError(() => {
   // Silent error handling - errors are logged by Alova
@@ -155,7 +238,7 @@ watch(etfList, (list) => {
     fetchValuationData()
     // 启动实时行情定时器
     fetchRealtime()
-    realtimeTimer = setInterval(fetchRealtime, 15000)
+    realtimeTimer = setInterval(fetchRealtime, REALTIME_POLLING_INTERVAL)
   }
 }, { immediate: true })
 
@@ -245,39 +328,11 @@ const tableRef = ref()
  */
 const filteredList = computed(() => {
   const list = etfList.value || []
-  const filtered = activeTab.value === 'all'
-    ? list
-    : activeTab.value === 'watchlist'
-      ? list.filter((item: EtfInfo) => item.watchList)
-      : list.filter((item: EtfInfo) => item.categoryCode === activeTab.value)
+  const filtered = filterByCategory(list, activeTab.value)
 
   // 合并估值和业绩数据
   return filtered.map((item: EtfInfo) => {
-    // 使用 trackIndexCode 从估值数据中获取对应的估值信息
-    const valuation = valuationData.value?.find((it: ValuationData) => it.index_code === item.trackIndexCode)
-    const perfKey = `${item.code}`
-    const performance = performanceData.value
-    const realData = realtimeData.value.find((it: RealtimeData) => it?.code === item?.code) || {}
-    // 合并业绩数据
-    const performanceFields: Partial<PerformanceData> = {}
-    if (performance.f_mkt_return_1w?.[perfKey] !== undefined)
-      performanceFields.f_mkt_return_1w = performance.f_mkt_return_1w[perfKey]
-    if (performance.f_mkt_return_1m?.[perfKey] !== undefined)
-      performanceFields.f_mkt_return_1m = performance.f_mkt_return_1m[perfKey]
-    if (performance.f_mkt_return_3m?.[perfKey] !== undefined)
-      performanceFields.f_mkt_return_3m = performance.f_mkt_return_3m[perfKey]
-    if (performance.f_mkt_return_6m?.[perfKey] !== undefined)
-      performanceFields.f_mkt_return_6m = performance.f_mkt_return_6m[perfKey]
-    if (performance.f_mkt_return_1y?.[perfKey] !== undefined)
-      performanceFields.f_mkt_return_1y = performance.f_mkt_return_1y[perfKey]
-    if (performance.f_mkt_return_3y?.[perfKey] !== undefined)
-      performanceFields.f_mkt_return_3y = performance.f_mkt_return_3y[perfKey]
-    return {
-      ...item,
-      ...realData,
-      ...valuation,
-      ...performanceFields,
-    }
+    return mergeEtfData(item, valuationData.value, performanceData.value, realtimeData.value)
   })
 })
 
@@ -302,7 +357,7 @@ function handleScrollChange(value: number) {
   scrollLeft.value = value
   // 根据滚动位置判断当前在哪个 tab
   const positions = tabScrollPositions.value
-  const tolerance = 50 // 容差值
+  const tolerance = SCROLL_TOLERANCE
 
   if (value < positions.valuation - tolerance) {
     activeNav.value = 'quotation'
@@ -364,21 +419,29 @@ function handleOptionalClick(row: EtfInfo) {
   const { send } = useRequest(requestFn, {
     immediate: true,
   }).onSuccess((res) => {
-    const data = (res as ApiResponse<{ success?: boolean }>)?.data
-    if (data?.success) {
-      GlobalToast.success(row.watchList ? '移除自选成功' : '添加自选成功')
-      // 直接更新本地状态
-      const list = etfListData.value?.data as EtfInfo[] | undefined
-      const index = list?.findIndex((item: EtfInfo) => item.code === row.code)
-      if (index !== undefined && index >= 0) {
-        list[index].watchList = !row.watchList
+    if (isApiResponse<{ success?: boolean }>(res)) {
+      const data = res.data
+      if (data?.success) {
+        GlobalToast.success(row.watchList ? '移除自选成功' : '添加自选成功')
+        // 直接更新本地状态
+        const list = etfListData.value?.data
+        if (Array.isArray(list)) {
+          const index = list.findIndex((item: EtfInfo) => item.code === row.code)
+          if (index >= 0) {
+            list[index].watchList = !row.watchList
+          }
+        }
+      }
+      else {
+        const errorMsg = 'msg' in res ? (res as { msg?: string }).msg : undefined
+        GlobalToast.error(errorMsg || '操作失败')
       }
     }
-    else {
-      GlobalToast.error((res as ApiResponse)?.msg || '操作失败')
-    }
   }).onError((error) => {
-    GlobalToast.error((error as ApiResponse)?.error?.message || '操作失败')
+    const errorMsg = error && typeof error === 'object' && 'error' in error
+      ? (error as { error?: { message?: string } }).error?.message || '操作失败'
+      : '操作失败'
+    GlobalToast.error(errorMsg)
   })
 
   send()

@@ -3,6 +3,27 @@
  */
 
 /**
+ * 类型守卫：检查是否为 ApiResponse
+ */
+export function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
+  return typeof value === 'object' && value !== null && 'data' in value
+}
+
+/**
+ * 类型守卫：检查是否为 ValuationDetailData
+ */
+export function isValuationDetailData(value: unknown): value is ValuationDetailData {
+  return typeof value === 'object' && value !== null && 'result_code' in value
+}
+
+/**
+ * 类型守卫：检查是否为数组
+ */
+export function isArray<T>(value: unknown): value is T[] {
+  return Array.isArray(value)
+}
+
+/**
  * ETF 基本信息
  */
 export interface EtfInfo {
@@ -162,10 +183,10 @@ export interface SegmentedOption {
  */
 export interface EChartsTooltipParam {
   name: string
-  value: any
-  data?: any
+  value: number | string | unknown
+  data?: Record<string, unknown>
   axisValue?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 /**
@@ -180,7 +201,7 @@ export interface EChartsTooltipParams {
 /**
  * API 响应基础类型
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success?: boolean
   data?: T
   msg?: string
@@ -209,4 +230,37 @@ export interface ValuationDetailResponse {
   data?: {
     valuations?: ValuationData[]
   }
+}
+
+/**
+ * 类型守卫：检查是否为 ValuationDetailResponse
+ */
+export function isValuationDetailResponse(value: unknown): value is ValuationDetailResponse {
+  if (!isApiResponse(value))
+    return false
+  return typeof value.data === 'undefined' || (
+    typeof value.data === 'object'
+    && value.data !== null
+    && ('valuations' in value.data || !('data' in value.data))
+  )
+}
+
+/**
+ * 类型守卫：检查是否为包含 data.data 结构的估值详情响应
+ */
+export function isNestedValuationDetailResponse(value: unknown): value is ApiResponse & {
+  data?: {
+    data?: {
+      valuations?: ValuationData[]
+    }
+  }
+} {
+  if (!isApiResponse(value))
+    return false
+  if (typeof value.data !== 'object' || value.data === null)
+    return false
+  const nested = value.data as { data?: unknown }
+  if (typeof nested.data !== 'object' || nested.data === null)
+    return false
+  return true
 }

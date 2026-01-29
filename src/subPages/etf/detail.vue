@@ -4,19 +4,15 @@
  * 展示 ETF 的行情和估值数据
  */
 import type { EChartsOption } from 'echarts'
+import type { TabValue } from './detail.config'
 import type {
-  EchartsTooltipParam,
-  EchartsTooltipParams,
+  EChartsTooltipParams,
   EtfDetailData,
-  FactorExposureData,
   QuotationDataPoint,
   RealtimeLineItem,
-  SegmentedOption,
   ValuationData,
-  ValuationDetailData,
   ValuationTrendPoint,
 } from './types'
-import type { TabValue } from './detail.config'
 import {
   etfInfo,
   factorExposure,
@@ -25,8 +21,15 @@ import {
   showQuote,
   valuationShow,
 } from '@/api/modules/etf'
-import { calculatePreviousDates, formatAssets, formatPercentage, formatRiseFall } from '@/utils/format'
-import { columns, segmentedList, tabs } from './detail.config'
+import {
+  calculatePreviousDates,
+  formatAssets,
+  formatPercentage,
+  formatRiseFall,
+} from '@/utils/format'
+import { REALTIME_POLLING_INTERVAL, TOOLTIP_AUTO_HIDE_DELAY } from './constants'
+import { segmentedList, tabs } from './detail.config'
+import { isValuationDetailData } from './types'
 
 definePage({
   name: 'etf-detail',
@@ -50,7 +53,7 @@ const query = computed(() => route.query as {
 const tabValue = ref<TabValue>('quotation')
 const collapseValue = ref<string[]>([])
 const showChartTip = ref(false)
-const handleData = ref<EchartsTooltipParams | null>(null)
+const handleData = ref<EChartsTooltipParams | null>(null)
 
 // 分段选择器值
 const segmentedValue = ref<Record<'quotation' | 'valuation', string>>({
@@ -79,7 +82,7 @@ const { data: etfInfoData, send: fetchEtfInfo } = useRequest(
 )
 
 // 历史行情数据
-const factorParams = ref<{ securityCode: string; factorCodes: string[]; from: string; to: string } | null>(null)
+const factorParams = ref<{ securityCode: string, factorCodes: string[], from: string, to: string } | null>(null)
 const { data: factorData, send: fetchFactorExposure } = useRequest(
   () => factorExposure(factorParams.value!),
   { immediate: false },
@@ -93,7 +96,7 @@ const { data: realtimeLineData, send: fetchRealtimeLineData } = useRequest(
 )
 
 // 实时数据
-const realtimeParams = ref<{ securityCodes: string[]; assetType: string } | null>(null)
+const realtimeParams = ref<{ securityCodes: string[], assetType: string } | null>(null)
 const { data: realtimeData, send: fetchRealtimeData } = useRequest(
   () => realtime(realtimeParams.value!),
   { immediate: false },
@@ -133,7 +136,7 @@ const processedFactorData = computed(() => {
 
   const newData = factorData.value.dates?.map((item: string, index: number) => {
     const data: Record<string, number> = {}
-    factorData.value.factorExposures?.forEach((it: { factorCode: string; values: number[] }) => {
+    factorData.value.factorExposures?.forEach((it: { factorCode: string, values: number[] }) => {
       data[it.factorCode] = it.values[index]
     })
     return {
@@ -209,53 +212,16 @@ const currentData = computed(() => {
 
 // 当前估值数据
 const currentValuationData = computed(() => {
-  const data = valuationData.value as ValuationDetailData | ValuationData[]
+  const data = valuationData.value
   // API 可能直接返回数组，或者返回 {result_code: 0, data: {...}} 格式
   if (Array.isArray(data)) {
     // API 直接返回数组，取第一个元素作为估值数据
     return data?.[0] ?? {}
   }
-  if ((data as ValuationDetailData)?.result_code === 0) {
-    return (data as ValuationDetailData)?.data ?? {}
+  if (isValuationDetailData(data) && data.result_code === 0) {
+    return data?.data ?? {}
   }
   return {}
-})
-
-// 表格数据源
-const computedQuotationDataSource = computed(() => {
-  const data = currentData.value
-  const base: {
-    premiumRate?: number
-    fundNetAssets?: number
-    tradeAmountIntraDay?: number
-    riseFall?: number
-  } = {
-    premiumRate: data?.premiumRate,
-    fundNetAssets: data?.fundNetAssets,
-  }
-
-  if (segmentedValue.value.quotation === '日内') {
-    return [{
-      ...base,
-      tradeAmountIntraDay: data?.tradeAmountIntraDay,
-      riseFall: data?.riseFall,
-    }]
-  }
-  else {
-    return [{
-      ...base,
-      tradeAmountIntraDay: data?.f_mkt_amount,
-      riseFall: data?.yearRiseFall,
-    }]
-  }
-})
-
-const computedValuationDataSource = computed(() => {
-  const data = currentValuationData.value as ValuationData
-  return [{
-    roe: data?.roe,
-    dividend_yield: data?.dividend_yield,
-  }]
 })
 
 // ==================== 辅助函数 ====================
@@ -283,7 +249,7 @@ const quotationOption = ref<EChartsOption>({
         clearTimeout(tooltipTimer)
       tooltipTimer = setTimeout(() => {
         showChartTip.value = false
-      }, 3000)
+      }, TOOLTIP_AUTO_HIDE_DELAY)
       return ''
     },
   },
@@ -333,7 +299,7 @@ const valuationOption = ref<EChartsOption>({
         clearTimeout(tooltipTimer)
       tooltipTimer = setTimeout(() => {
         showChartTip.value = false
-      }, 3000)
+      }, TOOLTIP_AUTO_HIDE_DELAY)
       return ''
     },
   },
@@ -497,13 +463,13 @@ function computesQuotationOption() {
 function computesValuationOption() {
   const key = segmentedValue.value.valuation
 
-  const pbTrends = currentValuationData.value?.pb_trends?.map((item: { time: string; pb: number }) => ({
+  const pbTrends = currentValuationData.value?.pb_trends?.map((item: { time: string, pb: number }) => ({
     ...item,
     name: item.time,
     value: [item.time, item.pb],
   }))
 
-  const peTrends = currentValuationData.value?.pe_trends?.map((item: { time: string; pe: number }) => ({
+  const peTrends = currentValuationData.value?.pe_trends?.map((item: { time: string, pe: number }) => ({
     ...item,
     name: item.time,
     value: [item.time, item.pe],
@@ -584,7 +550,7 @@ function handleTabsChange({ name }: { name: TabValue }) {
         assetType: 'ETF',
       }
       fetchRealtimeData()
-    }, 15000)
+    }, REALTIME_POLLING_INTERVAL)
     computesQuotationOption()
   }
   else {
@@ -691,7 +657,7 @@ onShow(() => {
   if (currentData.value.code) {
     timer = setInterval(() => {
       loadRealtimeData(currentData.value.code)
-    }, 15000)
+    }, REALTIME_POLLING_INTERVAL)
   }
 })
 
