@@ -489,7 +489,7 @@ function handleOptionalClick(row: EtfInfo) {
       <custom-table
         ref="tableRef"
         :columns="columns"
-        :data-source="filteredList"
+        :table-data="filteredList"
         :loading="etfLoading"
         :scroll-left="scrollLeft"
         :row-click="handleRowClick"

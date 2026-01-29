@@ -15,7 +15,7 @@ interface Column {
 
 interface Props {
   columns: Column[]
-  dataSource: Record<string, any>[]
+  tableData: Record<string, any>[]
   loading?: boolean
   rowClick?: (row: any) => void
   optionalClick?: (row: any) => void
@@ -255,7 +255,7 @@ function getValuationConfig(row: any) {
         <!-- 表格内容 -->
         <view>
           <view
-            v-for="(row, index) in dataSource"
+            v-for="(row, index) in tableData"
             :key="index"
             class="flex border-b border-gray-100 transition-colors duration-200 active:bg-gray-50"
             :bg-color="getValuationConfig(row)?.bgColor"
@@ -307,7 +307,7 @@ function getValuationConfig(row: any) {
           </view>
 
           <!-- 空状态 -->
-          <view v-if="!loading && dataSource.length === 0" class="flex items-center justify-center py-20">
+          <view v-if="!loading && tableData.length === 0" class="flex items-center justify-center py-20">
             暂无数据
           </view>
         </view>
