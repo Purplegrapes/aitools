@@ -7,10 +7,7 @@ type _LocationUrl =
   "/pages/index/index" |
   "/pages/about/index" |
   "/subPages/etf/detail" |
-  "/subPages/etf/index" |
-  "/subPages/skills/index" |
-  "/subEcharts/echarts/index" |
-  "/subAsyncEcharts/asyncEcharts/index";
+  "/subPages/etf/index";
 
 interface NavigateToOptions {
   url: _LocationUrl;

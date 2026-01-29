@@ -41,8 +41,6 @@ export default defineConfig({
       dts: 'src/uni-pages.d.ts',
       subPackages: [
         'src/subPages',
-        'src/subEcharts',
-        'src/subAsyncEcharts',
       ],
       /**
        * 排除的页面，相对于 dir 和 subPackages

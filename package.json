@@ -58,10 +58,7 @@
     "release-major": "standard-version --release-as major",
     "release-minor": "standard-version --release-as minor",
     "release-patch": "standard-version --release-as patch",
-    "alova-gen": "alova gen -f",
-    "docs:dev": "pnpm -F docs docs:dev",
-    "docs:build": "pnpm run build:h5 && pnpm -F docs docs:build",
-    "docs:preview": "pnpm -F docs docs:preview"
+    "alova-gen": "alova gen -f"
   },
   "dependencies": {
     "@alova/adapter-uniapp": "^2.0.14",
