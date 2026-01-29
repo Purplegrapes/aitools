@@ -1,10 +1,14 @@
 /**
- * 格式化百分比
+ * 格式化百分比（用于表格显示，不乘以100）
  */
-export function formatPercentage(value: number | null | undefined): string {
-  if (value === null || value === undefined)
-    return '-'
-  return `${value > 0 ? '+' : ''}${(value * 100).toFixed(2)}%`
+function formatPercentage(value: unknown, decimals = 2): string {
+  if (value === null || value === undefined || value === '')
+    return '--'
+  const num = Number(value)
+  if (Number.isNaN(num))
+    return '--'
+  const sign = num > 0 ? '+' : ''
+  return `${sign}${num.toFixed(decimals)}%`
 }
 
 /**
@@ -35,12 +39,12 @@ export const navbar = [
 /**
  * 固定列定义（公共列）
  */
-export function fixedColumns(show: boolean) {
+export function fixedColumns() {
   return [
     {
       props: 'optional',
       label: '',
-      width: 50,
+      width: 30,
       fixed: true,
       align: 'center',
       show: true,
@@ -48,16 +52,16 @@ export function fixedColumns(show: boolean) {
     {
       props: 'name',
       label: 'ETF名称',
-      width: 120,
+      width: 80,
       fixed: true,
       show: true,
     },
     {
       props: 'code',
       label: 'ETF代码',
-      width: 100,
+      width: 80,
       fixed: true,
-      show,
+      show: true,
     },
   ]
 }
@@ -283,28 +287,28 @@ export function rateColumnsOnly() {
  * 行情表格列定义（完整）
  */
 export function quotationColumns(show: boolean) {
-  return [...fixedColumns(show), ...quotationColumnsOnly(show)]
+  return [...quotationColumnsOnly(show)]
 }
 
 /**
  * 估值表格列定义（完整）
  */
 export function valuationColumns() {
-  return [...fixedColumns(true), ...valuationColumnsOnly()]
+  return [...valuationColumnsOnly()]
 }
 
 /**
  * 业绩表格列定义（完整）
  */
 export function performanceColumns() {
-  return [...fixedColumns(true), ...performanceColumnsOnly()]
+  return [...performanceColumnsOnly()]
 }
 
 /**
  * 费率表格列定义（完整）
  */
 export function rateColumns() {
-  return [...fixedColumns(true), ...rateColumnsOnly()]
+  return [...rateColumnsOnly()]
 }
 
 /**
@@ -313,7 +317,7 @@ export function rateColumns() {
  */
 export function mergeAllColumns(show: boolean) {
   return [
-    ...fixedColumns(show),
+    ...fixedColumns(),
     ...quotationColumnsOnly(show),
     ...valuationColumnsOnly(),
     ...performanceColumnsOnly(),
@@ -326,7 +330,7 @@ export function mergeAllColumns(show: boolean) {
  */
 export function calculateTabScrollPositions(show: boolean) {
   // 固定列总宽度: optional(50) + name(120) + code(100) = 270
-  const fixedWidth = 270
+  const fixedWidth = 190
 
   // 行情列宽度总和
   const quotationWidth = quotationColumnsOnly(show)
@@ -349,4 +353,66 @@ export function calculateTabScrollPositions(show: boolean) {
     performance: fixedWidth + quotationWidth + valuationWidth,
     rate: fixedWidth + quotationWidth + valuationWidth + performanceWidth,
   }
+}
+
+export const tabs = [
+  { label: '行情', name: 'quotation' },
+  { label: '估值', name: 'valuation' },
+] as const
+
+export type TabValue = typeof tabs[number]['name']
+
+/**
+ * 分段选择器配置
+ */
+export const segmentedList = {
+  quotation: [
+    { label: '日内', value: '日内', key: 'day' },
+    { label: '1年', value: '1年', key: 'year1' },
+    { label: '3年', value: '3年', key: 'year3' },
+    { label: '全部', value: '全部', key: 'all' },
+  ],
+  valuation: [
+    { label: '1年', value: '1年', key: 'year1' },
+    { label: '3年', value: '3年', key: 'year3' },
+    { label: '全部', value: '全部', key: 'all' },
+  ],
+} as const
+
+/**
+ * 表格列配置
+ */
+export interface Column {
+  props: string
+  label?: string
+  width?: number
+  fixed?: boolean
+  align?: string
+  show?: boolean
+  format?: (value: unknown) => string
+}
+
+/**
+ * 格式化数字
+ */
+function formatNumber(value: unknown, decimals = 2): string {
+  if (value === null || value === undefined || value === '')
+    return '--'
+  const num = Number(value)
+  if (Number.isNaN(num))
+    return '--'
+  return num.toFixed(decimals)
+}
+
+export const columns: Record<TabValue, Column[]> = {
+  quotation: [
+    { props: 'premiumRate', label: '折溢价率', width: 70, format: v => formatPercentage(v) },
+    { props: 'fundNetAssets', label: '净资产(亿)', width: 80, format: v => formatNumber(v) },
+    { props: 'tradeAmountIntraDay', label: '成交额', width: 70, format: v => formatAssets(v as number | null | undefined) },
+    { props: 'riseFall', label: '涨跌幅', width: 60, format: v => formatPercentage(v) },
+  ],
+  valuation: [
+    { props: 'roe', label: 'ROE(%)', width: 60, format: v => formatNumber(v) },
+    { props: 'dividend_yield', label: '股息率(%)', width: 80, format: v => formatNumber(v) },
+  ],
 }

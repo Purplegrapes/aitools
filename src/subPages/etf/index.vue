@@ -40,7 +40,7 @@ const activeNav = ref<'quotation' | 'valuation' | 'performance' | 'rate'>('quota
 /**
  * 当前选中的分类Tab
  */
-const activeTab = ref('all')
+const activeTab = ref()
 
 /**
  * 导航栏配置
@@ -255,6 +255,7 @@ onUnmounted(() => {
  */
 const {
   data: categoryData,
+  loading: categoryLoading,
 } = useRequest(() => (Apis as any).etf.getTabList(), {
   immediate: true,
 }).onError((error) => {
@@ -473,7 +474,7 @@ function handleOptionalClick(row: EtfInfo) {
     </view>
 
     <!-- 分类Tab -->
-    <view class="sticky top-10 z-[998] mb-2 bg-white">
+    <view v-if="!categoryLoading" class="sticky top-10 z-[998] mb-2 bg-white">
       <wd-tabs v-model="activeTab" sticky @click="handleTabChange">
         <wd-tab
           v-for="item in visibleTabs"

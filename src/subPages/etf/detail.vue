@@ -4,7 +4,7 @@
  * 展示 ETF 的行情和估值数据
  */
 import type { EChartsOption } from 'echarts'
-import type { TabValue } from './detail.config'
+import type { TabValue } from './data'
 import type {
   EChartsTooltipParams,
   EtfDetailData,
@@ -27,7 +27,7 @@ import {
   formatRiseFall,
 } from '@/utils/format'
 import { REALTIME_POLLING_INTERVAL, TOOLTIP_AUTO_HIDE_DELAY } from './constants'
-import { segmentedList, tabs } from './detail.config'
+import { segmentedList, tabs } from './data'
 import { isValuationDetailData } from './types'
 
 definePage({
@@ -111,10 +111,7 @@ const { data: valuationData, send: fetchValuationShow } = useRequest(
 // ==================== 计算属性 ====================
 // 配置显示状态
 const configShow = computed(() => {
-  if (configData.value?.success === true) {
-    return configData.value?.data ?? false
-  }
-  return false
+  return !!(configData.value as any)?.data
 })
 
 // 动态分段列表
@@ -195,7 +192,7 @@ const currentData = computed(() => {
     f_mkt_close_price: processedFactorData.value?.[processedFactorData.value?.length - 1]?.f_mkt_close_price_adj,
   }
 
-  if (etfInfoData.value?.success === true && etfInfoData.value?.data) {
+  if (etfInfoData.value?.data) {
     Object.assign(base, etfInfoData.value.data)
   }
 

@@ -282,7 +282,7 @@ function getValuationConfig(row: any) {
                   name="star-on"
                   :color="row.watchList ? '#ffd700' : '#999'"
                   size="20px"
-                  @click="handleOptionalClick(row, $event)"
+                  @click="(e) => handleOptionalClick(row, e)"
                 />
               </template>
               <!-- 名称列（带 tag） -->
