@@ -485,18 +485,16 @@ function handleOptionalClick(row: EtfInfo) {
     </view>
 
     <!-- 表格区域 -->
-    <view class="min-h-200 bg-white">
-      <custom-table
-        ref="tableRef"
-        :columns="columns"
-        :table-data="filteredList"
-        :loading="etfLoading"
-        :scroll-left="scrollLeft"
-        :row-click="handleRowClick"
-        :optional-click="handleOptionalClick"
-        @update:scroll-left="handleScrollChange"
-      />
-    </view>
+    <custom-table
+      ref="tableRef"
+      :columns="columns"
+      :table-data="filteredList"
+      :loading="etfLoading"
+      :scroll-left="scrollLeft"
+      :row-click="handleRowClick"
+      :optional-click="handleOptionalClick"
+      @update:scroll-left="handleScrollChange"
+    />
 
     <!-- 底部安全区域 -->
     <view class="h-[env(safe-area-inset-bottom)]" />
