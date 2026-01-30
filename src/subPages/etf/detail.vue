@@ -631,9 +631,10 @@ onMounted(() => {
 })
 
 function goFundDetail() {
+  // router.push({ name: 'etf-performance', query: { code: '510300' } })
   router.push({
-    path: '/subPages/etf/profile',
-    query: {
+    name: 'etf-profile',
+    params: {
       code: '510300',
       name: '沪深300ETF',
     },

@@ -65,6 +65,17 @@
           "style": {
             "navigationBarTitleText": "基金简况"
           }
+        },
+        {
+          "path": "etf/performance",
+          "type": "page",
+          "name": "etf-performance",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "业绩走势",
+            "navigationBarBackgroundColor": "#f8fafc",
+            "navigationBarTextStyle": "black"
+          }
         }
       ]
     }

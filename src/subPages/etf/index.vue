@@ -396,8 +396,8 @@ function handleTabChange({ name }: WotTabEvent) {
  */
 function handleRowClick(row: EtfInfo & RealtimeData) {
   router.push({
-    path: '/subPages/etf/detail',
-    query: {
+    name: 'etf-detail',
+    params: {
       djId: row.danjuanId,
       code: row.code,
       name: row.name,
