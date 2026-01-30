@@ -7,6 +7,7 @@ import type {
   ValuationData,
   WotTabEvent,
 } from './types'
+import CustomTable from './components/CustomTable.vue'
 import {
   REALTIME_POLLING_INTERVAL,
   SCROLL_TOLERANCE,

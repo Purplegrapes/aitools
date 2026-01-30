@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * ETF 详情页
- * 展示 ETF 的行情和估值数据
+ * 专业金融数据可视化界面
  */
 import type { EChartsOption } from 'echarts'
 import type { TabValue } from './data'
@@ -44,6 +44,8 @@ definePage({
   layout: 'default',
   style: {
     navigationBarTitleText: 'ETF详情',
+    navigationBarBackgroundColor: '#f8fafc',
+    navigationBarTextStyle: 'black',
   },
 })
 
@@ -235,17 +237,39 @@ const currentValuationData = computed(() => {
  */
 function getPriceColorClass(value: number | undefined | null) {
   if (value === undefined || value === null || value === 0)
-    return 'text-gray-600'
+    return 'text-slate-400'
   return value > 0 ? 'text-red-500' : 'text-green-500'
+}
+
+/**
+ * 获取颜色值
+ */
+function getValueColor(value: number | undefined | null) {
+  if (!value)
+    return '#64748b'
+  return value > 0 ? '#ef4444' : '#22c55e'
+}
+
+/**
+ * 转换 hex 颜色为 rgba 格式
+ */
+function hexToRgba(hex: string, alpha: number): string {
+  const r = Number.parseInt(hex.slice(1, 3), 16)
+  const g = Number.parseInt(hex.slice(3, 5), 16)
+  const b = Number.parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
 // ==================== 图表配置 ====================
 const quotationOption = ref<EChartsOption>({
-  color: ['#FCCA01'],
-  grid: { bottom: '10%', right: '5%' },
+  backgroundColor: 'transparent',
+  grid: { left: '8%', right: '5%', top: '8%', bottom: '12%' },
   legend: { show: false },
   tooltip: {
     trigger: 'axis',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    textStyle: { color: '#1f2937' },
     axisPointer: { animation: false },
     formatter: (params: EchartsTooltipParams) => {
       handleData.value = params
@@ -262,7 +286,10 @@ const quotationOption = ref<EChartsOption>({
     type: 'category',
     splitLine: { show: false },
     boundaryGap: ['0%', '0%'],
+    axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)' } },
     axisLabel: {
+      color: '#64748b',
+      fontSize: 10,
       formatter: (v: string) => {
         if (segmentedValue.value.quotation === '日内') {
           const parts = v.split(':')
@@ -270,7 +297,7 @@ const quotationOption = ref<EChartsOption>({
         }
         else {
           const parts = v?.split('-')
-          return `${parts[0]}-${parts[1]}`
+          return `${parts[1]}-${parts[2]}`
         }
       },
     },
@@ -279,7 +306,10 @@ const quotationOption = ref<EChartsOption>({
     type: 'value',
     name: '当前价格',
     min: 'dataMin',
-    splitLine: { show: false },
+    axisLine: { show: false },
+    splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)', type: 'dashed' } },
+    axisLabel: { color: '#64748b', fontSize: 10 },
+    nameTextStyle: { color: '#64748b', fontSize: 10 },
   }],
   series: [{
     name: '当前价格',
@@ -287,16 +317,41 @@ const quotationOption = ref<EChartsOption>({
     showSymbol: false,
     smooth: true,
     data: [],
-    lineStyle: { width: 1 },
+    lineStyle: { width: 2, color: '#3b82f6' },
+    areaStyle: {
+      color: {
+        type: 'linear',
+        x: 0,
+        y: 0,
+        x2: 0,
+        y2: 1,
+        colorStops: [
+          { offset: 0, color: hexToRgba('#3b82f6', 0.19) },
+          { offset: 1, color: hexToRgba('#3b82f6', 0.02) },
+        ],
+      },
+    },
   }],
 })
 
 const valuationOption = ref<EChartsOption>({
-  grid: { bottom: '15%' },
-  color: ['#4095E5', '#FCCA01'],
-  legend: { bottom: '5', icon: 'rect', show: true },
+  backgroundColor: 'transparent',
+  grid: { left: '8%', right: '8%', top: '8%', bottom: '15%' },
+  color: ['#3b82f6', '#f59e0b'],
+  legend: {
+    bottom: '5%',
+    icon: 'rect',
+    show: true,
+    textStyle: { color: '#475569', fontSize: 11 },
+    itemWidth: 16,
+    itemHeight: 8,
+    borderRadius: 4,
+  },
   tooltip: {
     trigger: 'axis',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    textStyle: { color: '#1f2937' },
     formatter: (params: EChartsTooltipParams) => {
       handleData.value = params
       showChartTip.value = true
@@ -314,7 +369,10 @@ const valuationOption = ref<EChartsOption>({
     boundaryGap: ['0%', '0%'],
     splitNumber: 5,
     min: 'dataMin',
+    axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)' } },
     axisLabel: {
+      color: '#64748b',
+      fontSize: 10,
       formatter: { year: '{yyyy}', month: '{yyyy}-{MM}' },
     },
   }],
@@ -324,14 +382,20 @@ const valuationOption = ref<EChartsOption>({
       position: 'left',
       name: '市盈率',
       min: 'dataMin',
-      splitLine: { show: false },
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)', type: 'dashed' } },
+      axisLabel: { color: '#64748b', fontSize: 10 },
+      nameTextStyle: { color: '#64748b', fontSize: 10 },
     },
     {
       type: 'value',
       name: '市净率',
       position: 'right',
       min: 'dataMin',
+      axisLine: { show: false },
       splitLine: { show: false },
+      axisLabel: { color: '#64748b', fontSize: 10 },
+      nameTextStyle: { color: '#64748b', fontSize: 10 },
     },
   ],
   series: [
@@ -341,7 +405,20 @@ const valuationOption = ref<EChartsOption>({
       showSymbol: false,
       smooth: true,
       data: [],
-      lineStyle: { width: 1 },
+      lineStyle: { width: 2, color: '#3b82f6' },
+      areaStyle: {
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: hexToRgba('#3b82f6', 0.15) },
+            { offset: 1, color: hexToRgba('#3b82f6', 0.02) },
+          ],
+        },
+      },
     },
     {
       name: '市净率',
@@ -349,7 +426,20 @@ const valuationOption = ref<EChartsOption>({
       showSymbol: false,
       smooth: true,
       data: [],
-      lineStyle: { width: 1 },
+      lineStyle: { width: 2, color: '#f59e0b' },
+      areaStyle: {
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: hexToRgba('#f59e0b', 0.15) },
+            { offset: 1, color: hexToRgba('#f59e0b', 0.02) },
+          ],
+        },
+      },
     },
   ],
 })
@@ -369,6 +459,8 @@ function computesQuotationOption() {
       return
   }
 
+  const mainColor = '#3b82f6'
+
   if (key === '日内') {
     quotationOption.value.series = [{
       name: '当前价格',
@@ -376,19 +468,38 @@ function computesQuotationOption() {
       showSymbol: false,
       smooth: true,
       data: currentData.value.dayData,
-      lineStyle: { width: 1 },
+      lineStyle: { width: 2, color: mainColor },
+      areaStyle: {
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: hexToRgba(mainColor, 0.19) },
+            { offset: 1, color: hexToRgba(mainColor, 0.02) },
+          ],
+        },
+      },
     }]
     quotationOption.value.yAxis = [{
       type: 'value',
       name: '当前价格',
       min: 'dataMin',
-      splitLine: { show: false },
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)', type: 'dashed' } },
+      axisLabel: { color: '#64748b', fontSize: 10 },
+      nameTextStyle: { color: '#64748b', fontSize: 10 },
     }]
     quotationOption.value.xAxis = [{
       type: 'category',
       splitLine: { show: false },
       boundaryGap: ['0%', '0%'],
+      axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)' } },
       axisLabel: {
+        color: '#64748b',
+        fontSize: 10,
         formatter: (v: string) => {
           const parts = v.split(':')
           return `${parts[0]}:${parts[1]}`
@@ -405,22 +516,41 @@ function computesQuotationOption() {
       showSymbol: false,
       smooth: true,
       data: riseFallData,
-      lineStyle: { width: 1 },
+      lineStyle: { width: 2, color: mainColor },
+      areaStyle: {
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: hexToRgba(mainColor, 0.19) },
+            { offset: 1, color: hexToRgba(mainColor, 0.02) },
+          ],
+        },
+      },
     }]
     quotationOption.value.yAxis = [{
       type: 'value',
       name: '后复权价',
       min: 'dataMin',
-      splitLine: { show: false },
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)', type: 'dashed' } },
+      axisLabel: { color: '#64748b', fontSize: 10 },
+      nameTextStyle: { color: '#64748b', fontSize: 10 },
     }]
     quotationOption.value.xAxis = [{
       type: 'category',
       splitLine: { show: false },
       boundaryGap: ['0%', '0%'],
+      axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)' } },
       axisLabel: {
+        color: '#64748b',
+        fontSize: 10,
         formatter: (v: string) => {
           const parts = v?.split('-')
-          return `${parts[0]}-${parts[1]}`
+          return `${parts[1]}-${parts[2]}`
         },
       },
       data: riseFallData?.map((item: QuotationDataPoint) => item?.name),
@@ -439,22 +569,41 @@ function computesQuotationOption() {
         showSymbol: false,
         smooth: true,
         data: riseFallData,
-        lineStyle: { width: 1 },
+        lineStyle: { width: 2, color: mainColor },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: hexToRgba(mainColor, 0.19) },
+              { offset: 1, color: hexToRgba(mainColor, 0.02) },
+            ],
+          },
+        },
       }]
       quotationOption.value.yAxis = [{
         type: 'value',
         name: '后复权价',
         min: 'dataMin',
-        splitLine: { show: false },
+        axisLine: { show: false },
+        splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)', type: 'dashed' } },
+        axisLabel: { color: '#64748b', fontSize: 10 },
+        nameTextStyle: { color: '#64748b', fontSize: 10 },
       }]
       quotationOption.value.xAxis = [{
         type: 'category',
         splitLine: { show: false },
         boundaryGap: ['0%', '0%'],
+        axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)' } },
         axisLabel: {
+          color: '#64748b',
+          fontSize: 10,
           formatter: (v: string) => {
             const parts = v?.split('-')
-            return `${parts[0]}-${parts[1]}`
+            return `${parts[1]}-${parts[2]}`
           },
         },
         data: riseFallData?.map((item: QuotationDataPoint) => item?.name),
@@ -484,6 +633,9 @@ function computesValuationOption() {
   if (!pbTrends || pbTrends.length === 0 || !peTrends || peTrends.length === 0)
     return
 
+  const peColor = '#3b82f6'
+  const pbColor = '#f59e0b'
+
   if (key === '全部') {
     valuationOption.value.series = [
       {
@@ -492,7 +644,20 @@ function computesValuationOption() {
         showSymbol: false,
         smooth: true,
         data: peTrends,
-        lineStyle: { width: 1 },
+        lineStyle: { width: 2, color: peColor },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: hexToRgba(peColor, 0.15) },
+              { offset: 1, color: hexToRgba(peColor, 0.02) },
+            ],
+          },
+        },
       },
       {
         name: '市净率',
@@ -500,7 +665,20 @@ function computesValuationOption() {
         showSymbol: false,
         smooth: true,
         data: pbTrends,
-        lineStyle: { width: 1 },
+        lineStyle: { width: 2, color: pbColor },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: hexToRgba(pbColor, 0.15) },
+              { offset: 1, color: hexToRgba(pbColor, 0.02) },
+            ],
+          },
+        },
       },
     ]
   }
@@ -521,7 +699,20 @@ function computesValuationOption() {
         showSymbol: false,
         smooth: true,
         data: newPeTrends,
-        lineStyle: { width: 1 },
+        lineStyle: { width: 2, color: peColor },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: hexToRgba(peColor, 0.15) },
+              { offset: 1, color: hexToRgba(peColor, 0.02) },
+            ],
+          },
+        },
       },
       {
         name: '市净率',
@@ -529,7 +720,20 @@ function computesValuationOption() {
         showSymbol: false,
         smooth: true,
         data: newPbTrends,
-        lineStyle: { width: 1 },
+        lineStyle: { width: 2, color: pbColor },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: hexToRgba(pbColor, 0.15) },
+              { offset: 1, color: hexToRgba(pbColor, 0.02) },
+            ],
+          },
+        },
       },
     ]
   }
@@ -708,7 +912,7 @@ onUnload(() => {
     </wd-sticky>
 
     <!-- 内容区域 -->
-    <view class="p-2 space-y-3">
+    <view class="px-2 space-y-3">
       <!-- 详情卡片 -->
       <wd-collapse v-model="collapseValue">
         <wd-collapse-item title="投资说明" name="detail">
@@ -720,21 +924,22 @@ onUnload(() => {
     </view>
 
     <!-- 关键指标卡片 -->
-    <view class="rounded-2xl bg-white p-5 shadow-sm">
-      <view class="mb-4">
-        <text class="text-sm text-gray-800 font-semibold">
+    <wd-card custom-class="m-3! py-3!">
+      <view class="mb-4 flex items-center justify-between">
+        <text class="text-sm text-slate-800 font-semibold">
           关键指标
         </text>
-        <text class="text-xs text-blue-500" @click="goFundDetail">
-          基本资料
-          <wd-icon name="arrow-right" />
-        </text>
+        <view class="flex items-center gap-1 text-xs text-blue-600" @click="goFundDetail">
+          <text>基本资料</text>
+          <wd-icon name="arrow-right" custom-class="text-blue-600!" />
+        </view>
       </view>
+
       <view class="grid grid-cols-3 gap-4">
         <!-- 行情数据 -->
-        <view v-if="tabValue === 'quotation'" class="space-y-2">
+        <view v-if="tabValue === 'quotation'" class="space-y-3">
           <view v-if="segmentedValue.quotation === '日内' && configShow" class="text-center">
-            <text class="mb-1 block text-xs text-gray-500">
+            <text class="mb-1 block text-xs text-slate-500">
               当前价格
             </text>
             <text class="text-xl font-bold" :class="getPriceColorClass(currentData.riseFall)">
@@ -742,15 +947,15 @@ onUnload(() => {
             </text>
           </view>
           <view v-else class="text-center">
-            <text class="mb-1 block text-xs text-gray-500">
+            <text class="mb-1 block text-xs text-slate-500">
               后复权收盘价
             </text>
-            <text class="text-xl font-bold">
+            <text class="text-xl text-slate-800 font-bold">
               {{ currentData.quotationData?.[currentData.quotationData?.length - 1]?.f_mkt_close_price_adj || '--' }}
             </text>
           </view>
           <view class="text-center">
-            <text class="mb-1 block text-xs text-gray-500">
+            <text class="mb-1 block text-xs text-slate-500">
               折溢价率
             </text>
             <text class="text-base font-semibold" :class="getPriceColorClass(currentData.premiumRate)">
@@ -760,9 +965,9 @@ onUnload(() => {
         </view>
 
         <!-- 估值数据 -->
-        <view v-else class="space-y-2">
+        <view v-else class="space-y-3">
           <view class="text-center">
-            <text class="mb-1 block text-xs text-gray-500">
+            <text class="mb-1 block text-xs text-slate-500">
               市盈率 (PE)
             </text>
             <text class="text-xl text-blue-600 font-bold">
@@ -770,15 +975,15 @@ onUnload(() => {
             </text>
           </view>
           <view class="text-center">
-            <text class="mb-1 block text-xs text-gray-500">
+            <text class="mb-1 block text-xs text-slate-500">
               市净率 (PB)
             </text>
-            <text class="text-xl text-orange-600 font-bold">
+            <text class="text-xl text-amber-600 font-bold">
               {{ currentValuationData.pb || '--' }}
             </text>
           </view>
           <view class="text-center">
-            <text class="mb-1 block text-xs text-gray-500">
+            <text class="mb-1 block text-xs text-slate-500">
               股息率
             </text>
             <text class="text-base text-green-600 font-semibold">
@@ -788,17 +993,17 @@ onUnload(() => {
         </view>
 
         <!-- 通用数据 -->
-        <view class="space-y-2">
+        <view class="space-y-3">
           <view class="text-center">
-            <text class="mb-1 block text-xs text-gray-500">
+            <text class="mb-1 block text-xs text-slate-500">
               净资产(亿)
             </text>
-            <text class="text-lg text-gray-800 font-semibold">
+            <text class="text-lg text-slate-800 font-semibold">
               {{ currentData.fundNetAssets ? formatAssets(currentData.fundNetAssets) : '--' }}
             </text>
           </view>
           <view v-if="segmentedValue.quotation !== '日内'" class="text-center">
-            <text class="mb-1 block text-xs text-gray-500">
+            <text class="mb-1 block text-xs text-slate-500">
               年涨跌幅
             </text>
             <text class="text-base font-semibold" :class="getPriceColorClass(currentData.yearRiseFall)">
@@ -806,21 +1011,22 @@ onUnload(() => {
             </text>
           </view>
         </view>
-        <view class="space-y-2">
+
+        <view class="space-y-3">
           <view class="text-center">
-            <text class="mb-1 block text-xs text-gray-500">
+            <text class="mb-1 block text-xs text-slate-500">
               数据日期
             </text>
-            <text class="text-sm text-gray-700">
+            <text class="text-sm text-slate-700">
               {{ currentData.date || '--' }}
             </text>
           </view>
         </view>
       </view>
-    </view>
+    </wd-card>
 
-    <!-- 分段选择器 -->
-    <view class="p-2">
+    <view class="p-3">
+      <!-- 分段选择器 -->
       <wd-segmented
         v-if="tabValue === 'quotation'"
         v-model:value="segmentedValue.quotation"
@@ -837,49 +1043,61 @@ onUnload(() => {
       />
     </view>
 
-    <!-- 图表 -->
-    <view class="h-80 bg-white p-2">
-      <LineChart v-if="tabValue === 'quotation'" :option="quotationOption" custom-class="h-300px" />
-      <LineChart v-else custom-class="h-300px" :option="valuationOption" />
-    </view>
+    <!-- 图表卡片 -->
+    <wd-card custom-class="my-3! py-3!">
+      <view class="h-80">
+        <LineChart v-if="tabValue === 'quotation'" :option="quotationOption" custom-class="h-full w-full" />
+        <LineChart v-else :option="valuationOption" custom-class="h-full w-full" />
+      </view>
+    </wd-card>
 
     <!-- 图表 Tooltip -->
-    <view v-if="showChartTip" class="bg-white p-5 text-sm text-gray-800">
-      <view class="mb-2 font-bold">
+    <view v-if="showChartTip" class="rounded-2xl bg-white/80 p-4 shadow-sm backdrop-blur-md">
+      <view class="mb-3 text-sm text-slate-800 font-semibold">
         {{ handleData?.name || handleData?.[0]?.name || '' }}
       </view>
       <!-- 行情 tooltip -->
-      <view v-if="tabValue === 'quotation'">
-        <view class="mb-2 flex gap-5">
-          <text>{{ segmentedValue.quotation === '日内' ? '历史价格' : '后复权价' }}</text>
-          <text :style="{ color: '#FCCA01' }">
+      <view v-if="tabValue === 'quotation'" class="space-y-2">
+        <view class="flex items-center justify-between">
+          <text class="text-xs text-slate-500">
+            {{ segmentedValue.quotation === '日内' ? '历史价格' : '后复权价' }}
+          </text>
+          <text class="text-sm font-semibold" :style="{ color: '#3b82f6' }">
             {{ segmentedValue.quotation === '日内' ? handleData?.currentPrice : handleData?.f_mkt_close_price_adj }}
           </text>
         </view>
-        <view class="mb-2 flex gap-5">
-          <text>涨跌幅</text>
-          <text :style="{ color: '#FCCA01' }">
+        <view class="flex items-center justify-between">
+          <text class="text-xs text-slate-500">
+            涨跌幅
+          </text>
+          <text class="text-sm font-semibold" :style="{ color: getValueColor(handleData?.riseFall) }">
             {{ formatPercentage(handleData?.riseFall) }}
           </text>
         </view>
-        <view class="mb-2 flex gap-5">
-          <text>成交额</text>
-          <text :style="{ color: '#FCCA01' }">
+        <view class="flex items-center justify-between">
+          <text class="text-xs text-slate-500">
+            成交额
+          </text>
+          <text class="text-sm text-slate-800 font-semibold">
             {{ segmentedValue.quotation === '日内' ? formatAssets(handleData?.tradeAmountIntraDay) : formatAssets(handleData?.f_mkt_amount) }}
           </text>
         </view>
       </view>
       <!-- 估值 tooltip -->
-      <view v-if="tabValue === 'valuation'">
-        <view class="mb-2 flex gap-5">
-          <text>PE</text>
-          <text :style="{ color: '#4095E5' }">
+      <view v-if="tabValue === 'valuation'" class="space-y-2">
+        <view class="flex items-center justify-between">
+          <text class="text-xs text-slate-500">
+            市盈率 (PE)
+          </text>
+          <text class="text-sm font-semibold" :style="{ color: '#3b82f6' }">
             {{ handleData?.[0]?.data?.pe || '--' }}
           </text>
         </view>
-        <view class="mb-2 flex gap-5">
-          <text>PB</text>
-          <text :style="{ color: '#FCCA01' }">
+        <view class="flex items-center justify-between">
+          <text class="text-xs text-slate-500">
+            市净率 (PB)
+          </text>
+          <text class="text-sm font-semibold" :style="{ color: '#f59e0b' }">
             {{ handleData?.[1]?.data?.pb || '--' }}
           </text>
         </view>

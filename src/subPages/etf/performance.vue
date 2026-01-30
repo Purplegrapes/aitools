@@ -55,12 +55,12 @@ const periodOptions = computed(() => [
   { label: '近1年', value: '1y' },
   { label: '近3年', value: '3y' },
   { label: '年初至今', value: 'ytd' },
-])
+] as const)
 
 const chartTypeOptions = computed(() => [
-  { label: '收益率', value: 'return', icon: '📈', color: '#22c55e' },
-  { label: '回撤', value: 'drawdown', icon: '📉', color: '#ef4444' },
-  { label: '波动率', value: 'volatility', icon: '〰️', color: '#3b82f6' },
+  { label: '收益率', value: 'return', color: '#22c55e' },
+  { label: '回撤', value: 'drawdown', color: '#ef4444' },
+  { label: '波动率', value: 'volatility', color: '#3b82f6' },
 ])
 
 // 当前图表数据
@@ -192,7 +192,10 @@ const currentReturnValue = computed(() => {
     '3y': 'return3y',
     'ytd': 'returnYtd',
   }
-  return currentIndicators.value?.[map[key]]
+  const indicatorKey = map[key]
+  if (!indicatorKey)
+    return null
+  return currentIndicators.value?.[indicatorKey]
 })
 
 // 年度收益数据
@@ -286,10 +289,6 @@ function generateMockVolatilityData() {
 function handlePeriodChange(value: string) {
   activePeriod.value = value
 }
-
-function handleChartTypeChange(value: string) {
-  chartType.value = value
-}
 </script>
 
 <template>
@@ -307,7 +306,7 @@ function handleChartTypeChange(value: string) {
       <text class="mb-3 block text-sm text-slate-800 font-semibold">
         业绩概览
       </text>
-      <wd-card class="m-0! my-2! py-2!">
+      <wd-card custom-class="m-0! my-2! py-2!">
         <view class="mb-5 flex items-center justify-between">
           <view class="flex items-center gap-1 px-4 py-2">
             <text class="text-xs">
@@ -347,13 +346,17 @@ function handleChartTypeChange(value: string) {
       </wd-card>
 
       <!-- 图表类型选择器 -->
-      <wd-segmented v-model="chartType" :options="chartTypeOptions.map(o => o.label)" class="mb-3!" @change="({ name }: { name: number }) => handleChartTypeChange(chartTypeOptions[name].value)" />
+      <wd-segmented
+        v-model:value="chartType"
+        :options="chartTypeOptions.map(o => o.value)"
+        custom-class="mb-3!"
+      />
 
       <!-- 图表区域 -->
       <text class="mb-3 block text-sm text-slate-800 font-semibold">
         {{ chartTypeOptions.find(o => o.value === chartType)?.label }}走势
       </text>
-      <wd-card class="m-0! my-2! py-2!">
+      <wd-card custom-class="m-0! my-2! py-2!">
         <view class="mb-4 flex flex-wrap items-center justify-between gap-3">
           <view class="flex flex-wrap gap-1.5">
             <view
