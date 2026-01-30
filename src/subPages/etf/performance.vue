@@ -5,6 +5,7 @@
  */
 import type { EChartsOption } from 'echarts'
 import { coreIndicators } from '@/api/modules/etf'
+import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
 import { formatPercentage } from '@/utils/format'
 
@@ -346,11 +347,12 @@ function handlePeriodChange(value: string) {
       </wd-card>
 
       <!-- 图表类型选择器 -->
-      <wd-segmented
-        v-model:value="chartType"
-        :options="chartTypeOptions.map(o => o.value)"
-        custom-class="mb-3!"
-      />
+      <view class="mb-3">
+        <SegmentedControl
+          v-model="chartType"
+          :options="chartTypeOptions"
+        />
+      </view>
 
       <!-- 图表区域 -->
       <text class="mb-3 block text-sm text-slate-800 font-semibold">

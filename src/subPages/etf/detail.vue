@@ -20,6 +20,7 @@ import {
   showQuote,
   valuationShow,
 } from '@/api/modules/etf'
+import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
 import {
   calculatePreviousDates,
@@ -127,13 +128,15 @@ const configShow = computed(() => {
 
 // 动态分段列表
 const dynamicSegmentedList = computed(() => {
-  if (configShow.value) {
-    return segmentedList as unknown as Record<TabValue, Array<{ label: string, value: string, key: string }>>
+  const baseList = segmentedList as unknown as Record<TabValue, Array<{ label: string, value: string, key: string }>>
+  // 如果配置显示为 false，过滤掉日内选项
+  if (!configShow.value) {
+    return {
+      quotation: baseList.quotation.filter(item => item.key !== 'day'),
+      valuation: baseList.valuation,
+    }
   }
-  return {
-    quotation: segmentedList.quotation.filter(item => item.key !== 'day'),
-    valuation: segmentedList.valuation,
-  } as unknown as Record<TabValue, Array<{ label: string, value: string, key: string }>>
+  return baseList
 })
 
 // 处理后的历史行情数据
@@ -745,6 +748,24 @@ function computesValuationOption() {
 function handleTabsChange({ name }: { name: TabValue }) {
   showChartTip.value = false
 
+  // 获取新 tab 的选项列表
+  const newOptions = dynamicSegmentedList.value[name]
+  if (newOptions && newOptions.length > 0) {
+    // 获取当前 tab 对应的值
+    const currentValue = name === 'quotation' ? segmentedValue.value.quotation : segmentedValue.value.valuation
+    // 检查当前值是否在新选项列表中
+    const exists = newOptions.some(option => option.value === currentValue)
+    // 如果不存在，重置为第一个选项
+    if (!exists) {
+      if (name === 'quotation') {
+        segmentedValue.value.quotation = newOptions[0].value
+      }
+      else {
+        segmentedValue.value.valuation = newOptions[0].value
+      }
+    }
+  }
+
   if (name === 'quotation') {
     // 先清除已存在的定时器
     if (timer) {
@@ -777,6 +798,20 @@ function handleQuotationSegmentedClick() {
 
 function handleValuationSegmentedClick() {
   computesValuationOption()
+}
+
+/**
+ * 处理分段器值变化
+ */
+function handleSegmentChange(value: string) {
+  if (tabValue.value === 'quotation') {
+    segmentedValue.value.quotation = value
+    handleQuotationSegmentedClick()
+  }
+  else {
+    segmentedValue.value.valuation = value
+    handleValuationSegmentedClick()
+  }
 }
 
 // ==================== 数据加载函数 ====================
@@ -1027,19 +1062,19 @@ onUnload(() => {
 
     <view class="p-3">
       <!-- 分段选择器 -->
-      <wd-segmented
+      <SegmentedControl
         v-if="tabValue === 'quotation'"
-        v-model:value="segmentedValue.quotation"
-        :options="dynamicSegmentedList.quotation"
+        :model-value="segmentedValue.quotation"
+        :options="dynamicSegmentedList[tabValue]"
         :disabled="!currentData.quotationData"
-        @click="handleQuotationSegmentedClick"
+        @update:model-value="handleSegmentChange"
       />
-      <wd-segmented
+      <SegmentedControl
         v-else
-        v-model:value="segmentedValue.valuation"
-        :options="dynamicSegmentedList.valuation"
+        :model-value="segmentedValue.valuation"
+        :options="dynamicSegmentedList[tabValue]"
         :disabled="!currentValuationData"
-        @click="handleValuationSegmentedClick"
+        @update:model-value="handleSegmentChange"
       />
     </view>
 
