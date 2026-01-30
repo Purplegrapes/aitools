@@ -30,7 +30,7 @@
       "name": "about",
       "layout": "tabbar",
       "style": {
-        "navigationBarTitleText": "关于"
+        "navigationBarTitleText": "设置"
       }
     }
   ],
@@ -56,7 +56,18 @@
           "style": {
             "navigationBarTitleText": "ETF估值表"
           }
+        },
+        // #ifdef MP-WEIXIN
+        {
+          "path": "etf/profile",
+          "type": "page",
+          "name": "etf-profile",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "基金简况"
+          }
         }
+        // #endif
       ]
     }
   ],

@@ -149,8 +149,8 @@ export interface ValuationDetailData {
     pb?: number
     dividend_yield?: number
     roe?: number
-    pe_trends?: Array<{ time: string; pe: number }>
-    pb_trends?: Array<{ time: string; pb: number }>
+    pe_trends?: Array<{ time: string, pe: number }>
+    pb_trends?: Array<{ time: string, pb: number }>
   }
 }
 
@@ -263,4 +263,83 @@ export function isNestedValuationDetailResponse(value: unknown): value is ApiRes
   if (typeof nested.data !== 'object' || nested.data === null)
     return false
   return true
+}
+
+// ==================== 基金简况相关类型 ====================
+
+/**
+ * 基金经理信息
+ */
+export interface FundManager {
+  name: string // 姓名
+  avatar?: string // 头像URL
+  education?: string // 学历
+  experience?: number // 从业年限（年）
+  manageAssets?: number // 管理规模（元）
+  manageFunds?: number // 在管基金数量
+  startDate?: string // 管理该基金起始日期
+  intro?: string // 简介
+}
+
+/**
+ * 核心指标数据
+ */
+export interface CoreIndicators {
+  // 规模指标
+  netAssets?: number // 净资产
+  dailyTurnover?: number // 日成交额
+
+  // 业绩指标
+  return1w?: number // 近1周收益率
+  return1m?: number // 近1月收益率
+  return3m?: number // 近3月收益率
+  return6m?: number // 近6月收益率
+  return1y?: number // 近1年收益率
+  return3y?: number // 近3年收益率
+  returnYtd?: number // 年初至今收益率
+
+  // 估值指标
+  pe?: number // 市盈率
+  pb?: number // 市净率
+  dividendYield?: number // 股息率
+  profitYield?: number // 盈利收益率
+
+  // 风险指标
+  volatility?: number // 波动率
+  maxDrawdown?: number // 最大回撤
+  sharpeRatio?: number // 夏普比率
+}
+
+/**
+ * 资产配置项
+ */
+export interface AssetAllocation {
+  name: string // 资产类别/行业/股票名称
+  value: number // 金额/占比
+  percentage?: number // 百分比
+  color?: string // 图表颜色
+}
+
+/**
+ * 资产结构数据
+ */
+export interface AssetStructure {
+  assetAllocation: AssetAllocation[] // 资产大类配置
+  industryAllocation?: AssetAllocation[] // 行业配置
+  topHoldings?: AssetAllocation[] // 前十大持仓
+}
+
+/**
+ * 基金基础信息（简况页扩展）
+ */
+export interface FundBasicInfo {
+  code: string // 基金代码
+  name: string // 基金全称
+  fundType?: string // 基金类型
+  establishDate?: string // 成立日期
+  company?: string // 基金公司
+  custodian?: string // 托管人
+  manageFeeRatio?: number // 管理费率
+  custodianFeeRatio?: number // 托管费率
+  trackIndexName?: string // 跟踪指数
 }

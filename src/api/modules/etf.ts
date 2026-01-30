@@ -119,3 +119,29 @@ export function showQuote() {
     params: { k: 'show_quote' },
   })
 }
+
+// ==================== 基金简况相关 API ====================
+
+/**
+ * 获取基金经理信息
+ * @param code ETF代码
+ */
+export function fundManager(code: string) {
+  return alovaInstance.Get(`/api/v1/etf/manager/${code}`)
+}
+
+/**
+ * 获取核心指标
+ * @param code ETF代码
+ */
+export function coreIndicators(code: string) {
+  return alovaInstance.Get(`/api/v1/etf/indicators/${code}`)
+}
+
+/**
+ * 获取资产结构
+ * @param code ETF代码
+ */
+export function assetStructure(code: string) {
+  return alovaInstance.Get(`/api/v1/etf/asset-structure/${code}`)
+}

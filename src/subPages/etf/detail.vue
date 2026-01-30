@@ -62,7 +62,7 @@ const tabValue = ref<TabValue>('quotation')
 const collapseValue = ref<string[]>([])
 const showChartTip = ref(false)
 const handleData = ref<EChartsTooltipParams | null>(null)
-
+const router = useRouter()
 // 分段选择器值
 const segmentedValue = ref<Record<'quotation' | 'valuation', string>>({
   quotation: '1年',
@@ -630,6 +630,16 @@ onMounted(() => {
   }
 })
 
+function goFundDetail() {
+  router.push({
+    path: '/subPages/etf/profile',
+    query: {
+      code: '510300',
+      name: '沪深300ETF',
+    },
+  })
+}
+
 // 监听数据变化，更新图表
 watch([processedFactorData, processedRealtimeLineData, currentValuationData], ([factor, realtime, valuation]) => {
   if (tabValue.value === 'quotation') {
@@ -713,6 +723,10 @@ onUnload(() => {
       <view class="mb-4">
         <text class="text-sm text-gray-800 font-semibold">
           关键指标
+        </text>
+        <text class="text-center text-blue-500" @click="goFundDetail">
+          基本资料
+          <wd-icon name="arrow-right" />
         </text>
       </view>
       <view class="grid grid-cols-3 gap-4">
