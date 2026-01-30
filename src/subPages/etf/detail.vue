@@ -724,7 +724,7 @@ onUnload(() => {
         <text class="text-sm text-gray-800 font-semibold">
           关键指标
         </text>
-        <text class="text-center text-blue-500" @click="goFundDetail">
+        <text class="text-xs text-blue-500" @click="goFundDetail">
           基本资料
           <wd-icon name="arrow-right" />
         </text>

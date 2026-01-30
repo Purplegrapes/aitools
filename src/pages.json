@@ -57,7 +57,6 @@
             "navigationBarTitleText": "ETF估值表"
           }
         },
-        // #ifdef MP-WEIXIN
         {
           "path": "etf/profile",
           "type": "page",
@@ -67,7 +66,6 @@
             "navigationBarTitleText": "基金简况"
           }
         }
-        // #endif
       ]
     }
   ],

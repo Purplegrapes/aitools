@@ -78,7 +78,7 @@ export default defineConfig({
         imports: ['useToast', 'useMessage', 'useNotify', 'CommonUtil'],
       }, {
         from: 'alova/client',
-        imports: ['usePagination', 'useRequest'],
+        imports: ['usePagination', 'useRequest', 'useWatcher'],
       }],
       dts: 'src/auto-imports.d.ts',
       dirs: ['src/composables', 'src/store', 'src/utils', 'src/api'],

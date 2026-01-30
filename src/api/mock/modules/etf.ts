@@ -1,10 +1,28 @@
-import type { AssetStructure, CoreIndicators, FundManager } from '@/subPages/etf/types'
+import type { AssetStructure, CoreIndicators, EtfInfo, FundManager } from '@/subPages/etf/types'
 /*
  * @Description: ETF 基金简况 Mock 数据
  */
 import { defineMock } from '@alova/mock'
 
 // Mock 数据
+export const mockEtfInfo: EtfInfo = {
+  code: '510300',
+  name: '华泰柏瑞沪深300交易型开放式指数证券投资基金',
+  danjuanId: 'DJ001234',
+  trackIndexCode: '000300',
+  trackIndexName: '沪深300',
+  categoryCode: 'stock',
+  watchList: false,
+  fundNetAssets: 50000000000,
+  manageFeeRatio: 0.005,
+  custodianFeeRatio: 0.001,
+  company: '华泰柏瑞基金管理有限公司',
+  investIdea: '本基金采用指数化投资策略，紧密跟踪沪深300指数，追求跟踪偏离度和跟踪误差最小化。',
+  fundType: '股票型ETF',
+  establishDate: '2012-05-28',
+  custodian: '中国工商银行股份有限公司',
+}
+
 export const mockFundManager: FundManager = {
   name: '张伟',
   education: '硕士',
@@ -72,6 +90,16 @@ export const mockAssetStructure: AssetStructure = {
 }
 
 export default defineMock({
+  // 获取基金基础信息
+  '[GET]/api/v1/etf/basic-info/{code}': ({ params }) => {
+    console.log('[Mock] GET /api/v1/etf/info/', params.code)
+    return {
+      code: 0,
+      data: mockEtfInfo,
+      message: 'success',
+    }
+  },
+
   // 获取基金经理信息
   '[GET]/api/v1/etf/manager/{code}': ({ params }) => {
     console.log('[Mock] GET /api/v1/etf/manager/', params.code)

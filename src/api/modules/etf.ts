@@ -121,7 +121,13 @@ export function showQuote() {
 }
 
 // ==================== 基金简况相关 API ====================
-
+/**
+ * 获取基金基础信息
+ * @param code ETF代码
+ */
+export function basicInfo(code: string) {
+  return alovaInstance.Get(`/api/v1/etf/basic-info/${code}`)
+}
 /**
  * 获取基金经理信息
  * @param code ETF代码

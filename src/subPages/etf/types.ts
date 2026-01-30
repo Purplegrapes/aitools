@@ -39,6 +39,9 @@ export interface EtfInfo {
   custodianFeeRatio?: number
   company?: string
   investIdea?: string
+  fundType?: string
+  establishDate?: string
+  custodian?: string
 }
 
 /**

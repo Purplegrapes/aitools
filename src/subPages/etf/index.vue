@@ -40,7 +40,7 @@ const activeNav = ref<'quotation' | 'valuation' | 'performance' | 'rate'>('quota
 /**
  * 当前选中的分类Tab
  */
-const activeTab = ref()
+const activeTab = ref('all')
 
 /**
  * 导航栏配置
@@ -266,14 +266,11 @@ const {
  * 分类列表
  */
 const categoryList = computed(() => {
-  const data = (categoryData.value?.data as CategoryData[]) || []
-  return [
-    ...data.map((item: CategoryData) => ({
-      name: item.code,
-      code: item.code,
-      label: item.name,
-    })),
-  ]
+  return (categoryData.value?.data as CategoryData[])?.map((item: CategoryData) => ({
+    name: item.code,
+    code: item.code,
+    label: item.name,
+  }))
 })
 
 /**

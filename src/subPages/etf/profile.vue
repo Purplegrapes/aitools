@@ -4,8 +4,8 @@
  * 展示基金的基础信息、基金经理、核心指标和资产结构
  */
 import type { EChartsOption } from 'echarts'
-import type { CoreIndicators, FundManager } from './types'
-import { assetStructure, coreIndicators, etfInfo, fundManager } from '@/api/modules/etf'
+import type { AssetStructure, CoreIndicators, FundManager } from './types'
+import { assetStructure, basicInfo, coreIndicators, fundManager } from '@/api/modules/etf'
 import PieChart from '@/subEcharts/echarts/components/PieChart.vue'
 import { formatAssets, formatPercentage } from '@/utils/format'
 
@@ -25,50 +25,42 @@ definePage({
 
 const route = useRoute()
 
-// ==================== API 请求 (useRequest) ====================
-const etfCode = ref('')
-// ==================== 路由参数 ====================
-const query = computed(() => route.query as {
-  code?: string
-  name?: string
-})
-
 // ==================== 状态 ====================
 const collapseValue = ref<string[]>(['basic', 'manager', 'indicators', 'assets'])
 const assetTabValue = ref(0)
 // 资产结构
-const { data: assetStructureData, send: fetchStructure } = useRequest(
-  () => assetStructure(etfCode.value),
-  { immediate: false },
+const { data: assetStructureData } = useRequest(
+  () => assetStructure(route.query.code),
+  { immediate: true },
 )
 // 资产结构Tab配置
 const assetTabs = computed(() => {
   const tabs = ['资产配置']
-  if (assetStructureData.value?.industryAllocation?.length) {
+  if (assetStructureData.value?.data?.industryAllocation?.length) {
     tabs.push('行业配置')
   }
-  if (assetStructureData.value?.topHoldings?.length) {
+  if (assetStructureData.value?.data?.topHoldings?.length) {
     tabs.push('前十大持仓')
   }
   return tabs
 })
 
 // 基金信息
-const { data: etfInfoData, send: fetchEtfInfo } = useRequest(
-  () => etfInfo(etfCode.value),
-  { immediate: false },
+const { data: etfInfoData } = useRequest(
+  () => basicInfo(route.query.code),
+  { immediate: true },
 )
 
 // 基金经理
-const { data: managerData, send: fetchManager } = useRequest(
-  () => fundManager(etfCode.value),
-  { immediate: false },
+const { data: managerData } = useRequest(
+  () => fundManager(route.query.code),
+  { immediate: true },
 )
 
 // 核心指标
-const { data: indicatorsData, send: fetchIndicators } = useRequest(
-  () => coreIndicators(etfCode.value),
-  { immediate: false },
+const { data: indicatorsData } = useRequest(
+  () => coreIndicators(route.query.code),
+  { immediate: true },
 )
 
 // ==================== 计算属性 ====================
@@ -98,21 +90,22 @@ const currentIndicators = computed(() => {
 
 // 当前展示的资产数据（根据Tab切换）
 const currentAssetData = computed(() => {
-  if (!assetStructureData.value)
+  const data = assetStructureData.value?.data as AssetStructure | undefined
+  if (!data)
     return []
 
-  if (assetTabValue.value === 1 && assetStructureData.value.industryAllocation) {
-    return assetStructureData.value.industryAllocation
+  if (assetTabValue.value === 1 && data.industryAllocation) {
+    return data.industryAllocation
   }
-  if (assetTabValue.value === 2 && assetStructureData.value.topHoldings) {
-    return assetStructureData.value.topHoldings
+  if (assetTabValue.value === 2 && data.topHoldings) {
+    return data.topHoldings
   }
-  return assetStructureData.value.assetAllocation || []
+  return data.assetAllocation || []
 })
 
 // 资产配置饼图配置
 const assetPieOption = computed<EChartsOption>(() => {
-  const data = assetStructureData.value?.assetAllocation || []
+  const data = assetStructureData.value?.data?.assetAllocation || []
 
   return {
     legend: {
@@ -194,6 +187,27 @@ function formatManageAssets(assets?: number): string {
   return formatAssets(assets)
 }
 
+/**
+ * 获取收益率属性键名
+ * @param period 时间周期 (1w, 1m, 3m, 6m, 1y, 3y, ytd)
+ * @returns 对应的属性键名 (return1w, return1m, etc.)
+ */
+function getReturnKey(period: string): keyof CoreIndicators {
+  return `return${period.charAt(0).toUpperCase() + period.slice(1)}` as keyof CoreIndicators
+}
+
+/**
+ * 获取收益率值
+ * @param indicators 核心指标数据
+ * @param period 时间周期
+ * @returns 收益率值
+ */
+function getReturnValue(indicators: CoreIndicators | null, period: string): number | undefined {
+  if (!indicators)
+    return undefined
+  return indicators[getReturnKey(period)]
+}
+
 // ==================== 事件处理 ====================
 function handleAssetTabChange({ name }: { name: number }) {
   assetTabValue.value = name
@@ -201,22 +215,11 @@ function handleAssetTabChange({ name }: { name: number }) {
 
 // ==================== 生命周期 ====================
 onMounted(() => {
-  const { code, name } = query.value
-  if (code) {
-    etfCode.value = code
-
-    // 设置导航栏标题
-    if (name) {
-      uni.setNavigationBarTitle({
-        title: decodeURIComponent(name),
-      })
-    }
-
-    // 加载数据
-    fetchEtfInfo()
-    fetchManager()
-    fetchIndicators()
-    fetchStructure()
+  const { name } = route.query
+  if (name) {
+    uni.setNavigationBarTitle({
+      title: decodeURIComponent(name),
+    })
   }
 })
 </script>
@@ -231,10 +234,10 @@ onMounted(() => {
             <wd-cell-group border custom-class="rounded-2! overflow-hidden">
               <wd-cell title="基金代码" :value="currentEtfInfo.code || '--'" />
               <wd-cell title="基金全称" :value="currentEtfInfo.name || '--'" />
-              <wd-cell title="基金类型" value="股票型ETF" />
-              <wd-cell title="成立日期" value="2012-05-28" />
+              <wd-cell title="基金类型" :value="currentEtfInfo.fundType || '--'" />
+              <wd-cell title="成立日期" :value="currentEtfInfo.establishDate || '--'" />
               <wd-cell title="基金公司" :value="currentEtfInfo.company || '--'" />
-              <wd-cell title="托管人" value="中国工商银行" />
+              <wd-cell title="托管人" :value="currentEtfInfo.custodian || '--'" />
               <wd-cell title="管理费率" :value="currentEtfInfo.manageFeeRatio ? `${(currentEtfInfo.manageFeeRatio * 100).toFixed(2)}%` : '--'" />
               <wd-cell title="托管费率" :value="currentEtfInfo.custodianFeeRatio ? `${(currentEtfInfo.custodianFeeRatio * 100).toFixed(2)}%` : '--'" />
               <wd-cell title="跟踪指数" :value="currentEtfInfo.trackIndexName || '--'" />
@@ -305,8 +308,8 @@ onMounted(() => {
                   <view class="mb-1 text-xs text-gray-500">
                     {{ period === 'ytd' ? '年初至今' : `近${period === '1w' ? '1周' : period === '1m' ? '1月' : period === '1y' ? '1年' : period === '3y' ? '3年' : `${period}月`}` }}
                   </view>
-                  <view class="text-base font-semibold" :class="getValueColorClass(currentIndicators[`return${period.charAt(0).toUpperCase() + period.slice(1)}` as keyof CoreIndicators])">
-                    {{ formatPercentage(currentIndicators[`return${period.charAt(0).toUpperCase() + period.slice(1)}` as keyof CoreIndicators]) }}
+                  <view class="text-base font-semibold" :class="getValueColorClass(getReturnValue(currentIndicators, period))">
+                    {{ formatPercentage(getReturnValue(currentIndicators, period)) }}
                   </view>
                 </view>
               </view>
@@ -372,7 +375,7 @@ onMounted(() => {
 
         <!-- 资产结构卡片 -->
         <wd-collapse-item title="资产结构" name="assets">
-          <view v-if="assetStructureData && assetStructureData.assetAllocation?.length" class="space-y-4">
+          <view v-if="currentAssetData.length" class="space-y-4">
             <!-- Tab切换 -->
             <wd-tabs v-model="assetTabValue" @click="handleAssetTabChange">
               <block v-for="(tab, index) in assetTabs" :key="index">
@@ -391,19 +394,8 @@ onMounted(() => {
 
               <!-- 资产配置列表 -->
               <wd-cell-group border custom-class="rounded-2! overflow-hidden">
-                <block v-for="(item, index) in assetStructureData.assetAllocation" :key="index">
-                  <wd-cell :title="item.name">
-                    <template #value>
-                      <view class="flex items-center gap-2">
-                        <text class="font-semibold">
-                          {{ item.value }}
-                        </text>
-                        <text class="text-sm text-gray-500">
-                          {{ item.percentage }}%
-                        </text>
-                      </view>
-                    </template>
-                  </wd-cell>
+                <block v-for="(item, index) in currentAssetData" :key="index">
+                  <wd-cell :title="item.name" :value="formatPercentage(item.percentage)" />
                 </block>
               </wd-cell-group>
             </view>
@@ -412,18 +404,7 @@ onMounted(() => {
             <view v-else>
               <wd-cell-group border custom-class="rounded-2! overflow-hidden">
                 <block v-for="(item, index) in currentAssetData" :key="index">
-                  <wd-cell :title="item.name">
-                    <template #value>
-                      <view class="flex items-center gap-2">
-                        <text class="font-semibold">
-                          {{ item.value }}
-                        </text>
-                        <text v-if="item.percentage" class="text-sm text-gray-500">
-                          {{ item.percentage }}%
-                        </text>
-                      </view>
-                    </template>
-                  </wd-cell>
+                  <wd-cell :title="item.name" :value="formatPercentage(item.percentage)" />
                 </block>
               </wd-cell-group>
             </view>
