@@ -406,7 +406,6 @@ declare module 'vue' {
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly defineStore: UnwrapRef<typeof import('pinia')['defineStore']>
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
-    readonly echarts: UnwrapRef<typeof import('./utils/echarts')['default']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly etfApi: UnwrapRef<typeof import('./api/index')['etfApi']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>

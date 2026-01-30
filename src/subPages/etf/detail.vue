@@ -20,6 +20,7 @@ import {
   showQuote,
   valuationShow,
 } from '@/api/modules/etf'
+import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
 import {
   calculatePreviousDates,
   formatAssets,
@@ -29,6 +30,14 @@ import {
 import { REALTIME_POLLING_INTERVAL, TOOLTIP_AUTO_HIDE_DELAY } from './constants'
 import { segmentedList, tabs } from './data'
 import { isValuationDetailData } from './types'
+
+defineOptions({
+  componentPlaceholder: {
+
+    LineChart: 'view',
+
+  },
+})
 
 definePage({
   name: 'etf-detail',
@@ -288,7 +297,7 @@ const valuationOption = ref<EChartsOption>({
   legend: { bottom: '5', icon: 'rect', show: true },
   tooltip: {
     trigger: 'axis',
-    formatter: (params: EchartsTooltipParams) => {
+    formatter: (params: EChartsTooltipParams) => {
       handleData.value = params
       showChartTip.value = true
       if (tooltipTimer)
@@ -815,8 +824,8 @@ onUnload(() => {
 
     <!-- 图表 -->
     <view class="h-80 bg-white p-2">
-      <uni-echarts v-if="tabValue === 'quotation'" custom-class="h-300px" :option="quotationOption" />
-      <uni-echarts v-else custom-class="h-300px" :option="valuationOption" />
+      <LineChart v-if="tabValue === 'quotation'" :option="quotationOption" custom-class="h-300px" />
+      <LineChart v-else custom-class="h-300px" :option="valuationOption" />
     </view>
 
     <!-- 图表 Tooltip -->

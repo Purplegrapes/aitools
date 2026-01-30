@@ -30,7 +30,7 @@
       "name": "about",
       "layout": "tabbar",
       "style": {
-        "navigationBarTitleText": "设置"
+        "navigationBarTitleText": "关于"
       }
     }
   ],
