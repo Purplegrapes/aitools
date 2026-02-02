@@ -87,4 +87,60 @@ export const alovaInstance = createAlova({
   cacheFor: null,
 })
 
+/**
+ * 资产 API 专用实例
+ * 连接到 shixi.betalpha.com
+ */
+export const assetAlovaInstance = createAlova({
+  baseURL: 'https://shixi.betalpha.com',
+  ...AdapterUniapp({
+    mockRequest: mockAdapter,
+  }),
+  statesHook: vueHook,
+  beforeRequest: (method) => {
+    // 从本地存储获取 token
+    const token = getToken()
+
+    // 添加 token 到请求头
+    if (token) {
+      method.config.headers.Authorization = `${token}`
+    }
+
+    // Add content type for POST/PUT/PATCH requests
+    if (['POST', 'PUT', 'PATCH'].includes(method.type)) {
+      method.config.headers['Content-Type'] = 'application/json'
+    }
+
+    // Add timestamp to prevent caching for GET requests
+    if (method.type === 'GET' && CommonUtil.isObj(method.config.params)) {
+      method.config.params._t = Date.now()
+    }
+
+    // Log request in development
+    if (import.meta.env.MODE === 'development') {
+      console.log(`[Asset API Request] ${method.type} ${method.url}`, method.data || method.config.params)
+      console.log(`[API Base URL] https://shixi.betalpha.com`)
+    }
+  },
+
+  // Response handlers
+  responded: {
+    // Success handler
+    onSuccess: handleAlovaResponse,
+
+    // Error handler
+    onError: handleAlovaError,
+
+    // Complete handler - runs after success or error
+    onComplete: async () => {
+      // Any cleanup or logging can be done here
+    },
+  },
+
+  // Default request timeout (10 seconds)
+  timeout: 60000,
+  // 设置为null即可全局关闭全部请求缓存
+  cacheFor: null,
+})
+
 export default alovaInstance

@@ -60,6 +60,7 @@ export async function handleAlovaResponse(
 
   // The data is already parsed by UniApp adapter
   const json = data as ApiResponse
+  console.log('json', json)
   // Log response in development
   if (import.meta.env.MODE === 'development') {
     console.log('[Alova Response]', json)

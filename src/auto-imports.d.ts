@@ -14,6 +14,7 @@ declare global {
   const alovaInstance: typeof import('./api/index')['alovaInstance']
   const api: typeof import('./api/index')['default']
   const apiDefinitions: typeof import('./api/apiDefinitions')['default']
+  const assetApi: typeof import('./api/index')['assetApi']
   const asyncComputed: typeof import('@vueuse/core')['asyncComputed']
   const autoResetRef: typeof import('@vueuse/core')['autoResetRef']
   const calculatePreviousDates: typeof import('./utils/format')['calculatePreviousDates']
@@ -48,6 +49,7 @@ declare global {
   const etfApi: typeof import('./api/index')['etfApi']
   const extendRef: typeof import('@vueuse/core')['extendRef']
   const formatAssets: typeof import('./utils/format')['formatAssets']
+  const formatDecimalToPercent: typeof import('./utils/format')['formatDecimalToPercent']
   const formatPercentage: typeof import('./utils/format')['formatPercentage']
   const formatRiseFall: typeof import('./utils/format')['formatRiseFall']
   const getActivePinia: typeof import('pinia')['getActivePinia']
@@ -378,6 +380,7 @@ declare module 'vue' {
     readonly alovaInstance: UnwrapRef<typeof import('./api/index')['alovaInstance']>
     readonly api: UnwrapRef<typeof import('./api/index')['default']>
     readonly apiDefinitions: UnwrapRef<typeof import('./api/apiDefinitions')['default']>
+    readonly assetApi: UnwrapRef<typeof import('./api/index')['assetApi']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly calculatePreviousDates: UnwrapRef<typeof import('./utils/format')['calculatePreviousDates']>
@@ -411,6 +414,7 @@ declare module 'vue' {
     readonly etfApi: UnwrapRef<typeof import('./api/index')['etfApi']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly formatAssets: UnwrapRef<typeof import('./utils/format')['formatAssets']>
+    readonly formatDecimalToPercent: UnwrapRef<typeof import('./utils/format')['formatDecimalToPercent']>
     readonly formatPercentage: UnwrapRef<typeof import('./utils/format')['formatPercentage']>
     readonly formatRiseFall: UnwrapRef<typeof import('./utils/format')['formatRiseFall']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>

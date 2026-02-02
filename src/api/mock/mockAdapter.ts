@@ -10,6 +10,7 @@
 import { uniappMockResponse, uniappRequestAdapter } from '@alova/adapter-uniapp'
 import { createAlovaMockAdapter } from '@alova/mock'
 
+// import assetMocks from './modules/asset'
 // 导入所有mock模块
 import commonMocks from './modules/common'
 import etfMocks from './modules/etf'
@@ -24,6 +25,7 @@ const allMocks = [
   storeMocks,
   userMocks,
   etfMocks,
+  // assetMocks,
 ]
 
 // 创建mock适配器

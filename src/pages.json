@@ -2,7 +2,7 @@
   "globalStyle": {
     "navigationBarBackgroundColor": "@navBgColor",
     "navigationBarTextStyle": "@navTxtStyle",
-    "navigationBarTitleText": "Wot Starter",
+    "navigationBarTitleText": "Beta Tool",
     "backgroundColor": "@bgColor",
     "backgroundTextStyle": "@bgTxtStyle",
     "backgroundColorTop": "@bgColorTop",
@@ -51,6 +51,17 @@
           }
         },
         // #endif
+        {
+          "path": "asset-detail/index",
+          "type": "page",
+          "name": "asset-detail",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "资产详情",
+            "navigationBarBackgroundColor": "#f8fafc",
+            "navigationBarTextStyle": "black"
+          }
+        },
         {
           "path": "etf/index",
           "type": "page",

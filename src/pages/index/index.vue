@@ -27,9 +27,9 @@ function goEtfProfile() {
 
 function goEtfPerformance() {
   router.push({
-    name: 'etf-performance',
-    query: {
-      code: '510300',
+    name: 'asset-detail',
+    params: {
+      code: '515080_OF',
     },
   })
 }
