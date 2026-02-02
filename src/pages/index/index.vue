@@ -41,7 +41,7 @@ function goEtfPerformance() {
       <wd-cell-group border custom-class="rounded-2! overflow-hidden">
         <wd-cell title="📊 ETF 工具" is-link @click="navigateTo('etf')" />
         <wd-cell title="📊 ETF 基础信息demo" is-link @click="goEtfProfile()" />
-        <wd-cell title="📊 ETF 走势demo" is-link @click="goEtfPerformance()" />
+        <wd-cell title="资产详情" is-link @click="goEtfPerformance()" />
       </wd-cell-group>
     </demo-block>
   </view>

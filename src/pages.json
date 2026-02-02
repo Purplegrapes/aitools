@@ -57,9 +57,8 @@
           "name": "asset-detail",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "资产详情",
-            "navigationBarBackgroundColor": "#f8fafc",
-            "navigationBarTextStyle": "black"
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "资产详情"
           }
         },
         {

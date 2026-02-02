@@ -20,6 +20,7 @@ export default defineConfig({
     exclude: process.env.NODE_ENV === 'development' ? ['wot-design-uni', 'uni-echarts'] : [],
   },
   server: {
+    host: '0.0.0.0',
     proxy: {
       '/api': {
         target: 'https://cngz.yhlsd.com',

@@ -84,7 +84,7 @@ function handleItemClick(option: SegmentOption) {
 
 <template>
   <view
-    class="flex items-center gap-2 overflow-x-auto rounded-xl bg-white/80 p-1.5 shadow-sm backdrop-blur-sm"
+    class="flex items-center gap-2 overflow-x-auto rounded-xl bg-#fafafa p-1.5 shadow-sm backdrop-blur-sm"
     :class="{ 'opacity-50 pointer-events-none': disabled }"
   >
     <view

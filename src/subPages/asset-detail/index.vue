@@ -6,15 +6,29 @@
 import type { EChartsOption } from 'echarts'
 import type { ChartDataPoint, TimeRange, YuEBaoPoint } from './types'
 import { getAssetDetail, getFactorHistory } from '@/api/modules/asset'
+import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
 import { formatAssets, formatDecimalToPercent } from '@/utils/format'
 
 defineOptions({
   componentPlaceholder: {
+    SegmentedControl: 'view',
     LineChart: 'view',
   },
 })
 
+// #ifdef H5
+definePage({
+  name: 'asset-detail',
+  layout: 'default',
+  style: {
+    navigationStyle: 'custom',
+    navigationBarTitleText: '资产详情',
+  },
+})
+// #endif
+
+// #ifndef H5
 definePage({
   name: 'asset-detail',
   layout: 'default',
@@ -24,6 +38,7 @@ definePage({
     navigationBarTextStyle: 'black',
   },
 })
+// #endif
 
 const route = useRoute()
 
@@ -57,6 +72,27 @@ const { data: assetDetail, send: fetchAssetDetail } = useRequest(
 // 百分比格式化后的股息率（用于显示）
 const formattedDividendRate = computed(() => {
   return formatDecimalToPercent(assetDetail.value?.dividend_rate)
+})
+
+// 股息率颜色主题（正数红色，负数绿色）
+const dividendRateTheme = computed(() => {
+  const rate = assetDetail.value?.dividend_rate
+  const isPositive = rate != null && rate > 0
+  return isPositive
+    ? {
+        label: 'text-red-600/70',
+        value: 'text-red-600',
+        card: 'from-red-50 to-red-100/30',
+        ring: 'ring-red-200/50',
+        blur: 'bg-red-500/5',
+      }
+    : {
+        label: 'text-emerald-600/70',
+        value: 'text-emerald-600',
+        card: 'from-emerald-50 to-emerald-100/30',
+        ring: 'ring-emerald-200/50',
+        blur: 'bg-emerald-500/5',
+      }
 })
 
 // 因子历史参数
@@ -280,17 +316,10 @@ function refreshData() {
 }
 
 // ==================== 事件处理 ====================
-/**
- * 处理时间范围变化
- */
-function handleTimeRangeChange(value: TimeRange) {
-  currentTimeRange.value = value
-  refreshData()
-}
 
 // ==================== 生命周期 ====================
 onMounted(() => {
-  const { code, name } = query.value
+  const { code } = query.value
 
   if (!code) {
     uni.showToast({
@@ -300,11 +329,9 @@ onMounted(() => {
     return
   }
 
-  if (name) {
-    uni.setNavigationBarTitle({
-      title: decodeURIComponent(name),
-    })
-  }
+  uni.setNavigationBarTitle({
+    title: code,
+  })
 
   loading.value = true
 
@@ -378,14 +405,14 @@ watch([assetDetail, dividendHistory], () => {
               </text>
             </view>
 
-            <view class="metric-card group relative overflow-hidden rounded-xl from-emerald-50 to-emerald-100/30 bg-gradient-to-br p-3 ring-1 ring-emerald-200/50">
-              <view class="metric-label text-xs text-emerald-600/70 font-medium tracking-wider uppercase">
+            <view class="metric-card group relative overflow-hidden rounded-xl bg-gradient-to-br p-3 ring-1" :class="[dividendRateTheme.card, dividendRateTheme.ring]">
+              <view class="metric-label text-xs font-medium tracking-wider uppercase" :class="dividendRateTheme.label">
                 股息率
               </view>
-              <text class="metric-value mt-1 text-lg text-emerald-600 font-bold tracking-tight">
+              <text class="metric-value mt-1 text-lg font-bold tracking-tight" :class="dividendRateTheme.value">
                 {{ formattedDividendRate }}
               </text>
-              <view class="absolute h-12 w-12 rounded-full bg-emerald-500/5 blur-xl -right-2 -top-2" />
+              <view class="absolute h-12 w-12 rounded-full blur-xl -right-2 -top-2" :class="dividendRateTheme.blur" />
             </view>
 
             <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-1 ring-slate-200/50">
@@ -446,20 +473,14 @@ watch([assetDetail, dividendHistory], () => {
             </view>
           </view>
           <!-- 时间范围选择器 -->
-          <view class="time-selector mx-4 flex rounded-xl bg-slate-100/80 p-1 ring-1 ring-slate-200/50 backdrop-blur-sm">
-            <view
-              v-for="option in timeRangeOptions"
-              :key="option.value"
-              class="selector-option relative overflow-hidden rounded-lg px-3.5 py-2 transition-all duration-200 ease-out"
-              :class="currentTimeRange === option.value ? 'active-option' : 'inactive-option'"
-              @tap="handleTimeRangeChange(option.value)"
-            >
-              <text class="relative z-10 text-xs font-semibold">
-                {{ option.label }}
-              </text>
-              <view v-if="currentTimeRange === option.value" class="active-indicator absolute inset-0 bg-white shadow-sm" />
-            </view>
+          <view class="px-4">
+            <SegmentedControl
+              v-model="currentTimeRange"
+              :options="timeRangeOptions.map(o => ({ label: o.label, value: o.value }))"
+              @change="refreshData"
+            />
           </view>
+
           <!-- 图表容器 -->
           <view class="chart-container relative px-2 pb-4 pt-2">
             <view class="chart-wrapper h-72">
