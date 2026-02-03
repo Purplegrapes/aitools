@@ -4,7 +4,7 @@
  * 显示资产基本信息和股息率走势图
  */
 import type { EChartsOption } from 'echarts'
-import type { ChartDataPoint, TimeRange, YuEBaoPoint } from './types'
+import type { ApiFactorHistoryResponse, ChartDataPoint, DividendRatePoint, TimeRange, YuEBaoPoint } from './types'
 import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
 import { formatAssets, formatDecimalToPercent } from '@/utils/format'
@@ -28,6 +28,32 @@ definePage({
 
 const route = useRoute()
 
+// ==================== 主题常量 ====================
+// 正股息率主题（红色）
+const POSITIVE_DIVIDEND_THEME = {
+  label: 'text-red-600/70',
+  value: 'text-red-600',
+  card: 'from-red-50 to-red-100/30',
+  ring: 'ring-red-200/50',
+  blur: 'bg-red-500/5',
+} as const
+
+// 负股息率主题（绿色）
+const NEGATIVE_DIVIDEND_THEME = {
+  label: 'text-emerald-600/70',
+  value: 'text-emerald-600',
+  card: 'from-emerald-50 to-emerald-100/30',
+  ring: 'ring-emerald-200/50',
+  blur: 'bg-emerald-500/5',
+} as const
+
+// ==================== 时间范围常量 ====================
+const TIME_RANGE_OPTIONS: Array<{ value: TimeRange, label: string, days: number }> = [
+  { value: '1w', label: '近一周', days: 7 },
+  { value: '1m', label: '近一月', days: 30 },
+  { value: '1q', label: '近一季度', days: 90 },
+] as const
+
 // ==================== 路由参数 ====================
 const query = computed(() => route.query as {
   code?: string
@@ -37,13 +63,6 @@ const query = computed(() => route.query as {
 // ==================== 状态 ====================
 const currentTimeRange = ref<TimeRange>('1m')
 const loading = ref(true)
-
-// ==================== 时间范围配置 ====================
-const timeRangeOptions: Array<{ value: TimeRange, label: string, days: number }> = [
-  { value: '1w', label: '近一周', days: 7 },
-  { value: '1m', label: '近一月', days: 30 },
-  { value: '1q', label: '近一季度', days: 90 },
-]
 
 // ==================== API 请求 ====================
 // 资产代码
@@ -64,21 +83,7 @@ const formattedDividendRate = computed(() => {
 const dividendRateTheme = computed(() => {
   const rate = assetDetail.value?.dividend_rate
   const isPositive = rate != null && rate > 0
-  return isPositive
-    ? {
-        label: 'text-red-600/70',
-        value: 'text-red-600',
-        card: 'from-red-50 to-red-100/30',
-        ring: 'ring-red-200/50',
-        blur: 'bg-red-500/5',
-      }
-    : {
-        label: 'text-emerald-600/70',
-        value: 'text-emerald-600',
-        card: 'from-emerald-50 to-emerald-100/30',
-        ring: 'ring-emerald-200/50',
-        blur: 'bg-emerald-500/5',
-      }
+  return isPositive ? POSITIVE_DIVIDEND_THEME : NEGATIVE_DIVIDEND_THEME
 })
 
 // 因子历史参数
@@ -91,7 +96,12 @@ const factorParams = ref<{
 
 // 因子历史数据
 const { data: factorHistoryData, send: fetchFactorHistory } = useRequest(
-  () => getFactorHistory(factorParams.value!),
+  () => getFactorHistory(factorParams.value ?? {
+    start_date: '',
+    end_date: '',
+    codes: '',
+    factors: '',
+  }),
   { immediate: false },
 )
 
@@ -103,9 +113,9 @@ const currentDate = computed(() => {
 
 // 股息率历史数据
 const dividendHistory = computed(() => {
-  const data = factorHistoryData.value as any
+  const data = factorHistoryData.value as ApiFactorHistoryResponse
   if (!data?.data?.[0]?.factors) {
-    return []
+    return [] as DividendRatePoint[]
   }
   return data.data[0].factors
 })
@@ -117,24 +127,27 @@ const yuEBaoHistory = computed<YuEBaoPoint[]>(() => {
   }
 
   // 余额宝7日年化大约在 1.5% - 2.5% 之间波动（使用小数格式：0.015 - 0.025）
-  let baseRate = 0.02
+  // 使用基于日期的确定性算法，确保相同输入产生相同输出
+  const BASE_RATE = 0.02
 
-  // 直接基于 dividendHistory 的每个日期点生成对应数据
-  return dividendHistory.value.map((item: any) => {
-    // 模拟随机波动
-    baseRate += (Math.random() - 0.5) * 0.001
-    baseRate = Math.max(0.015, Math.min(0.025, baseRate))
+  return dividendHistory.value.map((item: DividendRatePoint) => {
+    // 使用日期字符串的哈希值生成确定性波动
+    const hash = item.date.split('-').join('').slice(-6)
+    const hashNum = Number.parseInt(hash) || 0
+    // 基于哈希值生成波动范围 [-0.0005, 0.0005]
+    const fluctuation = ((hashNum % 1000) / 1000 - 0.5) * 0.001
+    const rate = Math.max(0.015, Math.min(0.025, BASE_RATE + fluctuation))
 
     return {
       date: item.date,
-      rate: Number.parseFloat(baseRate.toFixed(6)),
+      rate: Number.parseFloat(rate.toFixed(6)),
     }
   })
 })
 
 // 处理后的图表数据
 const chartData = computed<ChartDataPoint[]>(() => {
-  return dividendHistory.value.map((item: any) => {
+  return dividendHistory.value.map((item: DividendRatePoint) => {
     const rate = Number.parseFloat((item.dividend_rate * 100).toFixed(2)) // 转换为百分比数值，保留两位小数
     return {
       name: item.date,
@@ -295,7 +308,7 @@ function refreshData() {
   if (!assetCode.value)
     return
 
-  const option = timeRangeOptions.find(o => o.value === currentTimeRange.value)
+  const option = TIME_RANGE_OPTIONS.find(o => o.value === currentTimeRange.value)
   if (option) {
     loadFactorHistory(assetCode.value, option.days)
   }
@@ -304,20 +317,15 @@ function refreshData() {
 // ==================== 事件处理 ====================
 
 // ==================== 生命周期 ====================
+const globalToast = useGlobalToast()
+
 onMounted(() => {
   const { code } = query.value
 
   if (!code) {
-    uni.showToast({
-      title: '缺少资产代码',
-      icon: 'none',
-    })
+    globalToast.error({ msg: '缺少资产代码' })
     return
   }
-
-  uni.setNavigationBarTitle({
-    title: code,
-  })
 
   loading.value = true
 
@@ -325,7 +333,7 @@ onMounted(() => {
   loadAssetDetail(code)
 
   // 加载股息率历史数据
-  const option = timeRangeOptions.find(o => o.value === currentTimeRange.value)
+  const option = TIME_RANGE_OPTIONS.find(o => o.value === currentTimeRange.value)
   if (option) {
     loadFactorHistory(code, option.days)
   }
@@ -433,7 +441,7 @@ watch([assetDetail, dividendHistory], () => {
                 月分红投入
               </view>
               <text class="metric-value mt-1 text-sm text-blue-700 font-semibold">
-                {{ assetDetail?.monthly_dividend_investment != null ? formatAssets((assetDetail as any).monthly_dividend_investment) : '--' }}
+                {{ assetDetail?.monthly_dividend_investment != null ? formatAssets(assetDetail.monthly_dividend_investment) : '--' }}
               </text>
             </view>
           </view>
@@ -443,7 +451,7 @@ watch([assetDetail, dividendHistory], () => {
             <view class="relative rounded-xl bg-white/60 p-4 ring-slate-200/50 backdrop-blur-sm">
               <view class="absolute left-4 top-4 h-4 w-0.5 rounded-full from-blue-400 to-blue-500 bg-gradient-to-b" />
               <text class="description-text pl-3 text-sm text-slate-600 font-medium leading-relaxed">
-                {{ (assetDetail as any).description }}
+                {{ assetDetail?.description }}
               </text>
             </view>
           </view>
@@ -462,7 +470,7 @@ watch([assetDetail, dividendHistory], () => {
           <view class="px-4">
             <SegmentedControl
               v-model="currentTimeRange"
-              :options="timeRangeOptions.map(o => ({ label: o.label, value: o.value }))"
+              :options="TIME_RANGE_OPTIONS.map(o => ({ label: o.label, value: o.value }))"
               @change="refreshData"
             />
           </view>

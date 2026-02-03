@@ -38,6 +38,14 @@ export interface FactorHistoryItem {
 }
 
 /**
+ * API 因子历史响应
+ */
+export interface ApiFactorHistoryResponse {
+  data: FactorHistoryItem[]
+  total: number
+}
+
+/**
  * 因子历史响应
  */
 export interface FactorHistoryResponse {

@@ -12,9 +12,8 @@ function getMainBaseURL(): string {
   return '' // H5 环境使用 Vite 代理
   // #endif
   // #ifndef H5
-  // @ts-expect-error - 条件编译，非 H5 环境
-  const env = import.meta.env as any
-  return env.VITE_API_BASE_URL || ''
+  // @ts-expect-error - uni-app 条件编译，非 H5 环境
+  return import.meta.env.VITE_API_BASE_URL || ''
   // #endif
 }
 
@@ -26,9 +25,8 @@ function getAssetBaseURL(): string {
   return '' // H5 环境使用 Vite 代理
   // #endif
   // #ifndef H5
-  // @ts-expect-error - 条件编译，非 H5 环境
-  const env = import.meta.env as any
-  return env.VITE_ASSET_API_BASE_URL
+  // @ts-expect-error - uni-app 条件编译，非 H5 环境
+  return import.meta.env.VITE_ASSET_API_BASE_URL
   // #endif
 }
 
@@ -90,11 +88,9 @@ export const alovaInstance = createAlova({
     }
 
     // Log request in development
-    // @ts-expect-error - 条件编译，开发环境
     if (import.meta.env.MODE === 'development') {
       const apiType = method.url.includes('/api/assets') ? '[Asset API]' : '[Main API]'
       console.log(`${apiType} Request] ${method.type} ${method.url}`, method.data || method.config.params)
-      // @ts-expect-error - 条件编译，环境变量
       console.log(`[Environment] ${import.meta.env.VITE_ENV_NAME}`)
     }
   },
