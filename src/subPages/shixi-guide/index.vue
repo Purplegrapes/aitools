@@ -392,7 +392,7 @@ watch([assetDetail, dividendHistory], () => {
               <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
                 管理公司
               </view>
-              <text class="metric-value mt-1 block text-sm text-slate-700 font-medium leading-tight">
+              <text class="metric-value mt-1 block truncate text-sm text-slate-700 font-medium leading-tight">
                 {{ assetDetail?.management_company ?? '--' }}
               </text>
             </view>
