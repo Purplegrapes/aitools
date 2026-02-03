@@ -19,6 +19,21 @@ export function formatPercentage(value: number | string | undefined, decimals = 
 }
 
 /**
+ * 将小数转换为百分比格式
+ * @param value 小数值（如 0.0285 表示 2.85%）
+ * @param decimals 小数位数，默认2
+ * @returns 格式化后的百分比字符串
+ */
+export function formatDecimalToPercent(value: number | string | undefined, decimals = 2): string {
+  if (value === null || value === undefined || value === '')
+    return '--'
+  const num = Number(value)
+  if (Number.isNaN(num))
+    return '--'
+  return `${(num * 100).toFixed(decimals)}%`
+}
+
+/**
  * 格式化资产金额
  * @param value 数值（单位：元）
  * @returns 格式化后的字符串

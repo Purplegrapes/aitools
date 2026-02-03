@@ -4,14 +4,29 @@ import vueHook from 'alova/vue'
 import mockAdapter from '../mock/mockAdapter'
 import { handleAlovaError, handleAlovaResponse } from './handlers'
 
-// 根据环境设置 baseURL
-// H5 环境使用代理（空字符串），其他环境使用完整 URL
-function getBaseURL() {
+/**
+ * 获取主 API 基础 URL
+ */
+function getMainBaseURL(): string {
   // #ifdef H5
   return '' // H5 环境使用 Vite 代理
   // #endif
   // #ifndef H5
-  return import.meta.env.VITE_API_BASE_URL // 微信小程序等其他环境直接请求
+  // @ts-expect-error - uni-app 条件编译，非 H5 环境
+  return import.meta.env.VITE_API_BASE_URL || ''
+  // #endif
+}
+
+/**
+ * 获取资产 API 基础 URL
+ */
+function getAssetBaseURL(): string {
+  // #ifdef H5
+  return '' // H5 环境使用 Vite 代理
+  // #endif
+  // #ifndef H5
+  // @ts-expect-error - uni-app 条件编译，非 H5 环境
+  return import.meta.env.VITE_ASSET_API_BASE_URL
   // #endif
 }
 
@@ -32,12 +47,28 @@ function getToken(): string {
 }
 
 export const alovaInstance = createAlova({
-  baseURL: getBaseURL(),
+  baseURL: getMainBaseURL(),
   ...AdapterUniapp({
     mockRequest: mockAdapter,
   }),
   statesHook: vueHook,
   beforeRequest: (method) => {
+    // 资产 API 使用不同的 baseURL
+    // 判断是否需要使用资产 API 服务器
+    if (method.url.startsWith('/shixi-guide')) {
+      const assetBaseURL = getAssetBaseURL()
+      if (assetBaseURL) {
+        // 在非 H5 环境，需要设置完整 URL 来覆盖 Alova 的 baseURL
+        // #ifndef H5
+        const path = method.url.replace('/shixi-guide', '/api')
+        method.url = `${assetBaseURL}${path}`
+        // #endif
+        // #ifdef H5
+        // H5 环境由代理处理，保持 URL 不变
+        // #endif
+      }
+    }
+
     // 从本地存储获取 token
     const token = getToken()
 
@@ -58,8 +89,8 @@ export const alovaInstance = createAlova({
 
     // Log request in development
     if (import.meta.env.MODE === 'development') {
-      console.log(`[Alova Request] ${method.type} ${method.url}`, method.data || method.config.params)
-      console.log(`[API Base URL] ${getBaseURL()}`)
+      const apiType = method.url.includes('/api/assets') ? '[Asset API]' : '[Main API]'
+      console.log(`${apiType} Request] ${method.type} ${method.url}`, method.data || method.config.params)
       console.log(`[Environment] ${import.meta.env.VITE_ENV_NAME}`)
     }
   },
@@ -78,10 +109,7 @@ export const alovaInstance = createAlova({
     },
   },
 
-  // We'll use the middleware in the hooks
-  // middleware is not directly supported in createAlova options
-
-  // Default request timeout (10 seconds)
+  // Default request timeout (60 seconds)
   timeout: 60000,
   // 设置为null即可全局关闭全部请求缓存
   cacheFor: null,

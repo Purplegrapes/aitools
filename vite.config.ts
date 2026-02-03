@@ -20,7 +20,9 @@ export default defineConfig({
     exclude: process.env.NODE_ENV === 'development' ? ['wot-design-uni', 'uni-echarts'] : [],
   },
   server: {
+    host: '0.0.0.0',
     proxy: {
+      // 主 API 代理
       '/api': {
         target: 'https://cngz.yhlsd.com',
         changeOrigin: true,
@@ -30,6 +32,12 @@ export default defineConfig({
         target: 'https://cngz.yhlsd.com',
         changeOrigin: true,
         rewrite: path => path,
+      },
+      // 资产 API 代理
+      '/shixi-guide': {
+        target: 'https://shixi.betalpha.com',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/shixi-guide/, '/api'),
       },
     },
   },

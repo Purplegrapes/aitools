@@ -5,6 +5,28 @@ const route = useRoute()
 
 const { activeTabbar, getTabbarItemValue, setTabbarItemActive, tabbarList } = useTabbar()
 
+// #ifdef MP-WEIXIN
+// 导航栏配置
+const navbarConfig = computed(() => {
+  // 从页面 definePage 的 style 中获取导航栏标题
+  const title = (route as any)?.style?.navigationBarTitleText
+
+  // 判断是否显示返回按钮（页面栈深度 > 1）
+  const pages = getCurrentPages()
+  const showBack = pages.length > 1
+
+  return {
+    title,
+    leftArrow: showBack,
+    border: false,
+    fixed: true,
+    placeholder: true,
+    safeAreaInsetTop: true,
+    onClickLeft: showBack ? () => router.back() : undefined,
+  }
+})
+// #endif
+
 function handleTabbarChange({ value }: { value: string }) {
   setTabbarItemActive(value)
   router.pushTab({ name: value })
@@ -33,8 +55,10 @@ export default {
 </script>
 
 <template>
+  <!-- #ifdef MP-WEIXIN -->
+  <wd-navbar v-bind="navbarConfig" />
+  <!-- #endif -->
   <slot />
-  <wd-gap safe-area-bottom height="var(--wot-tabbar-height, 50px)" />
   <wd-tabbar
     :model-value="activeTabbar.name" bordered safe-area-inset-bottom fixed
     @change="handleTabbarChange"

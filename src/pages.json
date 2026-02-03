@@ -1,8 +1,9 @@
 {
   "globalStyle": {
+    "navigationStyle": "custom",
     "navigationBarBackgroundColor": "@navBgColor",
     "navigationBarTextStyle": "@navTxtStyle",
-    "navigationBarTitleText": "Wot Starter",
+    "navigationBarTitleText": "Beta Tool",
     "backgroundColor": "@bgColor",
     "backgroundTextStyle": "@bgTxtStyle",
     "backgroundColorTop": "@bgColorTop",
@@ -78,6 +79,15 @@
           "layout": "default",
           "style": {
             "navigationBarTitleText": "基金简况"
+          }
+        },
+        {
+          "path": "shixi-guide/index",
+          "type": "page",
+          "name": "asset-detail",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "资产详情"
           }
         }
       ]
