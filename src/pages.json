@@ -1,5 +1,6 @@
 {
   "globalStyle": {
+    "navigationStyle": "custom",
     "navigationBarBackgroundColor": "@navBgColor",
     "navigationBarTextStyle": "@navTxtStyle",
     "navigationBarTitleText": "Beta Tool",
@@ -52,16 +53,6 @@
         },
         // #endif
         {
-          "path": "asset-detail/index",
-          "type": "page",
-          "name": "asset-detail",
-          "layout": "default",
-          "style": {
-            "navigationStyle": "custom",
-            "navigationBarTitleText": "资产详情"
-          }
-        },
-        {
           "path": "etf/index",
           "type": "page",
           "name": "etf",
@@ -88,6 +79,15 @@
           "layout": "default",
           "style": {
             "navigationBarTitleText": "基金简况"
+          }
+        },
+        {
+          "path": "shixi-guide/index",
+          "type": "page",
+          "name": "asset-detail",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "资产详情"
           }
         }
       ]

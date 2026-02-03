@@ -15,15 +15,6 @@ function navigateTo(name: string) {
     name,
   })
 }
-function goEtfProfile() {
-  router.push({
-    name: 'etf-profile',
-    params: {
-      code: '510300',
-      name: '沪深300ETF',
-    },
-  })
-}
 
 function goEtfPerformance() {
   router.push({
@@ -39,9 +30,8 @@ function goEtfPerformance() {
   <view class="box-border py-3">
     <demo-block title="工具链介绍" transparent>
       <wd-cell-group border custom-class="rounded-2! overflow-hidden">
-        <wd-cell title="📊 ETF 工具" is-link @click="navigateTo('etf')" />
-        <wd-cell title="📊 ETF 基础信息demo" is-link @click="goEtfProfile()" />
-        <wd-cell title="资产详情" is-link @click="goEtfPerformance()" />
+        <wd-cell title="今日几星" is-link @click="navigateTo('etf')" />
+        <wd-cell title="食息指南" is-link @click="goEtfPerformance()" />
       </wd-cell-group>
     </demo-block>
   </view>

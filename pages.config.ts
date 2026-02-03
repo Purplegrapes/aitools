@@ -12,7 +12,9 @@ import { defineUniPages } from '@uni-helper/vite-plugin-uni-pages'
 export default defineUniPages({
   pages: [],
   globalStyle: {
-    // 导航栏配置
+    // 隐藏系统导航栏，使用自定义导航栏
+    navigationStyle: 'custom',
+    // 导航栏配置（作为后备）
     navigationBarBackgroundColor: '@navBgColor',
     navigationBarTextStyle: '@navTxtStyle',
     navigationBarTitleText: 'Beta Tool',

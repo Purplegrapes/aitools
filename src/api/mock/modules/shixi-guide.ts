@@ -1,4 +1,4 @@
-import type { AssetDetail, FactorHistoryResponse } from '@/subPages/asset-detail/types'
+import type { AssetDetail, FactorHistoryResponse } from '@/subPages/shixi-guide/types'
 /**
  * 资产相关 Mock 数据
  */

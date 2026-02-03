@@ -1,8 +1,8 @@
 /**
- * 资产相关 API 接口
+ * 食息指南子包独立 API 接口
  * 连接到 https://shixi.betalpha.com
  */
-import { assetAlovaInstance } from '../core/instance'
+import { assetAlovaInstance } from '@/api/core/instance'
 
 /**
  * 获取资产详情
@@ -26,3 +26,6 @@ export function getFactorHistory(params: {
     params,
   })
 }
+
+// 导出类型供页面使用
+export type * from '../types'

@@ -6,11 +6,11 @@
 type _LocationUrl =
   "/pages/index/index" |
   "/pages/about/index" |
-  "/subPages/asset-detail/index" |
   "/subPages/etf/detail" |
   "/subPages/etf/index" |
   "/subPages/etf/performance" |
-  "/subPages/etf/profile";
+  "/subPages/etf/profile" |
+  "/subPages/shixi-guide/index";
 
 interface NavigateToOptions {
   url: _LocationUrl;

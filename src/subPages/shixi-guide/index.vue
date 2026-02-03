@@ -5,10 +5,10 @@
  */
 import type { EChartsOption } from 'echarts'
 import type { ChartDataPoint, TimeRange, YuEBaoPoint } from './types'
-import { getAssetDetail, getFactorHistory } from '@/api/modules/asset'
 import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
 import { formatAssets, formatDecimalToPercent } from '@/utils/format'
+import { getAssetDetail, getFactorHistory } from './api'
 
 defineOptions({
   componentPlaceholder: {
@@ -17,28 +17,14 @@ defineOptions({
   },
 })
 
-// #ifdef H5
 definePage({
   name: 'asset-detail',
   layout: 'default',
   style: {
-    navigationStyle: 'custom',
     navigationBarTitleText: '资产详情',
   },
-})
-// #endif
 
-// #ifndef H5
-definePage({
-  name: 'asset-detail',
-  layout: 'default',
-  style: {
-    navigationBarTitleText: '资产详情',
-    navigationBarBackgroundColor: '#f8fafc',
-    navigationBarTextStyle: 'black',
-  },
 })
-// #endif
 
 const route = useRoute()
 
@@ -371,7 +357,7 @@ watch([assetDetail, dividendHistory], () => {
     <transition name="fade">
       <view v-if="!loading" class="content-container p-4 space-y-4">
         <!-- 资产介绍卡片 -->
-        <view class="asset-card overflow-hidden rounded-2xl bg-white shadow-slate-200/50 shadow-sm ring-1 ring-slate-900/5">
+        <view class="asset-card overflow-hidden rounded-2xl bg-white shadow-slate-200/50 shadow-sm ring-slate-900/5">
           <view class="card-header border-b border-slate-100/80 px-5 py-4">
             <view class="flex items-start justify-between">
               <view class="flex-1">
@@ -396,7 +382,7 @@ watch([assetDetail, dividendHistory], () => {
 
           <!-- 关键指标 -->
           <view class="metrics-grid grid grid-cols-2 gap-3 px-5 py-4">
-            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-1 ring-slate-200/50">
+            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50">
               <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
                 单位净值
               </view>
@@ -405,7 +391,7 @@ watch([assetDetail, dividendHistory], () => {
               </text>
             </view>
 
-            <view class="metric-card group relative overflow-hidden rounded-xl bg-gradient-to-br p-3 ring-1" :class="[dividendRateTheme.card, dividendRateTheme.ring]">
+            <view class="metric-card group relative overflow-hidden rounded-xl bg-gradient-to-br p-3" :class="[dividendRateTheme.card, dividendRateTheme.ring]">
               <view class="metric-label text-xs font-medium tracking-wider uppercase" :class="dividendRateTheme.label">
                 股息率
               </view>
@@ -415,7 +401,7 @@ watch([assetDetail, dividendHistory], () => {
               <view class="absolute h-12 w-12 rounded-full blur-xl -right-2 -top-2" :class="dividendRateTheme.blur" />
             </view>
 
-            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-1 ring-slate-200/50">
+            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50">
               <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
                 管理公司
               </view>
@@ -424,7 +410,7 @@ watch([assetDetail, dividendHistory], () => {
               </text>
             </view>
 
-            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-1 ring-slate-200/50">
+            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50">
               <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
                 基金经理
               </view>
@@ -433,7 +419,7 @@ watch([assetDetail, dividendHistory], () => {
               </text>
             </view>
 
-            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-1 ring-slate-200/50">
+            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50">
               <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
                 成立日期
               </view>
@@ -442,7 +428,7 @@ watch([assetDetail, dividendHistory], () => {
               </text>
             </view>
 
-            <view class="metric-card group relative overflow-hidden rounded-xl from-blue-50 to-blue-100/30 bg-gradient-to-br p-3 ring-1 ring-blue-200/50">
+            <view class="metric-card group relative overflow-hidden rounded-xl from-blue-50 to-blue-100/30 bg-gradient-to-br p-3 ring-blue-200/50">
               <view class="metric-label text-xs text-blue-600/70 font-medium tracking-wider uppercase">
                 月分红投入
               </view>
@@ -454,7 +440,7 @@ watch([assetDetail, dividendHistory], () => {
 
           <!-- 资产描述 -->
           <view v-if="assetDetail?.description" class="description-section border-t border-slate-100/80 from-slate-50/50 to-slate-100/30 bg-gradient-to-br px-5 py-4">
-            <view class="relative rounded-xl bg-white/60 p-4 ring-1 ring-slate-200/50 backdrop-blur-sm">
+            <view class="relative rounded-xl bg-white/60 p-4 ring-slate-200/50 backdrop-blur-sm">
               <view class="absolute left-4 top-4 h-4 w-0.5 rounded-full from-blue-400 to-blue-500 bg-gradient-to-b" />
               <text class="description-text pl-3 text-sm text-slate-600 font-medium leading-relaxed">
                 {{ (assetDetail as any).description }}
@@ -464,7 +450,7 @@ watch([assetDetail, dividendHistory], () => {
         </view>
 
         <!-- 股息率走势 -->
-        <view class="chart-card overflow-hidden rounded-2xl bg-white shadow-slate-200/50 shadow-sm ring-1 ring-slate-900/5">
+        <view class="chart-card overflow-hidden rounded-2xl bg-white shadow-slate-200/50 shadow-sm ring-slate-900/5">
           <view class="chart-header flex items-center justify-between border-b border-slate-100/80 px-5 py-4">
             <view class="flex items-center gap-2">
               <text class="text-lg text-slate-800 font-bold tracking-tight">

@@ -380,7 +380,6 @@ declare module 'vue' {
     readonly alovaInstance: UnwrapRef<typeof import('./api/index')['alovaInstance']>
     readonly api: UnwrapRef<typeof import('./api/index')['default']>
     readonly apiDefinitions: UnwrapRef<typeof import('./api/apiDefinitions')['default']>
-    readonly assetApi: UnwrapRef<typeof import('./api/index')['assetApi']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly calculatePreviousDates: UnwrapRef<typeof import('./utils/format')['calculatePreviousDates']>
