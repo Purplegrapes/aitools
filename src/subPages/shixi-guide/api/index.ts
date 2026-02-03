@@ -1,15 +1,15 @@
 /**
  * 食息指南子包独立 API 接口
- * 连接到 https://shixi.betalpha.com
+ * 使用主 alova 实例，根据 URL 前缀自动匹配资产 API 服务器
  */
-import { assetAlovaInstance } from '@/api/core/instance'
+import { alovaInstance } from '@/api/core/instance'
 
 /**
  * 获取资产详情
  * @param code 资产代码
  */
 export function getAssetDetail(code: string) {
-  return assetAlovaInstance.Get(`/api/assets/${code}/detail`)
+  return alovaInstance.Get(`/shixi-guide/assets/${code}/detail`)
 }
 
 /**
@@ -22,7 +22,7 @@ export function getFactorHistory(params: {
   codes: string
   factors: string
 }) {
-  return assetAlovaInstance.Get('/api/assets/factors', {
+  return alovaInstance.Get('/shixi-guide/assets/factors', {
     params,
   })
 }
