@@ -1,5 +1,5 @@
 {
-  "name": "wot-starter",
+  "name": "beta-tool",
   "appid": "__UNI__1208592",
   "description": "",
   "versionName": "1.0.0",
@@ -56,6 +56,7 @@
     "optimization": {
       "subPackages": true
     },
+    "lazyCodeLoading": "requiredComponents",
     "darkmode": true,
     "themeLocation": "theme.json"
   },

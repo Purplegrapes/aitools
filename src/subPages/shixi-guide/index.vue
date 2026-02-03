@@ -372,33 +372,12 @@ watch([assetDetail, dividendHistory], () => {
                 <text class="asset-name text-xl text-slate-800 font-bold tracking-tight">
                   {{ assetDetail?.name ?? '--' }}
                 </text>
-                <view class="mt-2.5 flex flex-wrap items-center gap-2">
-                  <view class="tag-base rounded-lg from-blue-50 to-blue-100/50 bg-gradient-to-br px-2.5 py-1 shadow-blue-100/50 shadow-sm">
-                    <text class="text-xs text-blue-600 font-semibold">
-                      {{ assetDetail?.asset_type ?? '--' }}
-                    </text>
-                  </view>
-                  <view class="tag-base rounded-lg from-amber-50 to-amber-100/50 bg-gradient-to-br px-2.5 py-1 shadow-amber-100/50 shadow-sm">
-                    <text class="text-xs text-amber-600 font-semibold">
-                      {{ assetDetail?.risk_level ?? '--' }}
-                    </text>
-                  </view>
-                </view>
               </view>
             </view>
           </view>
 
           <!-- 关键指标 -->
           <view class="metrics-grid grid grid-cols-2 gap-3 px-5 py-4">
-            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50">
-              <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
-                单位净值
-              </view>
-              <text class="metric-value mt-1 text-lg text-slate-800 font-bold tracking-tight">
-                {{ assetDetail?.fund_nav_unit ?? '--' }}
-              </text>
-            </view>
-
             <view class="metric-card group relative overflow-hidden rounded-xl bg-gradient-to-br p-3" :class="[dividendRateTheme.card, dividendRateTheme.ring]">
               <view class="metric-label text-xs font-medium tracking-wider uppercase" :class="dividendRateTheme.label">
                 股息率
@@ -413,17 +392,8 @@ watch([assetDetail, dividendHistory], () => {
               <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
                 管理公司
               </view>
-              <text class="metric-value mt-1 block text-sm text-slate-700 font-medium leading-tight">
+              <text class="metric-value mt-1 block truncate text-sm text-slate-700 font-medium leading-tight">
                 {{ assetDetail?.management_company ?? '--' }}
-              </text>
-            </view>
-
-            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50">
-              <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
-                基金经理
-              </view>
-              <text class="metric-value mt-1 text-sm text-slate-700 font-medium">
-                {{ assetDetail?.fund_manager ?? '--' }}
               </text>
             </view>
 
