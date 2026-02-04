@@ -4,6 +4,37 @@ import vueHook from 'alova/vue'
 import mockAdapter from '../mock/mockAdapter'
 import { handleAlovaError, handleAlovaResponse } from './handlers'
 
+// ========== Token刷新锁机制 ==========
+// 刷新请求锁，防止并发刷新
+const _refreshLock = { isRefreshing: false }
+
+export function isRefreshing() {
+  return _refreshLock.isRefreshing
+}
+
+export function setRefreshing(value: boolean) {
+  _refreshLock.isRefreshing = value
+}
+
+// 等待刷新的请求队列
+let refreshSubscribers: Array<(token: string) => void> = []
+
+/**
+ * 将请求加入刷新等待队列
+ */
+export function subscribeTokenRefresh(callback: (token: string) => void) {
+  refreshSubscribers.push(callback)
+}
+
+/**
+ * 通知队列中的请求token已刷新
+ */
+export function onTokenRefreshed(token: string) {
+  refreshSubscribers.forEach(callback => callback(token))
+  refreshSubscribers = []
+}
+// ========== Token刷新锁机制结束 ==========
+
 /**
  * 获取主 API 基础 URL
  */
