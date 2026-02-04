@@ -78,7 +78,9 @@ export async function handleAlovaResponse(
           // 通知队列中的请求
           onTokenRefreshed(data.data.accessToken)
 
-          // 重试原请求（这里需要在调用处处理）
+          // 注意：由于 Alova 响应处理器的限制，刷新成功后无法自动重试当前请求
+          // 队列中的请求会收到通知，下一次请求会使用新 token
+          // 调用方需要捕获 'TOKEN_REFRESHED' 错误并决定是否重试
           throw new Error('TOKEN_REFRESHED') // 特殊标记，由调用方重试
         }
         else {
