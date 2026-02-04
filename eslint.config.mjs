@@ -9,6 +9,7 @@ export default uni(
     },
     ignores: [
       'src/uni_modules/**/*',
+      '.claude/**/*',
       'docs/.vitepress/dist',
       'docs/.vitepress/cache',
       '**/*.md',

@@ -42,33 +42,17 @@ onLaunch(async () => {
   }
   // 内部访问模式：保持原有自动登录逻辑
   else if (!userStore.accessToken) {
-    // #ifdef MP-WEIXIN
     try {
-      console.log('尝试自动登录...')
-      await userStore.wechatLogin()
-      console.log('自动登录成功')
+      console.log('尝试账号登录...')
+      await userStore.accountLogin({
+        username: 'admin',
+        password: 'OIAyWw8Y0Uo8',
+      })
+      console.log('账号登录成功')
     }
     catch (err) {
-      console.log('自动登录失败:', err)
+      console.log('账号登录失败:', err)
     }
-    // #endif
-
-    // #ifdef H5
-    // 仅在开发环境启用自动登录（用于测试）
-    if (import.meta.env.MODE === 'development') {
-      try {
-        console.log('尝试账号登录...')
-        await userStore.accountLogin({
-          username: 'admin',
-          password: 'OIAyWw8Y0Uo8',
-        })
-        console.log('账号登录成功')
-      }
-      catch (err) {
-        console.log('账号登录失败:', err)
-      }
-    }
-    // #endif
   }
 })
 </script>

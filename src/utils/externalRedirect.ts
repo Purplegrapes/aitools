@@ -1,4 +1,5 @@
 import type { ExternalSourceType } from '@/store/externalSourceStore'
+import { useGlobalMessage } from '@/composables/useGlobalMessage'
 import router from '@/router'
 import { useExternalSourceStore } from '@/store/externalSourceStore'
 import { useUserStore } from '@/store/userStore'
@@ -31,7 +32,12 @@ function redirectToMiniProgram(appId: string, targetPath: string) {
     })
   }
   else {
-    console.warn('微信JSSDK未加载，无法跳转回小程序')
+    // JSSDK未加载，使用GlobalMessage显示警告
+    const { show: showMessage } = useGlobalMessage()
+    showMessage({
+      msg: '微信JSSDK未加载，无法跳转回小程序',
+      type: 'warning',
+    })
     // 降级处理：跳转内部登录页
     router.replaceAll({ name: 'login' })
   }
@@ -76,7 +82,11 @@ export async function handleExternalRedirect() {
         redirectToMiniProgram(appId, targetPath || '')
       }
       else {
-        console.warn('缺少appId，无法跳转回小程序')
+        const { show: showMessage } = useGlobalMessage()
+        showMessage({
+          msg: '缺少appId，无法跳转回小程序',
+          type: 'warning',
+        })
         router.replaceAll({ name: 'login' })
       }
       break
@@ -87,7 +97,11 @@ export async function handleExternalRedirect() {
         redirectToH5(loginUrl, targetPath || '')
       }
       else {
-        console.warn('缺少loginUrl，无法跳转回H5')
+        const { show: showMessage } = useGlobalMessage()
+        showMessage({
+          msg: '缺少loginUrl，无法跳转回H5',
+          type: 'warning',
+        })
         router.replaceAll({ name: 'login' })
       }
       break

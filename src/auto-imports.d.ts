@@ -16,6 +16,7 @@ declare global {
   const apiDefinitions: typeof import('./api/apiDefinitions')['default']
   const assetApi: typeof import('./api/index')['assetApi']
   const asyncComputed: typeof import('@vueuse/core')['asyncComputed']
+  const authApi: typeof import('./api/index')['authApi']
   const autoResetRef: typeof import('@vueuse/core')['autoResetRef']
   const calculatePreviousDates: typeof import('./utils/format')['calculatePreviousDates']
   const computed: typeof import('vue')['computed']
@@ -43,6 +44,7 @@ declare global {
   const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
   const defineComponent: typeof import('vue')['defineComponent']
   const defineStore: typeof import('pinia')['defineStore']
+  const detectAccessMode: typeof import('./utils/sourceDetector')['detectAccessMode']
   const eagerComputed: typeof import('@vueuse/core')['eagerComputed']
   const echarts: typeof import('./utils/echarts')['default']
   const effectScope: typeof import('vue')['effectScope']
@@ -57,7 +59,9 @@ declare global {
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentPath: typeof import('./utils/index')['getCurrentPath']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getPageQuery: typeof import('./utils/sourceDetector')['getPageQuery']
   const h: typeof import('vue')['h']
+  const handleExternalRedirect: typeof import('./utils/externalRedirect')['handleExternalRedirect']
   const ignorableWatch: typeof import('@vueuse/core')['ignorableWatch']
   const inject: typeof import('vue')['inject']
   const injectLocal: typeof import('@vueuse/core')['injectLocal']
@@ -142,6 +146,7 @@ declare global {
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
+  const shouldHandleExternalRedirect: typeof import('./utils/externalRedirect')['shouldHandleExternalRedirect']
   const storeToRefs: typeof import('pinia')['storeToRefs']
   const syncRef: typeof import('@vueuse/core')['syncRef']
   const syncRefs: typeof import('@vueuse/core')['syncRefs']
@@ -219,6 +224,7 @@ declare global {
   const useEventBus: typeof import('@vueuse/core')['useEventBus']
   const useEventListener: typeof import('@vueuse/core')['useEventListener']
   const useEventSource: typeof import('@vueuse/core')['useEventSource']
+  const useExternalSourceStore: typeof import('./store/externalSourceStore')['useExternalSourceStore']
   const useEyeDropper: typeof import('@vueuse/core')['useEyeDropper']
   const useFavicon: typeof import('@vueuse/core')['useFavicon']
   const useFetch: typeof import('@vueuse/core')['useFetch']
@@ -381,6 +387,7 @@ declare module 'vue' {
     readonly api: UnwrapRef<typeof import('./api/index')['default']>
     readonly apiDefinitions: UnwrapRef<typeof import('./api/apiDefinitions')['default']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
+    readonly authApi: UnwrapRef<typeof import('./api/index')['authApi']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly calculatePreviousDates: UnwrapRef<typeof import('./utils/format')['calculatePreviousDates']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
@@ -408,6 +415,7 @@ declare module 'vue' {
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly defineStore: UnwrapRef<typeof import('pinia')['defineStore']>
+    readonly detectAccessMode: UnwrapRef<typeof import('./utils/sourceDetector')['detectAccessMode']>
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly etfApi: UnwrapRef<typeof import('./api/index')['etfApi']>
@@ -421,7 +429,9 @@ declare module 'vue' {
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentPath: UnwrapRef<typeof import('./utils/index')['getCurrentPath']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
+    readonly getPageQuery: UnwrapRef<typeof import('./utils/sourceDetector')['getPageQuery']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
+    readonly handleExternalRedirect: UnwrapRef<typeof import('./utils/externalRedirect')['handleExternalRedirect']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
@@ -506,6 +516,7 @@ declare module 'vue' {
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
+    readonly shouldHandleExternalRedirect: UnwrapRef<typeof import('./utils/externalRedirect')['shouldHandleExternalRedirect']>
     readonly storeToRefs: UnwrapRef<typeof import('pinia')['storeToRefs']>
     readonly syncRef: UnwrapRef<typeof import('@vueuse/core')['syncRef']>
     readonly syncRefs: UnwrapRef<typeof import('@vueuse/core')['syncRefs']>
@@ -583,6 +594,7 @@ declare module 'vue' {
     readonly useEventBus: UnwrapRef<typeof import('@vueuse/core')['useEventBus']>
     readonly useEventListener: UnwrapRef<typeof import('@vueuse/core')['useEventListener']>
     readonly useEventSource: UnwrapRef<typeof import('@vueuse/core')['useEventSource']>
+    readonly useExternalSourceStore: UnwrapRef<typeof import('./store/externalSourceStore')['useExternalSourceStore']>
     readonly useEyeDropper: UnwrapRef<typeof import('@vueuse/core')['useEyeDropper']>
     readonly useFavicon: UnwrapRef<typeof import('@vueuse/core')['useFavicon']>
     readonly useFetch: UnwrapRef<typeof import('@vueuse/core')['useFetch']>
