@@ -11,19 +11,6 @@ import { defineUniPages } from '@uni-helper/vite-plugin-uni-pages'
 
 export default defineUniPages({
   pages: [],
-  subPackages: [
-    {
-      root: 'subPages/tamp',
-      pages: [
-        {
-          path: 'index',
-          style: {
-            navigationBarTitleText: 'TAMP',
-          },
-        },
-      ],
-    },
-  ],
   globalStyle: {
     // 隐藏系统导航栏，使用自定义导航栏
     navigationStyle: 'custom',
