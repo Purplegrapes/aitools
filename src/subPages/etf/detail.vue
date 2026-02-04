@@ -27,7 +27,7 @@ import {
   realtimeLine,
   showQuote,
   valuationShow,
-} from '../api'
+} from './api'
 import { REALTIME_POLLING_INTERVAL, TOOLTIP_AUTO_HIDE_DELAY } from './constants'
 import { segmentedList, tabs } from './data'
 import { isValuationDetailData } from './types'

@@ -8,10 +8,8 @@
  */
 import type { Method } from 'alova'
 import { isRefreshing, onTokenRefreshed, setRefreshing, subscribeTokenRefresh } from '@/api/core/instance'
-import { refreshToken } from '@/api/modules/auth'
-import { useExternalSourceStore } from '@/store/externalSourceStore'
 import { useUserStore } from '@/store/userStore'
-import { handleExternalRedirect } from '@/utils/externalRedirect'
+import { refreshToken } from '@/subPages/tamp/api'
 
 // Custom error class for API errors
 export class ApiError extends Error {
@@ -47,7 +45,6 @@ export async function handleAlovaResponse(
   // 处理401/403错误
   if ((statusCode === 401 || statusCode === 403)) {
     const userStore = useUserStore()
-    const externalSource = useExternalSourceStore()
 
     // 有refreshToken，尝试刷新
     if (userStore.refreshToken) {
@@ -87,21 +84,10 @@ export async function handleAlovaResponse(
         }
       }
       catch (err: any) {
-        // 刷新失败，清除用户信息并跳转
+        // 刷新失败，清除用户信息
         if (err.message !== 'TOKEN_REFRESHED') {
           await userStore.logout()
-
-          // 根据来源决定跳转
-          if (externalSource.isExternal && !externalSource.isExpired) {
-            await handleExternalRedirect()
-          }
-          else {
-            globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
-            const timer = setTimeout(() => {
-              clearTimeout(timer)
-              // router.replaceAll({ name: 'login' })
-            }, 500)
-          }
+          globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
         }
         throw new ApiError('登录已过期，请重新登录！', statusCode, data)
       }
@@ -109,20 +95,9 @@ export async function handleAlovaResponse(
         setRefreshing(false)
       }
     }
-    // 无refreshToken，直接跳转登录
+    // 无refreshToken，直接提示
     else {
       globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
-      const timer = setTimeout(() => {
-        clearTimeout(timer)
-        // 根据来源决定跳转
-        if (externalSource.isExternal && !externalSource.isExpired) {
-          handleExternalRedirect()
-        }
-        else {
-          // router.replaceAll({ name: 'login' })
-        }
-      }, 500)
-
       throw new ApiError('登录已过期，请重新登录！', statusCode, data)
     }
   }

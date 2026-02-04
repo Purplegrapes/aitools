@@ -2,7 +2,6 @@
  * TAMP 子包 - 外部跳转处理工具
  */
 import type { ExternalSourceType } from './sourceDetector'
-import { useGlobalMessage } from '@/wot-design-uni'
 
 /**
  * 处理外部跳转（token失效或认证失败时调用）

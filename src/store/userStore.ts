@@ -130,7 +130,7 @@ export const useUserStore = defineStore('user', {
      * 通过code登录（外部跳入场景）
      */
     async loginByCode(code: string, appId?: string) {
-      const { authApi } = await import('@/api')
+      const authApi = await import('@/subPages/tamp/api')
       try {
         const res = await authApi.tokenByCode({ code, appId })
         const data = res as any
