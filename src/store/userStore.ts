@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
 import {
   login as userLogin,
-  logout as userLogout,
-  wechatLogin as userWechatLogin,
 } from '@/subPages/etf/api'
 
 /**
@@ -104,52 +102,6 @@ export const useUserStore = defineStore('user', {
     },
 
     /**
-     * 微信小程序登录
-     */
-    async wechatLogin() {
-      return new Promise<LoginResponse>((resolve, reject) => {
-        // #ifdef MP-WEIXIN
-        uni.login({
-          provider: 'weixin',
-          success: async (loginRes) => {
-            try {
-              // 调用后端登录接口
-              const res = await userWechatLogin({
-                authorizationCode: loginRes.code,
-              })
-              const data = res as any
-
-              if (data.success || data.data?.token) {
-                // 登录成功，保存 token
-                this.setToken(data.data.token)
-                if (data.data.userInfo) {
-                  this.setUserInfo(data.data.userInfo)
-                }
-                resolve(data as LoginResponse)
-              }
-              else {
-                reject(new Error(data.message || '登录失败'))
-              }
-            }
-            catch (err) {
-              console.error('wechatLogin error:', err)
-              reject(err)
-            }
-          },
-          fail: (err) => {
-            console.error('uni.login fail:', err)
-            reject(err)
-          },
-        })
-        // #endif
-
-        // #ifndef MP-WEIXIN
-        reject(new Error('当前平台不支持微信登录'))
-        // #endif
-      })
-    },
-
-    /**
      * 账号密码登录
      */
     async accountLogin(params: { username: string, password: string }) {
@@ -236,21 +188,12 @@ export const useUserStore = defineStore('user', {
      * 退出登录
      */
     async logout() {
-      try {
-        // 调用退出登录接口
-        await userLogout()
-      }
-      catch (err) {
-        console.error('logout API error:', err)
-      }
-      finally {
-        // 无论接口是否成功，都清除本地状态
-        this.userInfo = null
-        this.token = ''
-        this.accessToken = ''
-        this.refreshToken = ''
-        this.isLogin = false
-      }
+      // 无论接口是否成功，都清除本地状态
+      this.userInfo = null
+      this.token = ''
+      this.accessToken = ''
+      this.refreshToken = ''
+      this.isLogin = false
     },
 
     /**

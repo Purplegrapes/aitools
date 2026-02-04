@@ -74,20 +74,6 @@ onLaunch(async () => {
     console.warn('URL中未找到token参数，跳转外部登录')
     await handleExternalRedirect()
   }
-  // 内部访问模式：保持原有自动登录逻辑
-  else if (!userStore.accessToken) {
-    try {
-      console.log('尝试账号登录...')
-      await userStore.accountLogin({
-        username: 'admin',
-        password: 'OIAyWw8Y0Uo8',
-      })
-      console.log('账号登录成功')
-    }
-    catch (err) {
-      console.log('账号登录失败:', err)
-    }
-  }
 })
 </script>
 

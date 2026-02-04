@@ -166,25 +166,3 @@ export function login(params: {
 }) {
   return alovaInstance.Post('/api/v1/user/login', params)
 }
-
-/**
- * 微信扫码登录绑定
- * @param key 扫码登录的 key
- */
-export function wechatBind(key: string) {
-  return alovaInstance.Get(`/api/v1/user/wechat/bind?key=${key}`)
-}
-
-/**
- * 退出登录
- */
-export function logout() {
-  return alovaInstance.Post('/api/v1/user/logout')
-}
-
-/**
- * 获取用户信息
- */
-export function getUserInfo() {
-  return alovaInstance.Get('/api/v1/user/info')
-}
