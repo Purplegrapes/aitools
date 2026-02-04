@@ -63,6 +63,7 @@ declare global {
   const h: typeof import('vue')['h']
   const handleExternalRedirect: typeof import('./utils/externalRedirect')['handleExternalRedirect']
   const ignorableWatch: typeof import('@vueuse/core')['ignorableWatch']
+  const initVConsole: typeof import('./utils/vconsole')['initVConsole']
   const inject: typeof import('vue')['inject']
   const injectLocal: typeof import('@vueuse/core')['injectLocal']
   const isDefined: typeof import('@vueuse/core')['isDefined']
@@ -433,6 +434,7 @@ declare module 'vue' {
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly handleExternalRedirect: UnwrapRef<typeof import('./utils/externalRedirect')['handleExternalRedirect']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
+    readonly initVConsole: UnwrapRef<typeof import('./utils/vconsole')['initVConsole']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
