@@ -21,9 +21,9 @@ export interface ExternalSource {
  */
 export interface ExternalSourceState {
   source: ExternalSourceType
-  appId?: string
-  loginUrl?: string
-  targetPath?: string
+  appId: string
+  loginUrl: string
+  targetPath: string
   timestamp: number
 }
 
