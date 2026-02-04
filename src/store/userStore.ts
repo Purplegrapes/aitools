@@ -94,9 +94,8 @@ export const useUserStore = defineStore('user', {
     /**
      * 设置双Token
      */
-    setTokens(tokens: { accessToken: string, refreshToken: string }) {
+    setTokens(tokens: { accessToken: string }) {
       this.accessToken = tokens.accessToken
-      this.refreshToken = tokens.refreshToken
       this.token = tokens.accessToken // 保持兼容
       this.isLogin = !!tokens.accessToken
     },
@@ -138,7 +137,6 @@ export const useUserStore = defineStore('user', {
         if (data.success || data.data?.accessToken) {
           this.setTokens({
             accessToken: data.data.accessToken,
-            refreshToken: data.data.refreshToken || '',
           })
           if (data.data.userInfo) {
             this.setUserInfo(data.data.userInfo)

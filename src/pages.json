@@ -91,6 +91,15 @@
           }
         },
         {
+          "path": "tamp/demo",
+          "type": "page",
+          "name": "tamp-demo",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "TAMP 样例"
+          }
+        },
+        {
           "path": "tamp/index",
           "type": "page",
           "name": "tamp",
