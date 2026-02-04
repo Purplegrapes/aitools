@@ -11,7 +11,6 @@ type _LocationUrl =
   "/subPages/etf/performance" |
   "/subPages/etf/profile" |
   "/subPages/shixi-guide/index" |
-  "/subPages/tamp/index" |
   "/subPages/tamp/index";
 
 interface NavigateToOptions {

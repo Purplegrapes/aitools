@@ -9,7 +9,6 @@
 import type { Method } from 'alova'
 import { isRefreshing, onTokenRefreshed, setRefreshing, subscribeTokenRefresh } from '@/api/core/instance'
 import { refreshToken } from '@/api/modules/auth'
-import router from '@/router'
 import { useExternalSourceStore } from '@/store/externalSourceStore'
 import { useUserStore } from '@/store/userStore'
 import { handleExternalRedirect } from '@/utils/externalRedirect'
@@ -100,7 +99,7 @@ export async function handleAlovaResponse(
             globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
             const timer = setTimeout(() => {
               clearTimeout(timer)
-              router.replaceAll({ name: 'login' })
+              // router.replaceAll({ name: 'login' })
             }, 500)
           }
         }
@@ -120,7 +119,7 @@ export async function handleAlovaResponse(
           handleExternalRedirect()
         }
         else {
-          router.replaceAll({ name: 'login' })
+          // router.replaceAll({ name: 'login' })
         }
       }, 500)
 
@@ -160,7 +159,7 @@ export function handleAlovaError(error: any, method: Method) {
     globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
     const timer = setTimeout(() => {
       clearTimeout(timer)
-      router.replaceAll({ name: 'login' })
+      // router.replaceAll({ name: 'login' })
     }, 500)
     throw new ApiError('登录已过期，请重新登录！', error.code, error.data)
   }

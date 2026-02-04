@@ -331,7 +331,7 @@ function redirectToMiniProgram(appId: string, targetPath: string) {
   else {
     console.warn('微信JSSDK未加载，无法跳转回小程序')
     // 降级处理：跳转内部登录页
-    router.replaceAll({ name: 'login' })
+    // router.replaceAll({ name: 'login' })
   }
   // #endif
 }
@@ -375,7 +375,7 @@ export async function handleExternalRedirect() {
       }
       else {
         console.warn('缺少appId，无法跳转回小程序')
-        router.replaceAll({ name: 'login' })
+        // router.replaceAll({ name: 'login' })
       }
       break
 
@@ -386,13 +386,13 @@ export async function handleExternalRedirect() {
       }
       else {
         console.warn('缺少loginUrl，无法跳转回H5')
-        router.replaceAll({ name: 'login' })
+        // router.replaceAll({ name: 'login' })
       }
       break
 
     default:
       // 内部访问，跳转到项目内登录页
-      router.replaceAll({ name: 'login' })
+      // router.replaceAll({ name: 'login' })
   }
 
   // 清除来源信息（已处理完成）
@@ -545,7 +545,7 @@ if ((statusCode === 401 || statusCode === 403)) {
           globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
           const timer = setTimeout(() => {
             clearTimeout(timer)
-            router.replaceAll({ name: 'login' })
+            // router.replaceAll({ name: 'login' })
           }, 500)
         }
       }
@@ -565,7 +565,7 @@ if ((statusCode === 401 || statusCode === 403)) {
         handleExternalRedirect()
       }
       else {
-        router.replaceAll({ name: 'login' })
+        // router.replaceAll({ name: 'login' })
       }
     }, 500)
 
@@ -920,7 +920,7 @@ router.beforeEach((to, from, next) => {
       return
     }
     else {
-      router.replaceAll({ name: 'login' })
+      // router.replaceAll({ name: 'login' })
       return
     }
   }

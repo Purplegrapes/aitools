@@ -41,8 +41,9 @@ router.beforeEach((to, from, next) => {
       return
     }
     else {
-      router.replaceAll({ name: 'login' })
-      return
+      // 不跳转，直接访问
+      // // router.replaceAll({ name: 'login' })
+      // return
     }
   }
 

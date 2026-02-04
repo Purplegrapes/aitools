@@ -1,6 +1,5 @@
 import type { ExternalSourceType } from '@/store/externalSourceStore'
 import { useGlobalMessage } from '@/composables/useGlobalMessage'
-import router from '@/router'
 import { useExternalSourceStore } from '@/store/externalSourceStore'
 import { useUserStore } from '@/store/userStore'
 
@@ -39,7 +38,7 @@ function redirectToMiniProgram(appId: string, targetPath: string) {
       type: 'warning',
     })
     // 降级处理：跳转内部登录页
-    router.replaceAll({ name: 'login' })
+    // router.replaceAll({ name: 'login' })
   }
   // #endif
 }
@@ -87,7 +86,7 @@ export async function handleExternalRedirect() {
           msg: '缺少appId，无法跳转回小程序',
           type: 'warning',
         })
-        router.replaceAll({ name: 'login' })
+        // router.replaceAll({ name: 'login' })
       }
       break
 
@@ -102,13 +101,13 @@ export async function handleExternalRedirect() {
           msg: '缺少loginUrl，无法跳转回H5',
           type: 'warning',
         })
-        router.replaceAll({ name: 'login' })
+        // router.replaceAll({ name: 'login' })
       }
       break
 
     default:
       // 内部访问，跳转到项目内登录页
-      router.replaceAll({ name: 'login' })
+      // router.replaceAll({ name: 'login' })
   }
 
   // 清除来源信息（已处理完成）

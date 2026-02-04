@@ -3,6 +3,13 @@ import { getTampData } from './api'
 
 const { data, loading, error } = useRequest(getTampData)
 
+definePage({
+  name: 'tamp',
+  layout: 'default',
+  style: {
+    navigationBarTitleText: 'TAMP',
+  },
+})
 console.log('TAMP 页面加载', { data, loading, error })
 </script>
 
