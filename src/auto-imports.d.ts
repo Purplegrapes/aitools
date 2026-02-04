@@ -386,7 +386,6 @@ declare module 'vue' {
     readonly api: UnwrapRef<typeof import('./api/index')['default']>
     readonly apiDefinitions: UnwrapRef<typeof import('./api/apiDefinitions')['default']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
-    readonly authApi: UnwrapRef<typeof import('./api/index')['authApi']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly calculatePreviousDates: UnwrapRef<typeof import('./utils/format')['calculatePreviousDates']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
