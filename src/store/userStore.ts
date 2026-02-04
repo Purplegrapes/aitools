@@ -90,6 +90,16 @@ export const useUserStore = defineStore('user', {
     },
 
     /**
+     * 设置双Token
+     */
+    setTokens(tokens: { accessToken: string, refreshToken: string }) {
+      this.accessToken = tokens.accessToken
+      this.refreshToken = tokens.refreshToken
+      this.token = tokens.accessToken // 保持兼容
+      this.isLogin = !!tokens.accessToken
+    },
+
+    /**
      * 微信小程序登录
      */
     async wechatLogin() {
@@ -161,6 +171,64 @@ export const useUserStore = defineStore('user', {
     },
 
     /**
+     * 通过code登录（外部跳入场景）
+     */
+    async loginByCode(code: string, appId?: string) {
+      const { authApi } = await import('@/api')
+      try {
+        const res = await authApi.tokenByCode({ code, appId })
+        const data = res as any
+
+        if (data.success || data.data?.accessToken) {
+          this.setTokens({
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken || '',
+          })
+          if (data.data.userInfo) {
+            this.setUserInfo(data.data.userInfo)
+          }
+          return data
+        }
+        else {
+          throw new Error(data.message || '登录失败')
+        }
+      }
+      catch (err) {
+        console.error('loginByCode error:', err)
+        throw err
+      }
+    },
+
+    /**
+     * 通过session登录（外部跳入场景）
+     */
+    async loginBySession(sessionId: string) {
+      const { authApi } = await import('@/api')
+      try {
+        const res = await authApi.tokenBySession({ sessionId })
+        const data = res as any
+
+        if (data.success || data.data?.accessToken) {
+          this.setTokens({
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken || '',
+          })
+          if (data.data.userInfo) {
+            this.setUserInfo(data.data.userInfo)
+          }
+          return data
+        }
+        else {
+          throw new Error(data.message || '登录失败')
+        }
+      }
+      catch (err) {
+        console.error('loginBySession error:', err)
+        throw err
+      }
+    },
+
+    /**
      * 退出登录
      */
     async logout() {
@@ -175,6 +243,8 @@ export const useUserStore = defineStore('user', {
         // 无论接口是否成功，都清除本地状态
         this.userInfo = null
         this.token = ''
+        this.accessToken = ''
+        this.refreshToken = ''
         this.isLogin = false
       }
     },
