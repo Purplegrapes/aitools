@@ -10,7 +10,9 @@ type _LocationUrl =
   "/subPages/etf/index" |
   "/subPages/etf/performance" |
   "/subPages/etf/profile" |
-  "/subPages/shixi-guide/index";
+  "/subPages/shixi-guide/index" |
+  "/subPages/tamp/index" |
+  "/subPages/tamp/index";
 
 interface NavigateToOptions {
   url: _LocationUrl;

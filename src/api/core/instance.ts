@@ -62,6 +62,19 @@ function getAssetBaseURL(): string {
 }
 
 /**
+ * 获取 TAMP API 基础 URL
+ */
+function getTampBaseURL(): string {
+  // #ifdef H5
+  return '' // H5 环境使用 Vite 代理
+  // #endif
+  // #ifndef H5
+  // @ts-expect-error - uni-app 条件编译，非 H5 环境
+  return import.meta.env.VITE_TAMP_API_BASE_URL || ''
+  // #endif
+}
+
+/**
  * 获取存储的 token
  * 优先使用 accessToken，保持与 userStore 一致
  */
@@ -103,6 +116,20 @@ export const alovaInstance = createAlova({
       }
     }
 
+    // TAMP API 使用不同的 baseURL
+    if (method.url.startsWith('/tamp-api')) {
+      const tampBaseURL = getTampBaseURL()
+      if (tampBaseURL) {
+        // #ifndef H5
+        const path = method.url.replace('/tamp-api', '/api')
+        method.url = `${tampBaseURL}${path}`
+        // #endif
+        // #ifdef H5
+        // H5 环境由代理处理，保持 URL 不变
+        // #endif
+      }
+    }
+
     // 从本地存储获取 token
     const token = getToken()
 
@@ -123,7 +150,12 @@ export const alovaInstance = createAlova({
 
     // Log request in development
     if (import.meta.env.MODE === 'development') {
-      const apiType = method.url.includes('/api/assets') ? '[Asset API]' : '[Main API]'
+      let apiType = '[Main API]'
+      if (method.url.includes('/api/assets') || method.url.startsWith('/shixi-guide'))
+        apiType = '[Asset API]'
+      else if (method.url.startsWith('/tamp-api'))
+        apiType = '[TAMP API]'
+
       console.log(`${apiType} Request] ${method.type} ${method.url}`, method.data || method.config.params)
       console.log(`[Environment] ${import.meta.env.VITE_ENV_NAME}`)
     }
