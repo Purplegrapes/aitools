@@ -21,9 +21,9 @@ export interface ExternalSource {
  */
 export interface ExternalSourceState {
   source: ExternalSourceType
-  appId: string
-  loginUrl: string
-  targetPath: string
+  appId: string | null
+  loginUrl: string | null
+  targetPath: string | null
   timestamp: number
 }
 
@@ -34,9 +34,9 @@ export interface ExternalSourceState {
 export const useExternalSourceStore = defineStore('externalSource', {
   state: (): ExternalSourceState => ({
     source: 'internal',
-    appId: '',
-    loginUrl: '',
-    targetPath: '',
+    appId: null,
+    loginUrl: null,
+    targetPath: null,
     timestamp: 0,
   }),
 
@@ -66,16 +66,16 @@ export const useExternalSourceStore = defineStore('externalSource', {
       // 小程序跳入
       if (query.code && query.from === 'miniapp') {
         this.source = 'miniprogram'
-        this.appId = query.appId as string
-        // 构造返回登录页URL（需要根据实际情况调整）
-        this.loginUrl = '' // 小程序不需要loginUrl，直接通过appId跳转
+        this.appId = query.appId as string || null
+        // 小程序不需要loginUrl，直接通过appId跳转
+        this.loginUrl = null
         this.targetPath = `/${query.target || 'index'}`
         this.timestamp = Date.now()
       }
       // H5跳入
       else if (query.sessionId && query.from === 'h5') {
         this.source = 'h5'
-        this.loginUrl = query.loginUrl as string || ''
+        this.loginUrl = query.loginUrl as string || null
         this.targetPath = `/${query.target || 'index'}`
         this.timestamp = Date.now()
       }
@@ -90,9 +90,9 @@ export const useExternalSourceStore = defineStore('externalSource', {
      */
     setSource(source: ExternalSource) {
       this.source = source.source
-      this.appId = source.appId
-      this.loginUrl = source.loginUrl
-      this.targetPath = source.targetPath
+      this.appId = source.appId || null
+      this.loginUrl = source.loginUrl || null
+      this.targetPath = source.targetPath || null
       this.timestamp = source.timestamp
     },
 
@@ -101,9 +101,9 @@ export const useExternalSourceStore = defineStore('externalSource', {
      */
     clear() {
       this.source = 'internal'
-      this.appId = ''
-      this.loginUrl = ''
-      this.targetPath = ''
+      this.appId = null
+      this.loginUrl = null
+      this.targetPath = null
       this.timestamp = 0
     },
   },
