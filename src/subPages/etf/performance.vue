@@ -4,10 +4,10 @@
  * 专业金融数据可视化界面
  */
 import type { EChartsOption } from 'echarts'
-import { coreIndicators } from '@/api/modules/etf'
 import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
 import { formatPercentage } from '@/utils/format'
+import { coreIndicators } from '../api'
 
 defineOptions({
   componentPlaceholder: {

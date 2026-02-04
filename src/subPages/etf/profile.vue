@@ -5,9 +5,9 @@
  */
 import type { EChartsOption } from 'echarts'
 import type { AssetStructure, CoreIndicators, FundManager } from './types'
-import { assetStructure, basicInfo, coreIndicators, fundManager } from '@/api/modules/etf'
 import PieChart from '@/subEcharts/echarts/components/PieChart.vue'
 import { formatAssets, formatPercentage } from '@/utils/format'
+import { assetStructure, basicInfo, coreIndicators, fundManager } from '../api'
 
 defineOptions({
   componentPlaceholder: {
