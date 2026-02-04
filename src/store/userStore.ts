@@ -19,6 +19,8 @@ export interface UserInfo {
 export interface UserState {
   userInfo: UserInfo | null
   token: string
+  accessToken: string
+  refreshToken: string
   isLogin: boolean
 }
 
@@ -41,6 +43,8 @@ export const useUserStore = defineStore('user', {
   state: (): UserState => ({
     userInfo: null,
     token: '',
+    accessToken: '',
+    refreshToken: '',
     isLogin: false,
   }),
 
