@@ -43,7 +43,6 @@ function getMainBaseURL(): string {
   return '' // H5 环境使用 Vite 代理
   // #endif
   // #ifndef H5
-  // @ts-expect-error - uni-app 条件编译，非 H5 环境
   return import.meta.env.VITE_API_BASE_URL || ''
   // #endif
 }
@@ -56,7 +55,6 @@ function getAssetBaseURL(): string {
   return '' // H5 环境使用 Vite 代理
   // #endif
   // #ifndef H5
-  // @ts-expect-error - uni-app 条件编译，非 H5 环境
   return import.meta.env.VITE_ASSET_API_BASE_URL
   // #endif
 }
@@ -69,7 +67,6 @@ function getTampBaseURL(): string {
   return '' // H5 环境使用 Vite 代理
   // #endif
   // #ifndef H5
-  // @ts-expect-error - uni-app 条件编译，非 H5 环境
   return import.meta.env.VITE_TAMP_API_BASE_URL || ''
   // #endif
 }
@@ -102,12 +99,12 @@ export const alovaInstance = createAlova({
   beforeRequest: (method) => {
     // 资产 API 使用不同的 baseURL
     // 判断是否需要使用资产 API 服务器
-    if (method.url.startsWith('/shixi-guide')) {
+    if (method.url.startsWith('/shixi-api')) {
       const assetBaseURL = getAssetBaseURL()
       if (assetBaseURL) {
         // 在非 H5 环境，需要设置完整 URL 来覆盖 Alova 的 baseURL
         // #ifndef H5
-        const path = method.url.replace('/shixi-guide', '/api')
+        const path = method.url.replace('/shixi-api', '/api')
         method.url = `${assetBaseURL}${path}`
         // #endif
         // #ifdef H5
@@ -151,7 +148,7 @@ export const alovaInstance = createAlova({
     // Log request in development
     if (import.meta.env.MODE === 'development') {
       let apiType = '[Main API]'
-      if (method.url.includes('/api/assets') || method.url.startsWith('/shixi-guide'))
+      if (method.url.includes('/api/assets') || method.url.startsWith('/shixi-api'))
         apiType = '[Asset API]'
       else if (method.url.startsWith('/tamp-api'))
         apiType = '[TAMP API]'

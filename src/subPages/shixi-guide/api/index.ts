@@ -9,7 +9,7 @@ import { alovaInstance } from '@/api/core/instance'
  * @param code 资产代码
  */
 export function getAssetDetail(code: string) {
-  return alovaInstance.Get(`/shixi-guide/assets/${code}/detail`)
+  return alovaInstance.Get(`/shixi-api/assets/${code}/detail`)
 }
 
 /**
@@ -22,7 +22,7 @@ export function getFactorHistory(params: {
   codes: string
   factors: string
 }) {
-  return alovaInstance.Get('/shixi-guide/assets/factors', {
+  return alovaInstance.Get('/shixi-api/assets/factors', {
     params,
   })
 }
