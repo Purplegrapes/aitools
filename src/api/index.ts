@@ -5,6 +5,7 @@ import alovaInstance from './core/instance'
 import { createApis, withConfigType } from './createApis'
 
 // Export API modules
+export * as authApi from './modules/auth'
 export * as etfApi from './modules/etf'
 export * as userApi from './modules/user'
 
