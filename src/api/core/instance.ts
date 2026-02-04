@@ -4,6 +4,37 @@ import vueHook from 'alova/vue'
 import mockAdapter from '../mock/mockAdapter'
 import { handleAlovaError, handleAlovaResponse } from './handlers'
 
+// ========== Token刷新锁机制 ==========
+// 刷新请求锁，防止并发刷新
+const _refreshLock = { isRefreshing: false }
+
+export function isRefreshing() {
+  return _refreshLock.isRefreshing
+}
+
+export function setRefreshing(value: boolean) {
+  _refreshLock.isRefreshing = value
+}
+
+// 等待刷新的请求队列
+let refreshSubscribers: Array<(token: string) => void> = []
+
+/**
+ * 将请求加入刷新等待队列
+ */
+export function subscribeTokenRefresh(callback: (token: string) => void) {
+  refreshSubscribers.push(callback)
+}
+
+/**
+ * 通知队列中的请求token已刷新
+ */
+export function onTokenRefreshed(token: string) {
+  refreshSubscribers.forEach(callback => callback(token))
+  refreshSubscribers = []
+}
+// ========== Token刷新锁机制结束 ==========
+
 /**
  * 获取主 API 基础 URL
  */
@@ -12,7 +43,6 @@ function getMainBaseURL(): string {
   return '' // H5 环境使用 Vite 代理
   // #endif
   // #ifndef H5
-  // @ts-expect-error - uni-app 条件编译，非 H5 环境
   return import.meta.env.VITE_API_BASE_URL || ''
   // #endif
 }
@@ -25,19 +55,33 @@ function getAssetBaseURL(): string {
   return '' // H5 环境使用 Vite 代理
   // #endif
   // #ifndef H5
-  // @ts-expect-error - uni-app 条件编译，非 H5 环境
   return import.meta.env.VITE_ASSET_API_BASE_URL
   // #endif
 }
 
 /**
+ * 获取 TAMP API 基础 URL
+ */
+function getTampBaseURL(): string {
+  // #ifdef H5
+  return '' // H5 环境使用 Vite 代理
+  // #endif
+  // #ifndef H5
+  return import.meta.env.VITE_TAMP_API_BASE_URL || ''
+  // #endif
+}
+
+/**
  * 获取存储的 token
+ * 优先使用 accessToken，保持与 userStore 一致
  */
 function getToken(): string {
   try {
     const userStore = uni.getStorageSync('user')
-    if (userStore && userStore.token) {
-      return userStore.token
+    if (userStore) {
+      // 优先使用 accessToken，保持与 userStore 的刷新逻辑一致
+      // 回退到 token 字段以保持向后兼容
+      return userStore.accessToken || userStore.token || ''
     }
   }
   catch {
@@ -53,14 +97,23 @@ export const alovaInstance = createAlova({
   }),
   statesHook: vueHook,
   beforeRequest: (method) => {
+    let token = ''
+
+    // 目前只有etf有token
+    if (method.url.startsWith('/api') || method.url.startsWith('/djapi')) {
+      // 从本地存储获取 token
+
+      token = getToken()
+    }
     // 资产 API 使用不同的 baseURL
     // 判断是否需要使用资产 API 服务器
-    if (method.url.startsWith('/shixi-guide')) {
+
+    if (method.url.startsWith('/shixi-api')) {
       const assetBaseURL = getAssetBaseURL()
       if (assetBaseURL) {
         // 在非 H5 环境，需要设置完整 URL 来覆盖 Alova 的 baseURL
         // #ifndef H5
-        const path = method.url.replace('/shixi-guide', '/api')
+        const path = method.url.replace('/shixi-api', '/api')
         method.url = `${assetBaseURL}${path}`
         // #endif
         // #ifdef H5
@@ -69,8 +122,18 @@ export const alovaInstance = createAlova({
       }
     }
 
-    // 从本地存储获取 token
-    const token = getToken()
+    // TAMP API 使用不同的 baseURL
+    if (method.url.startsWith('/app-api')) {
+      const tampBaseURL = getTampBaseURL()
+      if (tampBaseURL) {
+        // #ifndef H5
+        method.url = `${tampBaseURL}${method.url}`
+        // #endif
+        // #ifdef H5
+        // H5 环境由代理处理，保持 URL 不变
+        // #endif
+      }
+    }
 
     // 添加 token 到请求头
     if (token) {
@@ -89,7 +152,12 @@ export const alovaInstance = createAlova({
 
     // Log request in development
     if (import.meta.env.MODE === 'development') {
-      const apiType = method.url.includes('/api/assets') ? '[Asset API]' : '[Main API]'
+      let apiType = '[Main API]'
+      if (method.url.includes('/api/assets') || method.url.startsWith('/shixi-api'))
+        apiType = '[Asset API]'
+      else if (method.url.startsWith('/tamp-api'))
+        apiType = '[TAMP API]'
+
       console.log(`${apiType} Request] ${method.type} ${method.url}`, method.data || method.config.params)
       console.log(`[Environment] ${import.meta.env.VITE_ENV_NAME}`)
     }

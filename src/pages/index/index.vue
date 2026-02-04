@@ -24,6 +24,12 @@ function goEtfPerformance() {
     },
   })
 }
+
+function goTamp() {
+  router.push({
+    name: 'tamp',
+  })
+}
 </script>
 
 <template>
@@ -32,6 +38,7 @@ function goEtfPerformance() {
       <wd-cell-group border custom-class="rounded-2! overflow-hidden">
         <wd-cell title="今日几星" is-link @click="navigateTo('etf')" />
         <wd-cell title="食息指南" is-link @click="goEtfPerformance()" />
+        <wd-cell title="TAMP Demo" is-link @click="goTamp()" />
       </wd-cell-group>
     </demo-block>
   </view>

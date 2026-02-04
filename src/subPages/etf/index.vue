@@ -7,6 +7,8 @@ import type {
   ValuationData,
   WotTabEvent,
 } from './types'
+import { useUserStore } from '@/store/userStore'
+import { login } from './api'
 import CustomTable from './components/CustomTable.vue'
 import {
   REALTIME_POLLING_INTERVAL,
@@ -32,6 +34,49 @@ definePage({
 
 const router = useRouter()
 const GlobalToast = useGlobalToast()
+const userStore = useUserStore()
+
+/**
+ * 登录状态
+ */
+const isLoggedIn = ref(false)
+const isLoggingIn = ref(false)
+
+/**
+ * 执行登录
+ */
+async function performLogin() {
+  if (isLoggedIn.value || isLoggingIn.value)
+    return
+
+  isLoggingIn.value = true
+  try {
+    const res = await login({
+      username: 'admin',
+      password: 'OIAyWw8Y0Uo8',
+    })
+    const data = res as any
+
+    if (data.success || data.data?.token) {
+      userStore.setToken(data.data.token)
+      if (data.data.userInfo) {
+        userStore.setUserInfo(data.data.userInfo)
+      }
+      isLoggedIn.value = true
+      console.log('ETF 页面登录成功')
+    }
+    else {
+      throw new Error(data.message || '登录失败')
+    }
+  }
+  catch (err) {
+    console.error('ETF 页面登录失败:', err)
+    GlobalToast.error('登录失败，请刷新重试')
+  }
+  finally {
+    isLoggingIn.value = false
+  }
+}
 
 /**
  * 当前选中的导航
@@ -114,8 +159,17 @@ function mergeEtfData(
 const {
   data: etfListData,
   loading: etfLoading,
+  send: fetchEtfList,
 } = useRequest(() => (Apis as any).etf.etfInfoList(), {
-  immediate: true,
+  immediate: false,
+})
+
+// 页面挂载时先登录，再加载ETF数据
+onMounted(async () => {
+  await performLogin()
+  if (isLoggedIn.value) {
+    fetchEtfList()
+  }
 })
 
 /**

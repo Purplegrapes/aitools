@@ -1,21 +1,11 @@
 <script setup lang="ts">
-import { useUserStore } from '@/store/userStore'
+import { initVConsole } from '@/utils/vconsole'
 
-const userStore = useUserStore()
+// 初始化 VConsole（H5 开发环境）
+initVConsole()
 
-onLaunch(async () => {
-  // 自动登录：检查是否有 token，如果没有则尝试登录
-  if (!userStore.token) {
-    try {
-      await userStore.accountLogin({
-        username: 'admin',
-        password: 'OIAyWw8Y0Uo8',
-      })
-    }
-    catch (err) {
-      console.log('自动登录失败:', err)
-    }
-  }
+onLaunch(() => {
+  console.log('App onLaunch')
 })
 </script>
 

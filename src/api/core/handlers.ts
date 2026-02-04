@@ -7,7 +7,9 @@
  * @FilePath: /wot-starter/src/api/core/handlers.ts
  */
 import type { Method } from 'alova'
-import router from '@/router'
+import { isRefreshing, onTokenRefreshed, setRefreshing, subscribeTokenRefresh } from '@/api/core/instance'
+import { useUserStore } from '@/store/userStore'
+import { refreshToken } from '@/subPages/tamp/api'
 
 // Custom error class for API errors
 export class ApiError extends Error {
@@ -40,16 +42,64 @@ export async function handleAlovaResponse(
   // Extract status code and data from UniApp response
   const { statusCode, data } = response as UniNamespace.RequestSuccessCallbackResult
 
-  // 处理401/403错误（如果不是在handleAlovaResponse中处理的）
+  // 处理401/403错误
   if ((statusCode === 401 || statusCode === 403)) {
-    // 如果是未授权错误，清除用户信息并跳转到登录页
-    globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
-    const timer = setTimeout(() => {
-      clearTimeout(timer)
-      router.replaceAll({ name: 'login' })
-    }, 500)
+    const userStore = useUserStore()
 
-    throw new ApiError('登录已过期，请重新登录！', statusCode, data)
+    // 有refreshToken，尝试刷新
+    if (userStore.refreshToken) {
+      // 如果正在刷新，将请求加入队列
+      if (isRefreshing()) {
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((_token) => {
+            // 重新设置请求头
+            resolve(response as any)
+          })
+        })
+      }
+
+      // 开始刷新
+      setRefreshing(true)
+      try {
+        const refreshResult = await refreshToken({ refreshToken: userStore.refreshToken })
+        const data = refreshResult as any
+
+        if (data.success || data.data?.accessToken) {
+          // 刷新成功，更新token
+          userStore.accessToken = data.data.accessToken
+          if (data.data.refreshToken) {
+            userStore.refreshToken = data.data.refreshToken
+          }
+
+          // 通知队列中的请求
+          onTokenRefreshed(data.data.accessToken)
+
+          // 注意：由于 Alova 响应处理器的限制，刷新成功后无法自动重试当前请求
+          // 队列中的请求会收到通知，下一次请求会使用新 token
+          // 调用方需要捕获 'TOKEN_REFRESHED' 错误并决定是否重试
+          throw new Error('TOKEN_REFRESHED') // 特殊标记，由调用方重试
+        }
+        else {
+          throw new Error('刷新token失败')
+        }
+      }
+      catch (err: any) {
+        // 刷新失败，清除用户信息
+        if (err.message !== 'TOKEN_REFRESHED') {
+          await userStore.logout()
+          globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
+        }
+        throw new ApiError('登录已过期，请重新登录！', statusCode, data)
+      }
+      finally {
+        setRefreshing(false)
+      }
+    }
+    // 无refreshToken，直接提示
+    else {
+      globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
+      throw new ApiError('登录已过期，请重新登录！', statusCode, data)
+    }
   }
 
   // Handle HTTP error status codes
@@ -84,7 +134,7 @@ export function handleAlovaError(error: any, method: Method) {
     globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
     const timer = setTimeout(() => {
       clearTimeout(timer)
-      router.replaceAll({ name: 'login' })
+      // router.replaceAll({ name: 'login' })
     }, 500)
     throw new ApiError('登录已过期，请重新登录！', error.code, error.data)
   }

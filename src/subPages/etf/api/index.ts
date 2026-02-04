@@ -1,16 +1,7 @@
 /**
- * ETF 相关 API 接口
+ * ETF 子包独立 API 接口
  */
-import { alovaInstance } from '../core/instance'
-
-/**
- * 微信扫码登录
- */
-export function wechatBind(key: string) {
-  return alovaInstance.Get('/api/v1/user/wechat/bind', {
-    params: { key },
-  })
-}
+import { alovaInstance } from '@/api/core/instance'
 
 /**
  * 实时价格
@@ -128,6 +119,7 @@ export function showQuote() {
 export function basicInfo(code: string) {
   return alovaInstance.Get(`/api/v1/etf/basic-info/${code}`)
 }
+
 /**
  * 获取基金经理信息
  * @param code ETF代码
@@ -150,4 +142,27 @@ export function coreIndicators(code: string) {
  */
 export function assetStructure(code: string) {
   return alovaInstance.Get(`/api/v1/etf/asset-structure/${code}`)
+}
+
+// ==================== 用户相关 API ====================
+/**
+ * 微信小程序登录
+ * @param params 登录参数
+ */
+export function wechatLogin(params: {
+  authorizationCode: string
+  [key: string]: any
+}) {
+  return alovaInstance.Post('/api/v1/user/login/wechat', params)
+}
+
+/**
+ * 用户名密码登录
+ * @param params 登录参数
+ */
+export function login(params: {
+  username: string
+  password: string
+}) {
+  return alovaInstance.Post('/api/v1/user/login', params)
 }

@@ -12,14 +12,6 @@ import type {
   RealtimeLineItem,
   ValuationTrendPoint,
 } from './types'
-import {
-  etfInfo,
-  factorExposure,
-  realtime,
-  realtimeLine,
-  showQuote,
-  valuationShow,
-} from '@/api/modules/etf'
 import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
 import {
@@ -28,6 +20,14 @@ import {
   formatPercentage,
   formatRiseFall,
 } from '@/utils/format'
+import {
+  etfInfo,
+  factorExposure,
+  realtime,
+  realtimeLine,
+  showQuote,
+  valuationShow,
+} from './api'
 import { REALTIME_POLLING_INTERVAL, TOOLTIP_AUTO_HIDE_DELAY } from './constants'
 import { segmentedList, tabs } from './data'
 import { isValuationDetailData } from './types'

@@ -14,8 +14,8 @@ declare global {
   const alovaInstance: typeof import('./api/index')['alovaInstance']
   const api: typeof import('./api/index')['default']
   const apiDefinitions: typeof import('./api/apiDefinitions')['default']
-  const assetApi: typeof import('./api/index')['assetApi']
   const asyncComputed: typeof import('@vueuse/core')['asyncComputed']
+  const authApi: typeof import('./api/index')['authApi']
   const autoResetRef: typeof import('@vueuse/core')['autoResetRef']
   const calculatePreviousDates: typeof import('./utils/format')['calculatePreviousDates']
   const computed: typeof import('vue')['computed']
@@ -43,8 +43,8 @@ declare global {
   const defineAsyncComponent: typeof import('vue')['defineAsyncComponent']
   const defineComponent: typeof import('vue')['defineComponent']
   const defineStore: typeof import('pinia')['defineStore']
+  const detectAccessMode: typeof import('./utils/sourceDetector')['detectAccessMode']
   const eagerComputed: typeof import('@vueuse/core')['eagerComputed']
-  const echarts: typeof import('./utils/echarts')['default']
   const effectScope: typeof import('vue')['effectScope']
   const etfApi: typeof import('./api/index')['etfApi']
   const extendRef: typeof import('@vueuse/core')['extendRef']
@@ -58,7 +58,9 @@ declare global {
   const getCurrentPath: typeof import('./utils/index')['getCurrentPath']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
   const h: typeof import('vue')['h']
+  const handleExternalRedirect: typeof import('./utils/externalRedirect')['handleExternalRedirect']
   const ignorableWatch: typeof import('@vueuse/core')['ignorableWatch']
+  const initVConsole: typeof import('./utils/vconsole')['initVConsole']
   const inject: typeof import('vue')['inject']
   const injectLocal: typeof import('@vueuse/core')['injectLocal']
   const isDefined: typeof import('@vueuse/core')['isDefined']
@@ -142,6 +144,7 @@ declare global {
   const shallowReactive: typeof import('vue')['shallowReactive']
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
+  const shouldHandleExternalRedirect: typeof import('./utils/externalRedirect')['shouldHandleExternalRedirect']
   const storeToRefs: typeof import('pinia')['storeToRefs']
   const syncRef: typeof import('@vueuse/core')['syncRef']
   const syncRefs: typeof import('@vueuse/core')['syncRefs']
@@ -219,6 +222,7 @@ declare global {
   const useEventBus: typeof import('@vueuse/core')['useEventBus']
   const useEventListener: typeof import('@vueuse/core')['useEventListener']
   const useEventSource: typeof import('@vueuse/core')['useEventSource']
+  const useExternalSourceStore: typeof import('./store/externalSourceStore')['useExternalSourceStore']
   const useEyeDropper: typeof import('@vueuse/core')['useEyeDropper']
   const useFavicon: typeof import('@vueuse/core')['useFavicon']
   const useFetch: typeof import('@vueuse/core')['useFetch']
@@ -304,6 +308,7 @@ declare global {
   const useSupported: typeof import('@vueuse/core')['useSupported']
   const useSwipe: typeof import('@vueuse/core')['useSwipe']
   const useTabbar: typeof import('./composables/useTabbar')['useTabbar']
+  const useTampStore: typeof import('./store/tampStore')['useTampStore']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
   const useTemplateRefsList: typeof import('@vueuse/core')['useTemplateRefsList']
   const useTextDirection: typeof import('@vueuse/core')['useTextDirection']
@@ -410,7 +415,6 @@ declare module 'vue' {
     readonly defineStore: UnwrapRef<typeof import('pinia')['defineStore']>
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
-    readonly etfApi: UnwrapRef<typeof import('./api/index')['etfApi']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly formatAssets: UnwrapRef<typeof import('./utils/format')['formatAssets']>
     readonly formatDecimalToPercent: UnwrapRef<typeof import('./utils/format')['formatDecimalToPercent']>
@@ -423,6 +427,7 @@ declare module 'vue' {
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
+    readonly initVConsole: UnwrapRef<typeof import('./utils/vconsole')['initVConsole']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
@@ -668,6 +673,7 @@ declare module 'vue' {
     readonly useSupported: UnwrapRef<typeof import('@vueuse/core')['useSupported']>
     readonly useSwipe: UnwrapRef<typeof import('@vueuse/core')['useSwipe']>
     readonly useTabbar: UnwrapRef<typeof import('./composables/useTabbar')['useTabbar']>
+    readonly useTampStore: UnwrapRef<typeof import('./store/tampStore')['useTampStore']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useTemplateRefsList: UnwrapRef<typeof import('@vueuse/core')['useTemplateRefsList']>
     readonly useTextDirection: UnwrapRef<typeof import('@vueuse/core')['useTextDirection']>

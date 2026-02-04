@@ -34,10 +34,15 @@ export default defineConfig({
         rewrite: path => path,
       },
       // 资产 API 代理
-      '/shixi-guide': {
+      '/shixi-api': {
         target: 'https://shixi.betalpha.com',
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/shixi-guide/, '/api'),
+        rewrite: path => path.replace(/^\/shixi-api/, '/api'),
+      },
+      // TAMP API 代理
+      '/app-api': {
+        target: 'http://172.16.60.200:31705',
+        changeOrigin: true,
       },
     },
   },

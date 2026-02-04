@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
-import { userApi } from '@/api'
+import {
+  login as userLogin,
+} from '@/subPages/etf/api'
 
 /**
  * 用户信息接口
@@ -19,6 +21,8 @@ export interface UserInfo {
 export interface UserState {
   userInfo: UserInfo | null
   token: string
+  accessToken: string
+  refreshToken: string
   isLogin: boolean
 }
 
@@ -41,6 +45,8 @@ export const useUserStore = defineStore('user', {
   state: (): UserState => ({
     userInfo: null,
     token: '',
+    accessToken: '',
+    refreshToken: '',
     isLogin: false,
   }),
 
@@ -86,49 +92,12 @@ export const useUserStore = defineStore('user', {
     },
 
     /**
-     * 微信小程序登录
+     * 设置双Token
      */
-    async wechatLogin() {
-      return new Promise<LoginResponse>((resolve, reject) => {
-        // #ifdef MP-WEIXIN
-        uni.login({
-          provider: 'weixin',
-          success: async (loginRes) => {
-            try {
-              // 调用后端登录接口
-              const res = await userApi.wechatLogin({
-                authorizationCode: loginRes.code,
-              })
-              const data = res as any
-
-              if (data.success || data.data?.token) {
-                // 登录成功，保存 token
-                this.setToken(data.data.token)
-                if (data.data.userInfo) {
-                  this.setUserInfo(data.data.userInfo)
-                }
-                resolve(data as LoginResponse)
-              }
-              else {
-                reject(new Error(data.message || '登录失败'))
-              }
-            }
-            catch (err) {
-              console.error('wechatLogin error:', err)
-              reject(err)
-            }
-          },
-          fail: (err) => {
-            console.error('uni.login fail:', err)
-            reject(err)
-          },
-        })
-        // #endif
-
-        // #ifndef MP-WEIXIN
-        reject(new Error('当前平台不支持微信登录'))
-        // #endif
-      })
+    setTokens(tokens: { accessToken: string }) {
+      this.accessToken = tokens.accessToken
+      this.token = tokens.accessToken // 保持兼容
+      this.isLogin = !!tokens.accessToken
     },
 
     /**
@@ -136,7 +105,7 @@ export const useUserStore = defineStore('user', {
      */
     async accountLogin(params: { username: string, password: string }) {
       try {
-        const res = await userApi.login(params)
+        const res = await userLogin(params)
         const data = res as any
 
         if (data.success || data.data?.token) {
@@ -157,22 +126,72 @@ export const useUserStore = defineStore('user', {
     },
 
     /**
+     * 通过code登录（外部跳入场景）
+     */
+    async loginByCode(code: string, appId?: string) {
+      const authApi = await import('@/subPages/tamp/api')
+      try {
+        const res = await authApi.tokenByCode({ code, appId })
+        const data = res as any
+
+        if (data.success || data.data?.accessToken) {
+          this.setTokens({
+            accessToken: data.data.accessToken,
+          })
+          if (data.data.userInfo) {
+            this.setUserInfo(data.data.userInfo)
+          }
+          return data
+        }
+        else {
+          throw new Error(data.message || '登录失败')
+        }
+      }
+      catch (err) {
+        console.error('loginByCode error:', err)
+        throw err
+      }
+    },
+
+    /**
+     * 通过session登录（外部跳入场景）
+     */
+    async loginBySession(sessionId: string) {
+      const { authApi } = await import('@/api')
+      try {
+        const res = await authApi.tokenBySession({ sessionId })
+        const data = res as any
+
+        if (data.success || data.data?.accessToken) {
+          this.setTokens({
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken || '',
+          })
+          if (data.data.userInfo) {
+            this.setUserInfo(data.data.userInfo)
+          }
+          return data
+        }
+        else {
+          throw new Error(data.message || '登录失败')
+        }
+      }
+      catch (err) {
+        console.error('loginBySession error:', err)
+        throw err
+      }
+    },
+
+    /**
      * 退出登录
      */
     async logout() {
-      try {
-        // 调用退出登录接口
-        await userApi.logout()
-      }
-      catch (err) {
-        console.error('logout API error:', err)
-      }
-      finally {
-        // 无论接口是否成功，都清除本地状态
-        this.userInfo = null
-        this.token = ''
-        this.isLogin = false
-      }
+      // 无论接口是否成功，都清除本地状态
+      this.userInfo = null
+      this.token = ''
+      this.accessToken = ''
+      this.refreshToken = ''
+      this.isLogin = false
     },
 
     /**
