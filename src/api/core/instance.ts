@@ -97,8 +97,17 @@ export const alovaInstance = createAlova({
   }),
   statesHook: vueHook,
   beforeRequest: (method) => {
+    let token = ''
+
+    // 目前只有etf有token
+    if (method.url.startsWith('/api') || method.url.startsWith('/djapi')) {
+      // 从本地存储获取 token
+
+      token = getToken()
+    }
     // 资产 API 使用不同的 baseURL
     // 判断是否需要使用资产 API 服务器
+
     if (method.url.startsWith('/shixi-api')) {
       const assetBaseURL = getAssetBaseURL()
       if (assetBaseURL) {
@@ -114,21 +123,17 @@ export const alovaInstance = createAlova({
     }
 
     // TAMP API 使用不同的 baseURL
-    if (method.url.startsWith('/tamp-api')) {
+    if (method.url.startsWith('/app-api')) {
       const tampBaseURL = getTampBaseURL()
       if (tampBaseURL) {
         // #ifndef H5
-        const path = method.url.replace('/tamp-api', '/api')
-        method.url = `${tampBaseURL}${path}`
+        method.url = `${tampBaseURL}${method.url}`
         // #endif
         // #ifdef H5
         // H5 环境由代理处理，保持 URL 不变
         // #endif
       }
     }
-
-    // 从本地存储获取 token
-    const token = getToken()
 
     // 添加 token 到请求头
     if (token) {

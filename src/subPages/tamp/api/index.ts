@@ -45,3 +45,24 @@ export function getTampData(params?: Record<string, any>) {
     params,
   })
 }
+
+// ==================== 商铺相关 API ====================
+/**
+ * 获取商铺信息
+ * @param params 商铺参数
+ * @param options 额外选项
+ */
+export function getShopInfo({
+  params,
+  options,
+}: {
+  // 店铺ID
+  params: { shopId: string }
+  options?: { [key: string]: unknown }
+} = { params: { shopId: '' } }) {
+  const { shopId } = params
+
+  return alovaInstance.Get(`/app-api/shop/info/${shopId}`, {
+    ...(options || {}),
+  })
+}
