@@ -417,7 +417,6 @@ declare module 'vue' {
     readonly detectAccessMode: UnwrapRef<typeof import('./utils/sourceDetector')['detectAccessMode']>
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
-    readonly etfApi: UnwrapRef<typeof import('./api/index')['etfApi']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly formatAssets: UnwrapRef<typeof import('./utils/format')['formatAssets']>
     readonly formatDecimalToPercent: UnwrapRef<typeof import('./utils/format')['formatDecimalToPercent']>

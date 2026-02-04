@@ -5,9 +5,9 @@ import alovaInstance from './core/instance'
 import { createApis, withConfigType } from './createApis'
 
 // Export API modules
+// userApi 现在从 ETF 子包导出（父级导入优先）
+export * as userApi from '../subPages/etf/api'
 export * as authApi from './modules/auth'
-export * as etfApi from './modules/etf'
-export * as userApi from './modules/user'
 
 // Export the alova instance for direct use if needed
 export { alovaInstance }

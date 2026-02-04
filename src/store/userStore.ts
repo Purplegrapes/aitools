@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia'
-import { userApi } from '@/api'
+import {
+  login as userLogin,
+  logout as userLogout,
+  wechatLogin as userWechatLogin,
+} from '@/subPages/etf/api'
 
 /**
  * 用户信息接口
@@ -110,7 +114,7 @@ export const useUserStore = defineStore('user', {
           success: async (loginRes) => {
             try {
               // 调用后端登录接口
-              const res = await userApi.wechatLogin({
+              const res = await userWechatLogin({
                 authorizationCode: loginRes.code,
               })
               const data = res as any
@@ -150,7 +154,7 @@ export const useUserStore = defineStore('user', {
      */
     async accountLogin(params: { username: string, password: string }) {
       try {
-        const res = await userApi.login(params)
+        const res = await userLogin(params)
         const data = res as any
 
         if (data.success || data.data?.token) {
@@ -234,7 +238,7 @@ export const useUserStore = defineStore('user', {
     async logout() {
       try {
         // 调用退出登录接口
-        await userApi.logout()
+        await userLogout()
       }
       catch (err) {
         console.error('logout API error:', err)
