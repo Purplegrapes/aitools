@@ -565,7 +565,7 @@ watch(
           <view class="chart-header flex items-center justify-between border-b border-slate-100/80 px-5 py-4">
             <view class="flex items-center gap-2">
               <text class="text-lg text-slate-800 font-bold tracking-tight">
-                股息率走势
+                食息率走势
               </text>
             </view>
           </view>
