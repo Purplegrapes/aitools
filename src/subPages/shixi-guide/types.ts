@@ -21,7 +21,7 @@ export interface AssetDetail {
 }
 
 /**
- * 股息率历史数据点
+ * 食息率历史数据点
  */
 export interface DividendRatePoint {
   date: string
