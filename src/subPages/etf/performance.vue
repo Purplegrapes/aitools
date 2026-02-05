@@ -7,7 +7,7 @@ import type { EChartsOption } from 'echarts'
 import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
 import { formatPercentage } from '@/utils/format'
-import { coreIndicators } from '../api'
+import { coreIndicators } from './api'
 
 defineOptions({
   componentPlaceholder: {
