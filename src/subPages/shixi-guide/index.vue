@@ -294,7 +294,7 @@ const chartOption = computed<EChartsOption>(() => ({
     itemWidth: 16,
     itemHeight: 8,
     borderRadius: 4,
-    data: ['股息率', '余额宝'],
+    data: ['食息率', '余额宝'],
   },
   tooltip: {
     trigger: 'axis',
@@ -331,7 +331,7 @@ const chartOption = computed<EChartsOption>(() => ({
   },
   yAxis: {
     type: 'value',
-    name: '股息率 (%)',
+    name: '食息率 (%)',
     min: 'dataMin',
     max: 'dataMax',
     axisLine: { show: false },
@@ -345,7 +345,7 @@ const chartOption = computed<EChartsOption>(() => ({
   },
   series: [
     {
-      name: '股息率',
+      name: '食息率',
       type: 'line',
       showSymbol: false,
       smooth: true,
@@ -504,7 +504,7 @@ watch(
               :class="[dividendRateTheme.card, dividendRateTheme.ring]"
             >
               <view class="metric-label text-xs font-medium tracking-wider uppercase" :class="dividendRateTheme.label">
-                股息率
+                食息率
               </view>
               <text class="metric-value mt-1 text-lg font-bold tracking-tight" :class="dividendRateTheme.value">
                 {{ formattedDividendRate }}
