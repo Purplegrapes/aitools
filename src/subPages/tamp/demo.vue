@@ -60,7 +60,6 @@ const shopInfo = computed<ShopInfo | null>(() => {
 })
 
 const pageTitle = computed(() => shopInfo.value?.name || '')
-const pageSubtitle = computed(() => shopInfo.value?.description || '')
 
 const introParagraphs = computed(() => {
   const description = shopInfo.value?.description || ''
@@ -102,15 +101,12 @@ const introParagraphs = computed(() => {
         <view class="text-[36rpx] text-slate-900 font-bold tracking-[2rpx]">
           {{ pageTitle }}
         </view>
-        <view class="text-[24rpx] text-slate-500">
-          {{ pageSubtitle }}
-        </view>
       </view>
 
       <view class="my-6 h-[2rpx] bg-[linear-gradient(90deg,_transparent,_rgba(148,163,184,0.6),_transparent)]" />
 
       <view class="rounded-[24rpx] bg-[rgba(248,250,252,0.7)] px-6 pb-9 pt-7 text-slate-700 shadow-[0_20rpx_60rpx_rgba(15,23,42,0.06)]">
-        <view class="flex flex-col gap-4 text-center">
+        <view class="flex flex-col gap-4">
           <text
             v-for="(paragraph, index) in introParagraphs"
             :key="`intro-${index}`"

@@ -12,6 +12,7 @@ export interface TampExternalInfo {
   source: ExternalSourceType
   appId?: string
   token?: string
+  loginUrl?: string
 }
 
 /**
@@ -54,6 +55,11 @@ export const useTampStore = defineStore('tamp', {
      * 获取 AppID
      */
     appId: state => state.externalInfo?.appId || '',
+
+    /**
+     * 获取登录页地址
+     */
+    loginUrl: state => state.externalInfo?.loginUrl || '',
 
     /**
      * 获取来源类型

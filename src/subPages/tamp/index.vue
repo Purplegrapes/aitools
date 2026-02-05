@@ -29,7 +29,7 @@ onMounted(async () => {
   // 外部跳入模式
   if (mode === 'external') {
     // 从URL参数直接获取token（临时方案）
-    const token = query.token
+    const token = decodeURIComponent(query.token as string)
 
     if (token) {
       console.log('从URL参数获取token...')
