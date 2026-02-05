@@ -27,16 +27,6 @@ export function tokenBySession(params: {
 }
 
 /**
- * 刷新token
- * @param params 刷新参数
- */
-export function refreshToken(params: {
-  refreshToken: string
-}) {
-  return alovaInstance.Post('/api/v1/auth/refresh', params)
-}
-
-/**
  * 获取 TAMP 数据
  * @param params 查询参数
  */

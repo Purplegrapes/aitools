@@ -1,10 +1,15 @@
 # 外部跳转认证系统实现计划
 
+## 更新说明
+
+- 当前实现采用单 Token 方案，不再使用 refresh/access token。
+- 本文档已清理双 Token/刷新相关内容，仅保留单 Token 适用的说明。
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** 实现一个支持外部小程序/H5跳转的认证系统，采用双Token机制，token失效后自动跳转回外部登录页。
+**Goal:** 实现一个支持外部小程序/H5跳转的认证系统，采用单Token机制，token失效后自动跳转回外部登录页。
 
-**Architecture:** 采用双Token（Access Token + Refresh Token）机制，临时授权码（code）换取token，持久化存储外部来源信息，条件化处理401错误（内部访问跳转内部登录页，外部跳入跳转外部登录页）。
+**Architecture:** 采用单Token（Token）机制，临时授权码（code）换取token，持久化存储外部来源信息，条件化处理401错误（内部访问跳转内部登录页，外部跳入跳转外部登录页）。
 
 **Tech Stack:** Vue 3, Pinia, Alova.js, uni-app, TypeScript, 微信JSSDK
 
@@ -44,15 +49,6 @@ export function tokenBySession(params: {
   return alovaInstance.Post('/api/v1/auth/token-by-session', params)
 }
 
-/**
- * 刷新token
- * @param params 刷新参数
- */
-export function refreshToken(params: {
-  refreshToken: string
-}) {
-  return alovaInstance.Post('/api/v1/auth/refresh', params)
-}
 ```
 
 **Step 2: 更新API索引文件**
@@ -72,7 +68,6 @@ git commit -m "feat: 添加外部认证API接口
 
 - 添加tokenByCode接口（小程序跳转H5）
 - 添加tokenBySession接口（H5跳转小程序）
-- 添加refreshToken接口（双Token刷新）
 "
 ```
 
@@ -480,7 +475,6 @@ git commit -m "feat: 添加token刷新锁机制
 在文件顶部的import区域添加：
 
 ```typescript
-import { refreshToken } from '@/api'
 import { useUserStore } from '@/store/userStore'
 import { useExternalSourceStore } from '@/store/externalSourceStore'
 import { handleExternalRedirect } from '@/utils/externalRedirect'
@@ -496,8 +490,6 @@ if ((statusCode === 401 || statusCode === 403)) {
   const userStore = useUserStore()
   const externalSource = useExternalSourceStore()
 
-  // 有refreshToken，尝试刷新
-  if (userStore.refreshToken) {
     // 如果正在刷新，将请求加入队列
     if (isRefreshing) {
       return new Promise((resolve) => {
@@ -512,18 +504,12 @@ if ((statusCode === 401 || statusCode === 403)) {
     // 开始刷新
     isRefreshing = true
     try {
-      const refreshResult = await refreshToken({ refreshToken: userStore.refreshToken })
       const data = refreshResult as any
 
-      if (data.success || data.data?.accessToken) {
         // 刷新成功，更新token
-        userStore.accessToken = data.data.accessToken
-        if (data.data.refreshToken) {
-          userStore.refreshToken = data.data.refreshToken
         }
 
         // 通知队列中的请求
-        onTokenRefreshed(data.data.accessToken)
 
         // 重试原请求（这里需要在调用处处理）
         throw new Error('TOKEN_REFRESHED') // 特殊标记，由调用方重试
@@ -555,7 +541,6 @@ if ((statusCode === 401 || statusCode === 403)) {
       isRefreshing = false
     }
   }
-  // 无refreshToken，直接跳转登录
   else {
     globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
     const timer = setTimeout(() => {
@@ -582,7 +567,6 @@ if ((statusCode === 401 || statusCode === 403)) {
 git add src/api/core/handlers.ts
 git commit -m "feat: 添加双token刷新逻辑
 
-- 401错误时自动使用refreshToken刷新
 - 刷新成功后更新token并通知队列
 - 刷新失败时根据来源跳转登录页
 - 外部来源跳转外部登录，内部访问跳转内部登录
@@ -591,7 +575,6 @@ git commit -m "feat: 添加双token刷新逻辑
 
 ---
 
-## Task 7: 修改userStore添加refreshToken支持
 
 **Files:**
 - Modify: `src/store/userStore.ts`
@@ -607,8 +590,6 @@ git commit -m "feat: 添加双token刷新逻辑
 export interface UserState {
   userInfo: UserInfo | null
   token: string
-  accessToken: string      // 新增：访问令牌
-  refreshToken: string     // 新增：刷新令牌
   isLogin: boolean
 }
 ```
@@ -621,8 +602,6 @@ export interface UserState {
 state: (): UserState => ({
   userInfo: null,
   token: '',
-  accessToken: '',
-  refreshToken: '',
   isLogin: false,
 }),
 ```
@@ -633,13 +612,8 @@ state: (): UserState => ({
 
 ```typescript
 /**
- * 设置双Token
+ * 设置单Token
  */
-setTokens(tokens: { accessToken: string, refreshToken: string }) {
-  this.accessToken = tokens.accessToken
-  this.refreshToken = tokens.refreshToken
-  this.token = tokens.accessToken // 保持兼容
-  this.isLogin = !!tokens.accessToken
 },
 
 /**
@@ -651,10 +625,7 @@ async loginByCode(code: string, appId?: string) {
     const res = await tokenByCode({ code, appId })
     const data = res as any
 
-    if (data.success || data.data?.accessToken) {
       this.setTokens({
-        accessToken: data.data.accessToken,
-        refreshToken: data.data.refreshToken || '',
       })
       if (data.data.userInfo) {
         this.setUserInfo(data.data.userInfo)
@@ -680,10 +651,7 @@ async loginBySession(sessionId: string) {
     const res = await tokenBySession({ sessionId })
     const data = res as any
 
-    if (data.success || data.data?.accessToken) {
       this.setTokens({
-        accessToken: data.data.accessToken,
-        refreshToken: data.data.refreshToken || '',
       })
       if (data.data.userInfo) {
         this.setUserInfo(data.data.userInfo)
@@ -712,9 +680,7 @@ async loginBySession(sessionId: string) {
 function getToken(): string {
   try {
     const userStore = uni.getStorageSync('user')
-    // 优先使用accessToken
     if (userStore) {
-      return userStore.accessToken || userStore.token || ''
     }
   }
   catch {
@@ -728,13 +694,10 @@ function getToken(): string {
 
 ```bash
 git add src/store/userStore.ts src/api/core/instance.ts
-git commit -m "feat: userStore添加refreshToken支持
 
-- 添加accessToken和refreshToken状态
-- 添加setTokens方法设置双Token
+- 添加setTokens方法设置单Token
 - 添加loginByCode方法（小程序跳转H5）
 - 添加loginBySession方法（H5跳转小程序）
-- 优先使用accessToken进行API认证
 "
 ```
 
@@ -794,7 +757,6 @@ onLaunch(async () => {
     }
   }
   // 内部访问模式：保持原有自动登录逻辑
-  else if (!userStore.accessToken) {
     // #ifdef MP-WEIXIN
     try {
       console.log('尝试自动登录...')
@@ -912,7 +874,6 @@ router.beforeEach((to, from, next) => {
   const externalSourceStore = useExternalSourceStore()
 
   // 如果不是登录页，检查登录状态
-  if (to.name !== 'login' && !userStore.accessToken) {
     console.log('🛡️ 未登录，重定向到登录页')
     // 根据来源决定跳转
     if (externalSourceStore.isExternal && !externalSourceStore.isExpired) {
@@ -954,8 +915,6 @@ git commit -m "feat: 添加路由认证守卫
 - [ ] 内部访问模式：直接访问项目，使用原有登录流程
 - [ ] 小程序→H5：通过code换取token成功
 - [ ] H5→小程序：通过sessionId获取token成功
-- [ ] Token刷新：accessToken过期时自动刷新
-- [ ] 刷新失败：refreshToken过期时跳转外部登录
 - [ ] 内部401：跳转项目内登录页
 - [ ] 外部401：跳转外部登录页
 - [ ] H5跳转小程序：微信JSSDK正常工作

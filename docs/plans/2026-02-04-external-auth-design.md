@@ -1,5 +1,10 @@
 # 外部跳转认证系统设计文档
 
+## 更新说明
+
+- 当前实现采用单 Token 方案，不再使用 refresh/access token。
+- 本文档已清理双 Token/刷新相关内容，仅保留单 Token 适用的说明。
+
 **日期**: 2026-02-04
 **版本**: 1.0
 **状态**: 设计阶段
@@ -8,19 +13,17 @@
 
 ## 1. 概述
 
-本文档描述了一个支持外部跳转的认证系统，允许用户从外部微信小程序或H5页面跳转到当前项目，并在token失效后自动跳转回对应的登录页。系统采用**双Token机制**（Access Token + Refresh Token）和**临时授权码**（Authorization Code）方案，确保安全性和用户体验。
+本文档描述了一个支持外部跳转的认证系统，允许用户从外部微信小程序或H5页面跳转到当前项目，并在token失效后自动跳转回对应的登录页。系统采用**单Token机制**（Token）和**临时授权码**（Authorization Code）方案，确保安全性和用户体验。
 
 ### 1.1 设计目标
 
 - 支持从外部小程序/H5跳转到项目内页面
 - 实现安全的跨端认证（避免token在URL中传递）
-- Token自动刷新机制，减少用户重新登录频率
 - 登录失效时智能跳转回外部来源
 - 保持原有内部访问流程不变
 
 ### 1.2 核心特性
 
-- **双Token机制**: Access Token（短期）+ Refresh Token（长期）
 - **临时授权码**: 小程序跳转H5时通过code换取token
 - **来源追踪**: 持久化存储外部来源信息
 - **双模式共存**: 内部访问和外部跳入两种模式互不影响
@@ -37,7 +40,7 @@
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
-│  │  来源检测模块    │  │  双Token管理    │  │  认证拦截器     │ │
+│  │  来源检测模块    │  │  单Token管理    │  │  认证拦截器     │ │
 │  │ SourceDetector  │  │   UserStore     │  │ AuthInterceptor │ │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
 │           │                     │                     │          │
@@ -59,15 +62,13 @@
 - **URL参数检测**: 解析微信标准的来源参数（`from`, `code`, `appId` 等）
 - **环境检测**: 引入微信JSSDK，通过 `wx.miniProgram.getEnv()` 判断环境
 
-#### 2.2.2 双Token状态管理 (UserStore)
+#### 2.2.2 单Token状态管理 (UserStore)
 
-基于Pinia的持久化Store，存储双Token信息：
+基于Pinia的持久化Store，存储单Token信息：
 
 ```typescript
 interface TokenState {
-  accessToken: string      // 访问令牌，短期有效（15分钟-2小时）
-  refreshToken: string     // 刷新令牌，长期有效（7天-30天）
-  tokenExpireTime: number  // accessToken过期时间戳
+  token: string
 }
 
 interface ExternalSource {
@@ -79,18 +80,9 @@ interface ExternalSource {
 }
 ```
 
-#### 2.2.3 Token刷新拦截器 (TokenRefreshInterceptor)
+#### 2.2.3 外部跳转处理器 (ExternalRedirectHandler)
 
-在API响应拦截器中实现自动刷新逻辑：
-
-- 检测401错误（access_token过期）
-- 使用refresh_token调用刷新接口
-- 刷新成功：更新token并重试原请求
-- 刷新失败：跳转外部登录页
-
-#### 2.2.4 外部跳转处理器 (ExternalRedirectHandler)
-
-当refresh_token也过期时，处理外部跳转逻辑。
+当 token 失效或未登录时，处理外部跳转逻辑。
 
 ---
 
@@ -126,49 +118,10 @@ interface ExternalSource {
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.2 双Token刷新流程
+### 3.2 单Token失效处理流程
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        API请求流程                                │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  用户发起API请求                                                   │
-│       ↓                                                         │
-│  beforeRequest: 添加 Authorization: Bearer {accessToken}        │
-│       ↓                                                         │
-│  后端响应                                                         │
-│       ↓                                                         │
-│  ┌─────────────┐                                               │
-│  │ 成功(200)   │ → 返回数据                                      │
-│  └─────────────┘                                               │
-│                                                                 │
-│  ┌─────────────┐                                               │
-│  │ 失败(401)   │ → accessToken过期                               │
-│  └─────────────┘                                               │
-│       ↓                                                         │
-│  检查是否有refreshToken                                          │
-│       ↓                                                         │
-│  ┌─────────────────────────┐                                   │
-│  │ 有refreshToken          │                                   │
-│  │   ↓                     │                                   │
-│  │ 调用刷新接口             │                                   │
-│  │ POST /api/v1/auth/refresh│                                   │
-│  │   ↓                     │                                   │
-│  │ ┌───────────┐           │                                   │
-│  │ │刷新成功    │ → 更新tokens，重试原请求                      │
-│  │ └───────────┘           │                                   │
-│  │   ↓                     │                                   │
-│  │ ┌───────────┐           │                                   │
-│  │ │刷新失败    │ → 清除用户信息，触发外部跳转                   │
-│  │ └───────────┘           │                                   │
-│  └─────────────────────────┘                                   │
-│                                                                 │
-│  ┌─────────────────────────┐                                   │
-│  │ 无refreshToken          │ → 直接触发外部跳转                  │
-│  └─────────────────────────┘                                   │
-└─────────────────────────────────────────────────────────────────┘
-```
+- API 返回 401/403 时，清除本地 token 与用户信息
+- 根据外部来源信息跳转回对应登录入口
 
 ---
 
@@ -273,8 +226,6 @@ export function tokenBySession(params: {
 /**
  * 刷新token
  */
-export function refreshToken(params: {
-  refreshToken: string
 }) {
   return alovaInstance.Post('/api/v1/auth/refresh', params)
 }
@@ -307,7 +258,6 @@ src/
 │       ├── handlers.ts           # 修改：添加双token刷新逻辑
 │       └── instance.ts           # 修改：添加刷新锁机制
 ├── store/
-│   └── userStore.ts              # 修改：添加refreshToken相关
 ├── router/
 │   └── guards.ts                 # 修改：添加认证守卫
 └── App.vue                       # 修改：应用启动时初始化
@@ -322,7 +272,6 @@ src/
 | 场景 | 处理方式 |
 |------|----------|
 | code无效或过期 | 清除来源，跳转外部登录 |
-| refreshToken过期 | 跳转外部登录 |
 | 网络错误时刷新token失败 | 提示用户重试，不跳转 |
 | 多个请求同时401 | 请求队列化，只刷新一次 |
 | 用户手动清除来源 | 下次401时按内部访问处理 |
@@ -337,7 +286,6 @@ src/
 - [ ] 创建 `src/utils/sourceDetector.ts` - 来源检测工具
 - [ ] 修改 `src/api/core/instance.ts` - 添加刷新锁机制
 - [ ] 修改 `src/api/core/handlers.ts` - 添加双token刷新逻辑
-- [ ] 修改 `src/store/userStore.ts` - 添加refreshToken支持
 - [ ] 修改 `src/App.vue` - 添加启动初始化逻辑
 - [ ] 引入微信JSSDK（如需要）
 - [ ] 测试内部访问模式

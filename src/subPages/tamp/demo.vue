@@ -59,42 +59,20 @@ const shopInfo = computed<ShopInfo | null>(() => {
   return result?.data || null
 })
 
-// 审核状态文本
-const auditStatusText = computed(() => {
-  const statusMap: Record<string, string> = {
-    APPROVED: '已通过',
-    PENDING: '审核中',
-    REJECTED: '已拒绝',
-  }
-  return shopInfo.value ? statusMap[shopInfo.value.auditStatus] || shopInfo.value.auditStatus : '-'
-})
+const pageTitle = computed(() => shopInfo.value?.name || '')
 
-// 审核状态颜色
-const auditStatusClass = computed(() => {
-  const classMap: Record<string, string> = {
-    APPROVED: 'text-green-500',
-    PENDING: 'text-amber-500',
-    REJECTED: 'text-red-500',
-  }
-  return shopInfo.value ? classMap[shopInfo.value.auditStatus] || 'text-gray-500' : 'text-gray-500'
-})
-
-// 店铺状态文本
-const shopStatusText = computed(() => {
-  const statusMap: Record<string, string> = {
-    ENABLE: '启用',
-    DISABLE: '禁用',
-  }
-  return shopInfo.value ? statusMap[shopInfo.value.shopStatus] || shopInfo.value.shopStatus : '-'
+const introParagraphs = computed(() => {
+  const description = shopInfo.value?.description || ''
+  return description.split(/\n+/).map(item => item.trim()).filter(Boolean)
 })
 </script>
 
 <template>
-  <view class="min-h-screen bg-gray-50">
+  <view class="box-border min-h-screen bg-[radial-gradient(120%_80%_at_20%_0%,_#e4f2ff_0%,_#f4f6fb_55%,_#f8fafc_100%)] text-slate-900">
     <!-- 加载状态 -->
     <view v-if="loading" class="min-h-screen flex flex-col items-center justify-center gap-4">
       <wd-loading />
-      <text class="text-sm text-gray-500">
+      <text class="text-sm text-slate-500">
         加载中...
       </text>
     </view>
@@ -106,127 +84,43 @@ const shopStatusText = computed(() => {
       </text>
     </view>
 
-    <!-- 店铺信息 -->
-    <view v-else-if="shopInfo" class="p-4">
-      <!-- 店铺头部 -->
-      <view class="mb-4 flex gap-6 rounded-2xl bg-white p-4 shadow-sm">
-        <image
-          v-if="shopInfo.logo"
-          :src="shopInfo.logo"
-          class="h-30 w-30 flex-shrink-0 rounded-xl"
-          mode="aspectFill"
-        />
-        <view v-else class="h-30 w-30 flex flex-shrink-0 items-center justify-center rounded-xl bg-gray-100">
-          <text class="text-5xl">
-            🏪
-          </text>
-        </view>
-        <view class="flex flex-1 flex-col justify-center">
-          <view class="mb-3 text-lg text-gray-800 font-semibold">
-            {{ shopInfo.name }}
+    <view v-else class="mx-auto box-border max-w-[720px] w-full px-6 pb-10 pt-6 text-center">
+      <view class="flex flex-col items-center gap-3 py-6">
+        <view class="h-[180rpx] w-[180rpx] flex items-center justify-center">
+          <view class="h-[160rpx] w-[160rpx] flex items-center justify-center rounded-full bg-white shadow-[0_18rpx_40rpx_rgba(15,23,42,0.12)]">
+            <view class="h-[132rpx] w-[132rpx] flex items-center justify-center rounded-full bg-[repeating-linear-gradient(45deg,_#111827_0,_#111827_4rpx,_#f8fafc_4rpx,_#f8fafc_8rpx)]">
+              <image
+                v-if="shopInfo?.logo"
+                :src="shopInfo.logo"
+                class="h-[120rpx] w-[120rpx] rounded-full"
+                mode="aspectFill"
+              />
+            </view>
           </view>
         </view>
-      </view>
-
-      <!-- 统计信息 -->
-      <view class="mb-4 flex justify-around rounded-2xl bg-white p-4 shadow-sm">
-        <view class="flex flex-col items-center gap-2">
-          <text class="text-2xl text-gray-800 font-semibold">
-            {{ shopInfo.fansCount }}
-          </text>
-          <text class="text-xs text-gray-400">
-            粉丝数
-          </text>
-        </view>
-        <view class="w-1px bg-gray-100" />
-        <view class="flex flex-col items-center gap-2">
-          <text class="text-2xl text-gray-800 font-semibold">
-            {{ shopInfo.subscribeCount }}
-          </text>
-          <text class="text-xs text-gray-400">
-            订阅数
-          </text>
+        <view class="text-[36rpx] text-slate-900 font-bold tracking-[2rpx]">
+          {{ pageTitle }}
         </view>
       </view>
 
-      <!-- 详细信息 -->
-      <view class="mb-4 rounded-2xl bg-white p-4 shadow-sm">
-        <view class="mb-6 text-base text-gray-800 font-semibold">
-          店铺信息
-        </view>
-        <view class="flex items-center justify-between border-b border-gray-50 py-5 last:border-b-0">
-          <text class="text-sm text-gray-500">
-            店铺ID
-          </text>
-          <text class="ml-6 flex-1 break-all text-right text-sm text-gray-800 font-medium">
-            {{ shopInfo.id }}
-          </text>
-        </view>
-        <view class="flex items-center justify-between border-b border-gray-50 py-5 last:border-b-0">
-          <text class="text-sm text-gray-500">
-            审核状态
-          </text>
-          <text class="text-sm font-medium" :class="auditStatusClass">
-            {{ auditStatusText }}
-          </text>
-        </view>
-        <view class="flex items-center justify-between border-b border-gray-50 py-5 last:border-b-0">
-          <text class="text-sm text-gray-500">
-            店铺状态
-          </text>
-          <text class="text-sm text-gray-800 font-medium">
-            {{ shopStatusText }}
-          </text>
-        </view>
-        <view class="flex items-center justify-between border-b border-gray-50 py-5 last:border-b-0">
-          <text class="text-sm text-gray-500">
-            创建时间
-          </text>
-          <text class="text-sm text-gray-800 font-medium">
-            {{ shopInfo.createTime }}
-          </text>
-        </view>
-        <view class="flex items-center justify-between border-b border-gray-50 py-5 last:border-b-0">
-          <text class="text-sm text-gray-500">
-            新用户登录
-          </text>
-          <text class="text-sm text-gray-800 font-medium">
-            {{ shopInfo.newUserLogin ? '是' : '否' }}
-          </text>
-        </view>
-        <view class="flex items-center justify-between py-5">
-          <text class="text-sm text-gray-500">
-            引导收藏
-          </text>
-          <text class="text-sm text-gray-800 font-medium">
-            {{ shopInfo.guideFavorite ? '是' : '否' }}
-          </text>
-        </view>
-      </view>
+      <view class="my-6 h-[2rpx] bg-[linear-gradient(90deg,_transparent,_rgba(148,163,184,0.6),_transparent)]" />
 
-      <!-- 分享信息 -->
-      <view v-if="shopInfo.shareInfo" class="mb-4 rounded-2xl bg-white p-4 shadow-sm">
-        <view class="mb-6 text-base text-gray-800 font-semibold">
-          分享信息
-        </view>
-        <view class="flex items-center justify-between border-b border-gray-50 py-5 last:border-b-0">
-          <text class="flex-shrink-0 text-sm text-gray-500">
-            分享内容
-          </text>
-          <text class="ml-6 flex-1 break-all text-right text-sm text-gray-800 font-medium">
-            {{ shopInfo.shareInfo.content }}
+      <view class="rounded-[24rpx] bg-[rgba(248,250,252,0.7)] px-6 pb-9 pt-7 text-slate-700 shadow-[0_20rpx_60rpx_rgba(15,23,42,0.06)]">
+        <view class="flex flex-col gap-4">
+          <text
+            v-for="(paragraph, index) in introParagraphs"
+            :key="`intro-${index}`"
+            class="text-[28rpx] text-slate-600 leading-[1.9]"
+          >
+            {{ paragraph }}
           </text>
         </view>
-        <view v-if="shopInfo.shareInfo.image" class="flex items-center justify-between py-5">
-          <text class="flex-shrink-0 text-sm text-gray-500">
-            分享图片
-          </text>
-          <image
-            :src="shopInfo.shareInfo.image"
-            class="h-30 w-30 rounded-lg"
-            mode="aspectFill"
-          />
-        </view>
+        <image
+          v-if="shopInfo?.shareInfo?.image"
+          :src="shopInfo.shareInfo.image"
+          class="mt-6 max-w-full w-full rounded-[20rpx]"
+          mode="widthFix"
+        />
       </view>
     </view>
   </view>

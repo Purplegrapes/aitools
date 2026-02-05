@@ -73,15 +73,12 @@ function getTampBaseURL(): string {
 
 /**
  * 获取存储的 token
- * 优先使用 accessToken，保持与 userStore 一致
  */
 function getToken(): string {
   try {
     const userStore = uni.getStorageSync('user')
     if (userStore) {
-      // 优先使用 accessToken，保持与 userStore 的刷新逻辑一致
-      // 回退到 token 字段以保持向后兼容
-      return userStore.accessToken || userStore.token || ''
+      return userStore.token || ''
     }
   }
   catch {

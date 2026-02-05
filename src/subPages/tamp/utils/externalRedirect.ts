@@ -14,7 +14,7 @@ export async function handleExternalRedirect(source: ExternalSourceType, loginUr
     // #ifdef H5
     if (typeof wx !== 'undefined' && wx.miniProgram) {
       wx.miniProgram.redirectTo({
-        url: '/pages/index/index', // 跳转回小程序首页或登录页
+        url: loginUrl || '/pages/index/index', // 跳转回小程序首页或登录页
         fail: () => {
           console.warn('跳转小程序失败')
         },

@@ -11,8 +11,8 @@ import { defineStore } from 'pinia'
 export interface TampExternalInfo {
   source: ExternalSourceType
   appId?: string
-  accessToken?: string
-  refreshToken?: string
+  token?: string
+  loginUrl?: string
 }
 
 /**
@@ -49,12 +49,17 @@ export const useTampStore = defineStore('tamp', {
     /**
      * 获取访问 token
      */
-    accessToken: state => state.externalInfo?.accessToken || '',
+    token: state => state.externalInfo?.token || '',
 
     /**
      * 获取 AppID
      */
     appId: state => state.externalInfo?.appId || '',
+
+    /**
+     * 获取登录页地址
+     */
+    loginUrl: state => state.externalInfo?.loginUrl || '',
 
     /**
      * 获取来源类型

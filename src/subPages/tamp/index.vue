@@ -29,23 +29,19 @@ onMounted(async () => {
   // 外部跳入模式
   if (mode === 'external') {
     // 从URL参数直接获取token（临时方案）
-    const accessToken = query.token
+    const token = decodeURIComponent(query.token as string)
 
-    if (accessToken) {
+    if (token) {
       console.log('从URL参数获取token...')
 
       // 存储到 userStore
-      userStore.setTokens({
-        accessToken,
-      })
+      userStore.setToken(token)
 
       // 清理URL中的token参数（可选）
       // #ifdef H5
       if (import.meta.env.MODE === 'development') {
         const url = new URL(window.location.href)
-        url.searchParams.delete('accessToken')
         url.searchParams.delete('token')
-        url.searchParams.delete('refreshToken')
         window.history.replaceState({}, '', url.toString())
       }
       // #endif

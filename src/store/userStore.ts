@@ -21,8 +21,6 @@ export interface UserInfo {
 export interface UserState {
   userInfo: UserInfo | null
   token: string
-  accessToken: string
-  refreshToken: string
   isLogin: boolean
 }
 
@@ -45,8 +43,6 @@ export const useUserStore = defineStore('user', {
   state: (): UserState => ({
     userInfo: null,
     token: '',
-    accessToken: '',
-    refreshToken: '',
     isLogin: false,
   }),
 
@@ -92,15 +88,6 @@ export const useUserStore = defineStore('user', {
     },
 
     /**
-     * 设置双Token
-     */
-    setTokens(tokens: { accessToken: string }) {
-      this.accessToken = tokens.accessToken
-      this.token = tokens.accessToken // 保持兼容
-      this.isLogin = !!tokens.accessToken
-    },
-
-    /**
      * 账号密码登录
      */
     async accountLogin(params: { username: string, password: string }) {
@@ -134,10 +121,9 @@ export const useUserStore = defineStore('user', {
         const res = await authApi.tokenByCode({ code, appId })
         const data = res as any
 
-        if (data.success || data.data?.accessToken) {
-          this.setTokens({
-            accessToken: data.data.accessToken,
-          })
+        const token = data.data?.token
+        if (data.success || token) {
+          this.setToken(token || '')
           if (data.data.userInfo) {
             this.setUserInfo(data.data.userInfo)
           }
@@ -162,11 +148,9 @@ export const useUserStore = defineStore('user', {
         const res = await authApi.tokenBySession({ sessionId })
         const data = res as any
 
-        if (data.success || data.data?.accessToken) {
-          this.setTokens({
-            accessToken: data.data.accessToken,
-            refreshToken: data.data.refreshToken || '',
-          })
+        const token = data.data?.token
+        if (data.success || token) {
+          this.setToken(token || '')
           if (data.data.userInfo) {
             this.setUserInfo(data.data.userInfo)
           }
@@ -189,8 +173,6 @@ export const useUserStore = defineStore('user', {
       // 无论接口是否成功，都清除本地状态
       this.userInfo = null
       this.token = ''
-      this.accessToken = ''
-      this.refreshToken = ''
       this.isLogin = false
     },
 
