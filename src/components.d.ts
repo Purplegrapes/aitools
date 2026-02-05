@@ -22,6 +22,7 @@ declare module 'vue' {
     WdCollapse: typeof import('wot-design-uni/components/wd-collapse/wd-collapse.vue')['default']
     WdCollapseItem: typeof import('wot-design-uni/components/wd-collapse-item/wd-collapse-item.vue')['default']
     WdConfigProvider: typeof import('wot-design-uni/components/wd-config-provider/wd-config-provider.vue')['default']
+    WdGap: typeof import('wot-design-uni/components/wd-gap/wd-gap.vue')['default']
     WdIcon: typeof import('wot-design-uni/components/wd-icon/wd-icon.vue')['default']
     WdLoading: typeof import('wot-design-uni/components/wd-loading/wd-loading.vue')['default']
     WdMessageBox: typeof import('wot-design-uni/components/wd-message-box/wd-message-box.vue')['default']

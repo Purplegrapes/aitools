@@ -111,13 +111,100 @@ const currentDate = computed(() => {
   return new Date().toISOString().split('T')[0]
 })
 
+function parseDateUTC(dateString: string): Date | null {
+  if (!dateString)
+    return null
+  const date = new Date(`${dateString}T00:00:00Z`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function formatDateUTC(date: Date): string {
+  return date.toISOString().split('T')[0]
+}
+
+function fillDividendHistorySparse(
+  factors: DividendRatePoint[],
+  rangeStart?: string,
+  rangeEnd?: string,
+): DividendRatePoint[] {
+  if (!factors?.length)
+    return []
+
+  const start = parseDateUTC(rangeStart)
+  const end = parseDateUTC(rangeEnd || currentDate.value)
+  if (!start || !end || start.getTime() > end.getTime())
+    return factors
+
+  const sorted = [...factors].sort((a, b) => a.date.localeCompare(b.date))
+  const factorMap = new Map(sorted.map(item => [item.date, item.dividend_rate]))
+  const firstKnownRate = sorted[0]?.dividend_rate ?? null
+  const firstKnownDate = sorted[0]?.date
+
+  const points: DividendRatePoint[] = []
+  const cursor = new Date(start.getTime())
+  let lastRate: number | null = null
+  while (cursor.getTime() <= end.getTime()) {
+    const dateKey = formatDateUTC(cursor)
+    const dayRate = factorMap.get(dateKey)
+    if (dayRate != null)
+      lastRate = dayRate
+    points.push({
+      date: dateKey,
+      // 稳妥规则：首个有效值出现之前不填 0，保持断线；之后用最近一次值向后填充
+      dividend_rate: (firstKnownDate && dateKey < firstKnownDate) ? null : (lastRate ?? firstKnownRate),
+    })
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+
+  return points
+}
+
+function buildFixedRateHistory(
+  dividendRate: number,
+  rangeStart?: string,
+  rangeEnd?: string,
+): DividendRatePoint[] {
+  const start = parseDateUTC(rangeStart)
+  const end = parseDateUTC(rangeEnd || currentDate.value)
+  if (!start || !end || start.getTime() > end.getTime())
+    return []
+
+  const points: DividendRatePoint[] = []
+  const cursor = new Date(start.getTime())
+  while (cursor.getTime() <= end.getTime()) {
+    points.push({
+      date: formatDateUTC(cursor),
+      dividend_rate: dividendRate,
+    })
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+
+  return points
+}
+
 // 股息率历史数据
 const dividendHistory = computed(() => {
   const data = factorHistoryData.value as ApiFactorHistoryResponse
-  if (!data?.data?.[0]?.factors) {
-    return [] as DividendRatePoint[]
+  if (data?.data?.[0]?.factors?.length) {
+    return fillDividendHistorySparse(
+      data.data[0].factors,
+      factorParams.value?.start_date,
+      factorParams.value?.end_date,
+    )
   }
-  return data.data[0].factors
+  const dividendRate = assetDetail.value?.dividend_rate
+  if (dividendRate == null)
+    return [] as DividendRatePoint[]
+  return buildFixedRateHistory(
+    dividendRate,
+    factorParams.value?.start_date,
+    factorParams.value?.end_date,
+  )
+})
+
+const isDividendHistoryFallback = computed(() => {
+  const data = factorHistoryData.value as ApiFactorHistoryResponse
+  return !(data?.data?.[0]?.factors?.length)
 })
 
 // 余额宝对比数据（Mock）- 与 dividendHistory 的每个日期点匹配
@@ -148,7 +235,9 @@ const yuEBaoHistory = computed<YuEBaoPoint[]>(() => {
 // 处理后的图表数据
 const chartData = computed<ChartDataPoint[]>(() => {
   return dividendHistory.value.map((item: DividendRatePoint) => {
-    const rate = Number.parseFloat((item.dividend_rate * 100).toFixed(2)) // 转换为百分比数值，保留两位小数
+    const rate = item.dividend_rate == null
+      ? null
+      : Number.parseFloat((item.dividend_rate * 100).toFixed(2)) // 转换为百分比数值，保留两位小数
     return {
       name: item.date,
       value: [item.date, rate],
@@ -345,6 +434,24 @@ onMounted(() => {
 watch([assetDetail, dividendHistory], () => {
   loading.value = false
 })
+
+watch(
+  [isDividendHistoryFallback, dividendHistory],
+  ([isFallback, history]) => {
+    if (isFallback || history.length === 0)
+      return
+    const rangeStart = factorParams.value?.start_date
+    const rangeEnd = factorParams.value?.end_date
+    console.info('[asset-detail] dividend history filled', {
+      rangeStart,
+      rangeEnd,
+      points: history.length,
+      firstPoint: history[0],
+      lastPoint: history[history.length - 1],
+    })
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
