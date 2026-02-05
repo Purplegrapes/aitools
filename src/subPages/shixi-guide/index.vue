@@ -79,6 +79,19 @@ const formattedDividendRate = computed(() => {
   return formatDecimalToPercent(assetDetail.value?.dividend_rate)
 })
 
+const hasDividendRate = computed(() => assetDetail.value?.dividend_rate != null)
+const hasManagementCompany = computed(() => !!assetDetail.value?.management_company)
+const hasEstablishmentDate = computed(() => !!assetDetail.value?.establishment_date)
+const hasMonthlyDividendInvestment = computed(() => assetDetail.value?.monthly_dividend_investment != null)
+const hasAnyMetrics = computed(() => {
+  return (
+    hasDividendRate.value
+    || hasManagementCompany.value
+    || hasEstablishmentDate.value
+    || hasMonthlyDividendInvestment.value
+  )
+})
+
 // 股息率颜色主题（正数红色，负数绿色）
 const dividendRateTheme = computed(() => {
   const rate = assetDetail.value?.dividend_rate
@@ -484,8 +497,12 @@ watch(
           </view>
 
           <!-- 关键指标 -->
-          <view class="metrics-grid grid grid-cols-2 gap-3 px-5 py-4">
-            <view class="metric-card group relative overflow-hidden rounded-xl bg-gradient-to-br p-3" :class="[dividendRateTheme.card, dividendRateTheme.ring]">
+          <view v-if="hasAnyMetrics" class="metrics-grid grid grid-cols-2 gap-3 px-5 py-4">
+            <view
+              v-if="hasDividendRate"
+              class="metric-card group relative overflow-hidden rounded-xl bg-gradient-to-br p-3"
+              :class="[dividendRateTheme.card, dividendRateTheme.ring]"
+            >
               <view class="metric-label text-xs font-medium tracking-wider uppercase" :class="dividendRateTheme.label">
                 股息率
               </view>
@@ -495,7 +512,10 @@ watch(
               <view class="absolute h-12 w-12 rounded-full blur-xl -right-2 -top-2" :class="dividendRateTheme.blur" />
             </view>
 
-            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50">
+            <view
+              v-if="hasManagementCompany"
+              class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50"
+            >
               <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
                 管理公司
               </view>
@@ -504,7 +524,10 @@ watch(
               </text>
             </view>
 
-            <view class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50">
+            <view
+              v-if="hasEstablishmentDate"
+              class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50"
+            >
               <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
                 成立日期
               </view>
@@ -513,7 +536,10 @@ watch(
               </text>
             </view>
 
-            <view class="metric-card group relative overflow-hidden rounded-xl from-blue-50 to-blue-100/30 bg-gradient-to-br p-3 ring-blue-200/50">
+            <view
+              v-if="hasMonthlyDividendInvestment"
+              class="metric-card group relative overflow-hidden rounded-xl from-blue-50 to-blue-100/30 bg-gradient-to-br p-3 ring-blue-200/50"
+            >
               <view class="metric-label text-xs text-blue-600/70 font-medium tracking-wider uppercase">
                 月分红投入
               </view>
