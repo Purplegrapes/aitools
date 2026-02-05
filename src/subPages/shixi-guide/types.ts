@@ -25,7 +25,7 @@ export interface AssetDetail {
  */
 export interface DividendRatePoint {
   date: string
-  dividend_rate: number
+  dividend_rate: number | null
 }
 
 /**
@@ -72,8 +72,8 @@ export interface TimeRangeConfig {
  */
 export interface ChartDataPoint {
   name: string
-  value: [string, number]
-  dividend_rate: number
+  value: [string, number | null]
+  dividend_rate: number | null
 }
 
 /**
