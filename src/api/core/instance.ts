@@ -1,6 +1,7 @@
 import AdapterUniapp from '@alova/adapter-uniapp'
 import { createAlova } from 'alova'
 import vueHook from 'alova/vue'
+import { useTampStore } from '@/store/tampStore'
 import mockAdapter from '../mock/mockAdapter'
 import { handleAlovaError, handleAlovaResponse } from './handlers'
 
@@ -76,9 +77,9 @@ function getTampBaseURL(): string {
  */
 function getToken(): string {
   try {
-    const userStore = uni.getStorageSync('user')
-    if (userStore) {
-      return userStore.token || ''
+    const etfUserStore = uni.getStorageSync('etfUser')
+    if (etfUserStore) {
+      return etfUserStore.token || ''
     }
   }
   catch {
@@ -99,8 +100,12 @@ export const alovaInstance = createAlova({
     // 目前只有etf有token
     if (method.url.startsWith('/api') || method.url.startsWith('/djapi')) {
       // 从本地存储获取 token
-
       token = getToken()
+    }
+    // TAMP API 走 tampStore token
+    if (method.url.startsWith('/app-api')) {
+      const tampStore = useTampStore()
+      token = tampStore.token || ''
     }
     // 资产 API 使用不同的 baseURL
     // 判断是否需要使用资产 API 服务器

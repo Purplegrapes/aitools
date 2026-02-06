@@ -7,7 +7,7 @@ import type {
   ValuationData,
   WotTabEvent,
 } from './types'
-import { useUserStore } from '@/store/userStore'
+import { useEtfUserStore } from '@/store/etfUserStore'
 import { login } from './api'
 import CustomTable from './components/CustomTable.vue'
 import {
@@ -34,7 +34,7 @@ definePage({
 
 const router = useRouter()
 const GlobalToast = useGlobalToast()
-const userStore = useUserStore()
+const userStore = useEtfUserStore()
 
 /**
  * 登录状态
