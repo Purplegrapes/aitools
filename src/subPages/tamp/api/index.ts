@@ -4,6 +4,8 @@
  */
 import { alovaInstance } from '@/api/core/instance'
 
+export * from './marketing'
+
 // ==================== 外部认证相关 API ====================
 /**
  * 通过code换取token（小程序跳转H5场景）

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="750px" height="658px" viewBox="0 0 750 658" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>bg</title>
+    <defs>
+        <rect id="path-1" x="0" y="0" width="750" height="790"></rect>
+        <linearGradient x1="44.9295862%" y1="85.9306297%" x2="44.9013479%" y2="11.0317211%" id="linearGradient-3">
+            <stop stop-color="#F5F7FA" stop-opacity="0" offset="0%"></stop>
+            <stop stop-color="#C5DEFD" offset="54.0858605%"></stop>
+            <stop stop-color="#A6CDFF" offset="78.0362543%"></stop>
+            <stop stop-color="#77B0FF" offset="100%"></stop>
+        </linearGradient>
+        <filter x="-43.2%" y="-43.2%" width="186.5%" height="186.5%" filterUnits="objectBoundingBox" id="filter-4">
+            <feGaussianBlur stdDeviation="50" in="SourceGraphic"></feGaussianBlur>
+        </filter>
+    </defs>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="1-产品营销长图（全选）" transform="translate(0.000000, -176.000000)">
+            <g id="bg" transform="translate(0.000000, 43.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="蒙版" fill="#F6F6F6" opacity="0" xlink:href="#path-1"></use>
+                <g mask="url(#mask-2)">
+                    <g transform="translate(-82.000000, -22.000000)">
+                        <rect id="矩形" fill="url(#linearGradient-3)" x="82" y="16" width="750" height="796"></rect>
+                        <circle id="椭圆形备份-3" fill="#FFFFFF" opacity="0.306867733" filter="url(#filter-4)" cx="173.5" cy="173.5" r="173.5"></circle>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
