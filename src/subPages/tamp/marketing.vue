@@ -130,7 +130,7 @@ function copyAgencyLink(url?: string) {
       </text>
     </view>
 
-    <view v-else class="px-4 pb-28 pt-4" :style="{ backgroundImage: `url(${marketBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }">
+    <view v-else class="px-4 pb-24 pt-4" :style="{ backgroundImage: `url(${marketBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }">
       <view
         class="pt-8"
       >
@@ -180,7 +180,7 @@ function copyAgencyLink(url?: string) {
       </view>
     </view>
 
-    <view class="fixed bottom-0 left-0 right-0 bg-[#eaf1ff] px-0 pb-[calc(env(safe-area-inset-bottom)_+_16rpx)]">
+    <view class="fixed bottom-0 left-0 right-0 bg-[#eaf1ff] px-0">
       <view class="rounded-[22rpx] px-4 py-4 shadow-[0_12rpx_24rpx_rgba(15,23,42,0.08)]">
         <wd-button
           type="primary"
