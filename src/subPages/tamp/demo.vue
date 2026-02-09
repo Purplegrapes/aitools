@@ -44,11 +44,12 @@ definePage({
 const route = useRoute()
 
 // 从 URL 参数获取 shopId，默认使用测试店铺 ID
-const shopId = (route.query.shopId as string) || 'V0000725'
+const shopId = computed(() => route.query.shopId as string)
 
 // 获取店铺信息
 const { data, loading, error } = useRequest(
-  getShopInfo({ params: { shopId } }),
+  () => getShopInfo({ params: { shopId: shopId.value } }),
+  { immediate: true },
 )
 
 // 店铺信息
