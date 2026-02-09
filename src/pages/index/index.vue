@@ -27,7 +27,11 @@ function goEtfPerformance() {
 
 function goTamp() {
   router.push({
-    name: 'tamp',
+    name: 'tamp-marketing',
+    params: {
+      shopId: 'V0000821',
+      portfolioCode: 'CFJH_0422',
+    },
   })
 }
 </script>
@@ -38,7 +42,7 @@ function goTamp() {
       <wd-cell-group border custom-class="rounded-2! overflow-hidden">
         <wd-cell title="今日几星" is-link @click="navigateTo('etf')" />
         <wd-cell title="食息指南" is-link @click="goEtfPerformance()" />
-        <wd-cell title="TAMP Demo" is-link @click="goTamp()" />
+        <wd-cell title="TAMP 营销页" is-link @click="goTamp()" />
       </wd-cell-group>
     </demo-block>
   </view>
