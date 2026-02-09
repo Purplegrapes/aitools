@@ -1,7 +1,7 @@
 import AdapterUniapp from '@alova/adapter-uniapp'
 import { createAlova } from 'alova'
 import vueHook from 'alova/vue'
-import { useTampStore } from '@/store/tampStore'
+import cookie from 'js-cookie'
 import mockAdapter from '../mock/mockAdapter'
 import { handleAlovaError, handleAlovaResponse } from './handlers'
 
@@ -102,10 +102,9 @@ export const alovaInstance = createAlova({
       // 从本地存储获取 token
       token = getToken()
     }
-    // TAMP API 走 tampStore token
+    // TAMP API 走 tampStore token， 从同一个域名下的cookie中获取
     if (method.url.startsWith('/app-api')) {
-      const tampStore = useTampStore()
-      token = tampStore.token || ''
+      token = cookie.get('ticket')
     }
     // 资产 API 使用不同的 baseURL
     // 判断是否需要使用资产 API 服务器

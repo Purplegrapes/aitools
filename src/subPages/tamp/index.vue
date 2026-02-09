@@ -20,6 +20,7 @@ onMounted(async () => {
 
   const query = route.query
   const { mode, source } = detectAccessMode(query)
+  console.log('mode', mode)
   const rawReferer = query.referer as string | undefined
   const rawLoginUrl = query.loginUrl as string | undefined
   const referer = rawReferer ? decodeURIComponent(rawReferer) : undefined
@@ -31,6 +32,7 @@ onMounted(async () => {
   if (mode === 'external') {
     // 从URL参数直接获取token（临时方案）
     const rawToken = query.token as string | undefined
+    const shopId = query.shopId as string | undefined
     const token = rawToken ? decodeURIComponent(rawToken) : undefined
 
     if (token) {
@@ -50,6 +52,7 @@ onMounted(async () => {
       source,
       token,
       loginUrl,
+      shopId,
     })
 
     // 原有逻辑：通过API获取token（服务端实现后启用）

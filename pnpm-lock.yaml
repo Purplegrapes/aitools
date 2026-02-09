@@ -80,6 +80,9 @@ importers:
       echarts:
         specifier: ^6.0.0
         version: 6.0.0
+      js-cookie:
+        specifier: ^3.0.5
+        version: 3.0.5
       lodash-es:
         specifier: ^4.17.23
         version: 4.17.23
@@ -5382,6 +5385,10 @@ packages:
 
   jpeg-js@0.3.7:
     resolution: {integrity: sha512-9IXdWudL61npZjvLuVe/ktHiA41iE8qFyLB+4VDTblEsWBzeg8WQTlktdUK4CdncUqtUgUg0bbOmTE2bKBKaBQ==}
+
+  js-cookie@3.0.5:
+    resolution: {integrity: sha512-cEiJEAEoIbWfCZYKWhVwFuvPX1gETRYPw6LlaTKoxD3s2AkXzkCjnp6h0V77ozyqj0jakteJ4YqDJT830+lVGw==}
+    engines: {node: '>=14'}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -14748,6 +14755,8 @@ snapshots:
   jiti@2.6.1: {}
 
   jpeg-js@0.3.7: {}
+
+  js-cookie@3.0.5: {}
 
   js-tokens@4.0.0: {}
 

@@ -16,8 +16,8 @@ definePage({
 })
 
 const route = useRoute()
-
-const shopId = computed(() => (route.query.shopId as string) || '')
+const store = useTampStore()
+const shopId = computed(() => (route.query.shopId as string) || (store.externalInfo?.shopId as string) || '')
 const portfolioCode = computed(() => (route.query.portfolioCode as string) || '')
 const isPreview = computed(() => route.query.preview === '1')
 

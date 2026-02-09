@@ -13,6 +13,7 @@ export interface TampExternalInfo {
   appId?: string
   token?: string
   loginUrl?: string
+  shopId?: string
 }
 
 /**
