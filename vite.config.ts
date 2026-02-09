@@ -41,7 +41,7 @@ export default defineConfig({
       },
       // TAMP API 代理
       '/app-api': {
-        target: 'http://172.16.60.200:31705',
+        target: 'https://tamp-cd-3.betalpha.com',
         changeOrigin: true,
       },
     },

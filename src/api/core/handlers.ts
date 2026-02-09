@@ -7,8 +7,8 @@
  * @FilePath: /wot-starter/src/api/core/handlers.ts
  */
 import type { Method } from 'alova'
+import { useEtfUserStore } from '@/store/etfUserStore'
 import { useTampStore } from '@/store/tampStore'
-import { useUserStore } from '@/store/userStore'
 import { handleExternalRedirect } from '@/subPages/tamp/utils/externalRedirect'
 
 // Custom error class for API errors
@@ -44,7 +44,7 @@ export async function handleAlovaResponse(
 
   // 处理401/403错误（单 token 模式不再尝试刷新）
   if ((statusCode === 401 || statusCode === 403)) {
-    const userStore = useUserStore()
+    const userStore = useEtfUserStore()
     const tampStore = useTampStore()
     await userStore.logout()
     globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })

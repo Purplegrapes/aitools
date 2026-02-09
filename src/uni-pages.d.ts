@@ -12,7 +12,8 @@ type _LocationUrl =
   "/subPages/etf/profile" |
   "/subPages/shixi-guide/index" |
   "/subPages/tamp/demo" |
-  "/subPages/tamp/index";
+  "/subPages/tamp/index" |
+  "/subPages/tamp/marketing";
 
 interface NavigateToOptions {
   url: _LocationUrl;

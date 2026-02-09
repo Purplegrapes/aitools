@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useTampStore } from '@/store/tampStore'
-import { useUserStore } from '@/store/userStore'
 import { detectAccessMode } from './utils/sourceDetector'
 
 definePage({
@@ -13,7 +12,6 @@ definePage({
 
 const router = useRouter()
 const route = useRoute()
-const userStore = useUserStore()
 const tampStore = useTampStore()
 
 // 检测并处理外部跳入，完成后根据referer参数跳转
@@ -22,20 +20,21 @@ onMounted(async () => {
 
   const query = route.query
   const { mode, source } = detectAccessMode(query)
-  const referer = query.referer as string | undefined
+  const rawReferer = query.referer as string | undefined
+  const rawLoginUrl = query.loginUrl as string | undefined
+  const referer = rawReferer ? decodeURIComponent(rawReferer) : undefined
+  const loginUrl = rawLoginUrl ? decodeURIComponent(rawLoginUrl) : undefined
 
   console.log('访问模式:', { mode, source, referer, query })
 
   // 外部跳入模式
   if (mode === 'external') {
     // 从URL参数直接获取token（临时方案）
-    const token = decodeURIComponent(query.token as string)
+    const rawToken = query.token as string | undefined
+    const token = rawToken ? decodeURIComponent(rawToken) : undefined
 
     if (token) {
       console.log('从URL参数获取token...')
-
-      // 存储到 userStore
-      userStore.setToken(token)
 
       // 清理URL中的token参数（可选）
       // #ifdef H5
@@ -49,6 +48,8 @@ onMounted(async () => {
     // 存储外部来源信息到 tampStore
     tampStore.setExternalInfo({
       source,
+      token,
+      loginUrl,
     })
 
     // 原有逻辑：通过API获取token（服务端实现后启用）
