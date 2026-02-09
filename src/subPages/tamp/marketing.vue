@@ -6,6 +6,7 @@ import marketHead from './assets/images/market-head.png'
 import marketPlan from './assets/images/market-plan.png'
 import marketRange from './assets/images/market-range.png'
 import marketTime from './assets/images/market-time.png'
+import { isInIframe } from './utils/iframe'
 
 definePage({
   name: 'tamp-marketing',
@@ -19,7 +20,7 @@ const route = useRoute()
 const store = useTampStore()
 const shopId = computed(() => (route.query.shopId as string) || (store.externalInfo?.shopId as string) || '')
 const portfolioCode = computed(() => (route.query.portfolioCode as string) || '')
-const isPreview = computed(() => route.query.preview === '1')
+const isPreview = computed(() => isInIframe())
 
 const {
   data,
@@ -102,7 +103,9 @@ const showAgencyModal = ref(false)
 function openAgencyModal() {
   showAgencyModal.value = true
 }
-
+function handleGoGoods() {
+  window.location.href = `${window?.APP_CONFIG?.SHOPRO_HUABAO_H5_COMMOM}${'/fd2021/fundInvestsRobot/plan_details'.concat(`?code=${portfolioCode.value}&product_id=${portfolioCode.value}`)}`
+}
 function copyAgencyLink(url?: string) {
   if (!url)
     return
@@ -130,7 +133,7 @@ function copyAgencyLink(url?: string) {
       </text>
     </view>
 
-    <view v-else class="px-4 pb-28 pt-4" :style="{ backgroundImage: `url(${marketBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }">
+    <view v-else class="px-4 pb-24 pt-4" :style="{ backgroundImage: `url(${marketBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }">
       <view
         class="pt-8"
       >
@@ -161,10 +164,8 @@ function copyAgencyLink(url?: string) {
             <text class="text-[28rpx] text-#1678ff font-semibold">
               {{ typeMeta[item.type]?.label || item.type }}
             </text>
-            <view v-if="item.type === 'HOLD_TIME'" class="flex items-center justify-between">
-              <text class="text-[26rpx] text-slate-600">
-                {{ holdTimeDescription }}
-              </text>
+            <view v-if="item.type === 'HOLD_TIME'" class="ml-auto text-[26rpx] text-slate-600">
+              {{ holdTimeDescription }}
             </view>
           </view>
           <view v-if="item.type !== 'HOLD_TIME'" class="mt-3 text-[28rpx] text-[#1D2129]">
@@ -180,7 +181,7 @@ function copyAgencyLink(url?: string) {
       </view>
     </view>
 
-    <view class="fixed bottom-0 left-0 right-0 bg-[#eaf1ff] px-0 pb-[calc(env(safe-area-inset-bottom)_+_16rpx)]">
+    <view class="fixed bottom-0 left-0 right-0 bg-[#eaf1ff] px-0">
       <view class="rounded-[22rpx] px-4 py-4 shadow-[0_12rpx_24rpx_rgba(15,23,42,0.08)]">
         <wd-button
           type="primary"
@@ -193,66 +194,77 @@ function copyAgencyLink(url?: string) {
       </view>
     </view>
 
-    <wd-popup v-model="showAgencyModal" root-portal position="bottom" closeable close-icon custom-style="border-radius: 24rpx 24rpx 0 0;">
-      <view class="agency-scroll max-h-[1000rpx] min-h-[300rpx] px-[30rpx] py-[40rpx]">
-        <view v-if="filterByConsignmentAgency.length">
+    <wd-popup v-model="showAgencyModal" root-portal position="bottom" closable close-icon custom-style="border-radius: 24rpx 24rpx 0 0;">
+      <view class="px-[20rpx]">
+        <view class="h-[104rpx] flex items-center justify-center">
           <text class="text-[36rpx] text-[#1D2129] font-medium">
-            合作机构
+            销售机构
           </text>
-          <view
-            v-for="item in filterByConsignmentAgency"
-            :key="item.agencyCode"
-            :class="{
-              'pointer-events-none': isPreview,
-            }"
-            class="h-[94rpx] flex items-center justify-between"
-          >
-            <text class="text-[30rpx] text-[#4E5969]">
-              {{ item.agencyName }}
-            </text>
-            <wd-button
-              size="small"
-              plain
-              hairline
-              @click="
-                () => copyAgencyLink(item.jumpUrl)
-              "
-            >
-              复制链接
-            </wd-button>
-          </view>
         </view>
-        <view v-if="filterByDirectAgency.length" class="pt-[40rpx]">
-          <text class="text-[36rpx] text-[#1D2129] font-500 font-medium">
-            本机构
-          </text>
-          <view
-            v-for="item in filterByDirectAgency"
-            :key="item.agencyCode"
-            class="h-[94rpx] flex items-center justify-between"
-          >
-            <text class="text-[30rpx] text-[#4E5969]">
-              华宝证券
-            </text>
-            <view class="disable-block relative">
+        <!-- 关闭按钮 -->
+        <scroll-view scroll-y="true" :show-scrollbar="false" class="max-h-[896rpx] min-h-[300rpx] pb-[40rpx]">
+          <view class="mr-[10rpx]">
+            <view v-if="filterByConsignmentAgency.length">
+              <text class="text-[36rpx] text-[#1D2129] font-medium">
+                合作机构
+              </text>
               <view
-                class="disable-tooltip absolute right-0 top-[-10rpx] w-[320rpx] rounded-[8rpx] bg-black px-[5rpx] py-[20rpx] text-center text-[24rpx] text-white font-normal leading-[24rpx] opacity-80 -translate-y-full"
-              >
-                用户可以在移动端直接购买
-              </view>
-              <wd-button
+                v-for="item in filterByConsignmentAgency"
+                :key="item.agencyCode"
                 :class="{
                   'pointer-events-none': isPreview,
-                  'bg-[#1678ff33]': isPreview,
                 }"
-                size="small"
-                @tap="toInvestmentDetail(portfolioCode)"
+                class="h-[94rpx] flex items-center justify-between"
               >
-                立即购买
-              </wd-button>
+                <text class="text-[30rpx] text-[#4E5969]">
+                  {{ item.agencyName }}
+                </text>
+                <wd-button
+                  size="small"
+                  plain
+                  @click="
+                    () =>
+                      copyAgencyLink(item.jumpUrl)
+                  "
+                >
+                  复制链接
+                </wd-button>
+              </view>
+            </view>
+            <view v-if="filterByDirectAgency.length" class="pt-[40rpx]">
+              <text class="text-[36rpx] text-[#1D2129] font-medium">
+                本机构
+              </text>
+              <view
+                v-for="item in filterByDirectAgency"
+                :key="item.agencyCode"
+                class="h-[94rpx] flex items-center justify-between"
+              >
+                <text class="text-[30rpx] text-[#4E5969]">
+                  华宝证券
+                </text>
+                <view class="disable-block relative">
+                  <view
+                    v-if="isPreview"
+                    class="disable-tooltip absolute right-0 top-[-10rpx] w-[320rpx] rounded-[8rpx] bg-black px-[5rpx] py-[20rpx] text-center text-[24rpx] text-white font-normal leading-[24rpx] opacity-80 -translate-y-full"
+                  >
+                    用户可以在移动端直接购买
+                  </view>
+                  <wd-button
+                    :class="{
+                      'pointer-events-none': isPreview,
+                      'bg-[#1678ff33]': isPreview,
+                    }"
+                    size="small"
+                    @tap="handleGoGoods"
+                  >
+                    立即购买
+                  </wd-button>
+                </view>
+              </view>
             </view>
           </view>
-        </view>
+        </scroll-view>
       </view>
     </wd-popup>
   </view>
