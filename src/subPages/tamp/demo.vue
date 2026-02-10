@@ -46,6 +46,9 @@ const route = useRoute()
 // 从 URL 参数获取 shopId，默认使用测试店铺 ID
 const shopId = computed(() => route.query.shopId as string)
 
+const tampStore = useTampStore()
+// 存储外部来源信息到 tampStore
+tampStore.setExternalInfo(route.query as any)
 // 获取店铺信息
 const { data, loading, error } = useRequest(
   () => getShopInfo({ params: { shopId: shopId.value } }),

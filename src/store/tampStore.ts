@@ -3,6 +3,7 @@
  * 用于存储外部跳入时的认证信息
  */
 import type { ExternalSourceType } from '@/subPages/tamp/utils/sourceDetector'
+import cookie from 'js-cookie'
 import { defineStore } from 'pinia'
 
 /**
@@ -45,12 +46,12 @@ export const useTampStore = defineStore('tamp', {
     /**
      * 是否为 H5 来源
      */
-    isFromH5: state => state.externalInfo?.source === 'h5',
+    isFromH5: state => state.externalInfo?.source !== 'miniprogram',
 
     /**
      * 获取访问 token
      */
-    token: state => state.externalInfo?.token || '',
+    token: state => state.externalInfo?.token || cookie.get('ticket') || '',
 
     /**
      * 获取 AppID

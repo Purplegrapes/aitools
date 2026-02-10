@@ -18,6 +18,7 @@ definePage({
 
 const route = useRoute()
 const store = useTampStore()
+const isFromH5 = computed(() => store?.isFromH5)
 const shopId = computed(() => (route.query.shopId as string) || (store.externalInfo?.shopId as string) || '')
 const portfolioCode = computed(() => (route.query.portfolioCode as string) || '')
 const isPreview = computed(() => isInIframe())
@@ -104,7 +105,14 @@ function openAgencyModal() {
   showAgencyModal.value = true
 }
 function handleGoGoods() {
-  window.location.href = `${window?.APP_CONFIG?.SHOPRO_HUABAO_H5_COMMOM}${'/fd2021/fundInvestsRobot/plan_details'.concat(`?code=${portfolioCode.value}&product_id=${portfolioCode.value}`)}`
+  if (!store.token) {
+    if (isFromH5.value) {
+      window.location.href = store.loginUrl
+    }
+  }
+  else {
+    window.location.href = `${window?.APP_CONFIG?.SHOPRO_HUABAO_H5_COMMOM}${'/fd2021/fundInvestsRobot/plan_details'.concat(`?code=${portfolioCode.value}&product_id=${portfolioCode.value}`)}`
+  }
 }
 function copyAgencyLink(url?: string) {
   if (!url)
