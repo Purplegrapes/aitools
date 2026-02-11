@@ -214,17 +214,17 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
     empty-text="暂无指数数据"
     @query="onQuery"
   >
-    <view class="px-4 pb-3 pt-4">
+    <view class="px-4 pb-2 pt-3">
       <view class="flex items-center justify-between">
-        <text class="text-base text-#b2bac7">
+        <text class="text-xs text-#b2bac7">
           数据更新日：{{ dataDate || '--' }}
         </text>
-        <wd-icon name="refresh" custom-class="text-#9ca3af! text-base!" @click="refreshList" />
+        <wd-icon name="refresh" custom-class="text-#9ca3af! text-sm!" @click="refreshList" />
       </view>
     </view>
 
     <view class="px-4">
-      <view class="list-header text-base">
+      <view class="list-header text-xs">
         <text class="w-[45%] text-left">
           指数代码
         </text>
@@ -253,13 +253,13 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
         :border="false"
         value-align="left"
       >
-        <view class="w-full flex items-center">
+        <view class="w-full flex items-center" @click="openDetail(item)">
           <view class="w-[45%] overflow-hidden">
-            <text class="block truncate text-base text-#1f2937 font-medium leading-6" @click="openDetail(item)">
+            <text class="block truncate text-sm text-#1f2937 font-medium leading-5">
               {{ item.name }}
             </text>
             <view class="mt-1 flex items-center gap-1.5">
-              <text class="text-sm text-#8b95a5 leading-5">
+              <text class="text-xs text-#8b95a5 leading-4">
                 {{ item.code }}
               </text>
               <wd-tag
@@ -275,13 +275,13 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
           </view>
 
           <view class="w-[30%] text-center">
-            <text class="text-xl font-semibold leading-7" :class="getRateClass(item.dividendRate)">
+            <text class="text-base font-semibold leading-5" :class="getRateClass(item.dividendRate)">
               {{ formatRate(item.dividendRate) }}
             </text>
           </view>
 
           <view class="w-[25%] text-right">
-            <text class="text-xl text-#111827 font-semibold leading-7">
+            <text class="text-base text-#111827 font-semibold leading-5">
               {{ item.constituentCount }}
             </text>
           </view>
@@ -295,7 +295,7 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
 .list-header {
   display: flex;
   align-items: center;
-  padding: 0 0 10px;
+  padding: 0 0 8px;
   border-bottom: 1rpx solid #e5e7eb;
   color: #9ca3af;
 }
@@ -306,8 +306,8 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
 }
 
 :deep(.list-row-cell .wd-cell__wrapper) {
-  min-height: 88px !important;
-  padding: 9px 0 !important;
+  min-height: 64px !important;
+  padding: 7px 0 !important;
   border-bottom: 1rpx solid #e5e7eb !important;
   align-items: center !important;
 }
@@ -321,22 +321,22 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
 }
 
 .index-tag {
-  padding: 0 4px !important;
+  padding: 0 3px !important;
   border-radius: 4px !important;
-  font-size: 12px !important;
+  font-size: 10px !important;
 }
 
 .sort-icon-active {
-  font-size: 12px !important;
+  font-size: 10px !important;
   color: #111827 !important;
-  height: 10px !important;
-  line-height: 10px !important;
+  height: 8px !important;
+  line-height: 8px !important;
 }
 
 .sort-icon-muted {
-  font-size: 12px !important;
+  font-size: 10px !important;
   color: #d1d5db !important;
-  height: 10px !important;
-  line-height: 10px !important;
+  height: 8px !important;
+  line-height: 8px !important;
 }
 </style>

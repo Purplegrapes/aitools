@@ -87,7 +87,7 @@
           "name": "asset-detail",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "资产详情"
+            "navigationBarTitleText": "指数详情"
           }
         },
         {

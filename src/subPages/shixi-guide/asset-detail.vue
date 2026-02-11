@@ -1,13 +1,9 @@
 <script setup lang="ts">
-/**
- * 资产详情页
- * 显示资产基本信息和股息率走势图
- */
 import type { EChartsOption } from 'echarts'
 import type { ApiFactorHistoryResponse, ChartDataPoint, DividendRatePoint, TimeRange, YuEBaoPoint } from './types'
 import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
-import { formatAssets, formatDecimalToPercent } from '@/utils/format'
+import { formatDecimalToPercent } from '@/utils/format'
 import { getAssetDetail, getFactorHistory } from './api'
 
 defineOptions({
@@ -21,85 +17,30 @@ definePage({
   name: 'asset-detail',
   layout: 'default',
   style: {
-    navigationBarTitleText: '资产详情',
+    navigationBarTitleText: '指数详情',
   },
-
 })
 
 const route = useRoute()
+const globalToast = useGlobalToast()
 
-// ==================== 主题常量 ====================
-// 正股息率主题（红色）
-const POSITIVE_DIVIDEND_THEME = {
-  label: 'text-red-600/70',
-  value: 'text-red-600',
-  card: 'from-red-50 to-red-100/30',
-  ring: 'ring-red-200/50',
-  blur: 'bg-red-500/5',
-} as const
-
-// 负股息率主题（绿色）
-const NEGATIVE_DIVIDEND_THEME = {
-  label: 'text-emerald-600/70',
-  value: 'text-emerald-600',
-  card: 'from-emerald-50 to-emerald-100/30',
-  ring: 'ring-emerald-200/50',
-  blur: 'bg-emerald-500/5',
-} as const
-
-// ==================== 时间范围常量 ====================
 const TIME_RANGE_OPTIONS: Array<{ value: TimeRange, label: string, days: number }> = [
   { value: '1w', label: '近一周', days: 7 },
   { value: '1m', label: '近一月', days: 30 },
   { value: '1q', label: '近一季度', days: 90 },
 ] as const
 
-// ==================== 路由参数 ====================
-const query = computed(() => route.query as {
-  code?: string
-  name?: string
-})
+const query = computed(() => route.query as { code?: string, name?: string })
 
-// ==================== 状态 ====================
-const currentTimeRange = ref<TimeRange>('1m')
+const currentTimeRange = ref<TimeRange>('1w')
 const loading = ref(true)
-
-// ==================== API 请求 ====================
-// 资产代码
 const assetCode = ref('')
 
-// 资产详情
 const { data: assetDetail, send: fetchAssetDetail } = useRequest(
   () => getAssetDetail(assetCode.value),
   { immediate: false },
 )
 
-// 百分比格式化后的股息率（用于显示）
-const formattedDividendRate = computed(() => {
-  return formatDecimalToPercent(assetDetail.value?.dividend_rate)
-})
-
-const hasDividendRate = computed(() => assetDetail.value?.dividend_rate != null)
-const hasManagementCompany = computed(() => !!assetDetail.value?.management_company)
-const hasEstablishmentDate = computed(() => !!assetDetail.value?.establishment_date)
-const hasMonthlyDividendInvestment = computed(() => assetDetail.value?.monthly_dividend_investment != null)
-const hasAnyMetrics = computed(() => {
-  return (
-    hasDividendRate.value
-    || hasManagementCompany.value
-    || hasEstablishmentDate.value
-    || hasMonthlyDividendInvestment.value
-  )
-})
-
-// 股息率颜色主题（正数红色，负数绿色）
-const dividendRateTheme = computed(() => {
-  const rate = assetDetail.value?.dividend_rate
-  const isPositive = rate != null && rate > 0
-  return isPositive ? POSITIVE_DIVIDEND_THEME : NEGATIVE_DIVIDEND_THEME
-})
-
-// 因子历史参数
 const factorParams = ref<{
   start_date: string
   end_date: string
@@ -107,7 +48,6 @@ const factorParams = ref<{
   factors: string
 } | null>(null)
 
-// 因子历史数据
 const { data: factorHistoryData, send: fetchFactorHistory } = useRequest(
   () => getFactorHistory(factorParams.value ?? {
     start_date: '',
@@ -118,10 +58,48 @@ const { data: factorHistoryData, send: fetchFactorHistory } = useRequest(
   { immediate: false },
 )
 
-// ==================== 计算属性 ====================
-// 当前日期
-const currentDate = computed(() => {
-  return new Date().toISOString().split('T')[0]
+const currentDate = computed(() => new Date().toISOString().split('T')[0])
+
+const assetTitle = computed(() => {
+  return query.value.name || assetDetail.value?.name || '指数详情'
+})
+
+const assetDisplayCode = computed(() => {
+  return assetDetail.value?.code || query.value.code || '--'
+})
+
+const updatedDate = computed(() => {
+  const raw = assetDetail.value?.updated_at || ''
+  if (raw.includes('T'))
+    return raw.split('T')[0]
+  return raw.slice(0, 10) || '--'
+})
+
+const formattedDividendRate = computed(() => {
+  return formatDecimalToPercent(assetDetail.value?.dividend_rate)
+})
+
+const monthlyInvestmentText = computed(() => {
+  const value = assetDetail.value?.monthly_dividend_investment
+  if (value == null || Number.isNaN(Number(value)))
+    return '--'
+  return Number(value).toFixed(2)
+})
+
+const detailRows = computed(() => {
+  const detail = (assetDetail.value ?? {}) as Record<string, unknown>
+  const shortName = toText(detail.short_name)
+    || toText(assetTitle.value.replace(/指数$/, ''))
+    || '--'
+
+  return [
+    { label: '指数简称', value: shortName, icon: 'chart-pie' },
+    { label: '指数成分个数', value: toText(detail.constituent_count) || toText(detail.constituents_count) || '--', icon: 'layers' },
+    { label: '指数加权方式', value: toText(detail.weight_method) || '--', icon: 'swap' },
+    { label: '指数样本调整周期', value: toText(detail.rebalance_cycle) || '--', icon: 'time' },
+    { label: '股息率(TTM)', value: formattedDividendRate.value, icon: 'chart' },
+    { label: '每月千元分红需总投入(万元)', value: monthlyInvestmentText.value, icon: 'creditcard' },
+  ]
 })
 
 function parseDateUTC(dateString: string): Date | null {
@@ -163,7 +141,6 @@ function fillDividendHistorySparse(
       lastRate = dayRate
     points.push({
       date: dateKey,
-      // 稳妥规则：首个有效值出现之前不填 0，保持断线；之后用最近一次值向后填充
       dividend_rate: (firstKnownDate && dateKey < firstKnownDate) ? null : (lastRate ?? firstKnownRate),
     })
     cursor.setUTCDate(cursor.getUTCDate() + 1)
@@ -195,7 +172,6 @@ function buildFixedRateHistory(
   return points
 }
 
-// 股息率历史数据
 const dividendHistory = computed(() => {
   const data = factorHistoryData.value as ApiFactorHistoryResponse
   if (data?.data?.[0]?.factors?.length) {
@@ -215,28 +191,17 @@ const dividendHistory = computed(() => {
   )
 })
 
-const isDividendHistoryFallback = computed(() => {
-  const data = factorHistoryData.value as ApiFactorHistoryResponse
-  return !(data?.data?.[0]?.factors?.length)
-})
-
-// 余额宝对比数据（Mock）- 与 dividendHistory 的每个日期点匹配
 const yuEBaoHistory = computed<YuEBaoPoint[]>(() => {
-  if (dividendHistory.value.length === 0) {
+  if (dividendHistory.value.length === 0)
     return []
-  }
 
-  // 余额宝7日年化大约在 1.5% - 2.5% 之间波动（使用小数格式：0.015 - 0.025）
-  // 使用基于日期的确定性算法，确保相同输入产生相同输出
-  const BASE_RATE = 0.02
+  const baseRate = 0.02
 
   return dividendHistory.value.map((item: DividendRatePoint) => {
-    // 使用日期字符串的哈希值生成确定性波动
     const hash = item.date.split('-').join('').slice(-6)
     const hashNum = Number.parseInt(hash) || 0
-    // 基于哈希值生成波动范围 [-0.0005, 0.0005]
     const fluctuation = ((hashNum % 1000) / 1000 - 0.5) * 0.001
-    const rate = Math.max(0.015, Math.min(0.025, BASE_RATE + fluctuation))
+    const rate = Math.max(0.015, Math.min(0.025, baseRate + fluctuation))
 
     return {
       date: item.date,
@@ -245,12 +210,9 @@ const yuEBaoHistory = computed<YuEBaoPoint[]>(() => {
   })
 })
 
-// 处理后的图表数据
 const chartData = computed<ChartDataPoint[]>(() => {
   return dividendHistory.value.map((item: DividendRatePoint) => {
-    const rate = item.dividend_rate == null
-      ? null
-      : Number.parseFloat((item.dividend_rate * 100).toFixed(2)) // 转换为百分比数值，保留两位小数
+    const rate = item.dividend_rate == null ? null : Number.parseFloat((item.dividend_rate * 100).toFixed(2))
     return {
       name: item.date,
       value: [item.date, rate],
@@ -259,10 +221,9 @@ const chartData = computed<ChartDataPoint[]>(() => {
   })
 })
 
-// 余额宝图表数据
 const yuEBaoChartData = computed(() => {
   return yuEBaoHistory.value.map((item) => {
-    const rate = Number.parseFloat((item.rate * 100).toFixed(2)) // 转换为百分比数值，保留两位小数
+    const rate = Number.parseFloat((item.rate * 100).toFixed(2))
     return {
       name: item.date,
       value: [item.date, rate],
@@ -270,10 +231,16 @@ const yuEBaoChartData = computed(() => {
   })
 })
 
-// ==================== 图表配置 ====================
-/**
- * 转换 hex 颜色为 rgba 格式
- */
+const latestLegendDate = computed(() => chartData.value[chartData.value.length - 1]?.name || '--')
+const latestDividendValue = computed(() => {
+  const rate = chartData.value[chartData.value.length - 1]?.dividend_rate
+  return typeof rate === 'number' ? `${rate.toFixed(2)}%` : '--'
+})
+const latestYuEBaoValue = computed(() => {
+  const raw = yuEBaoChartData.value[yuEBaoChartData.value.length - 1]?.value?.[1]
+  return typeof raw === 'number' ? `${raw.toFixed(2)}%` : '--'
+})
+
 function hexToRgba(hex: string, alpha: number): string {
   const r = Number.parseInt(hex.slice(1, 3), 16)
   const g = Number.parseInt(hex.slice(3, 5), 16)
@@ -281,76 +248,62 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-// 图表配置
 const chartOption = computed<EChartsOption>(() => ({
   backgroundColor: 'transparent',
-  grid: { left: '8%', right: '8%', top: '10%', bottom: '18%' },
-  color: ['#3b82f6', '#f59e0b'],
-  legend: {
-    bottom: '2%',
-    icon: 'rect',
-    show: true,
-    textStyle: { color: '#475569', fontSize: 11 },
-    itemWidth: 16,
-    itemHeight: 8,
-    borderRadius: 4,
-    data: ['食息率', '余额宝'],
-  },
+  grid: { left: '8%', right: '5%', top: '8%', bottom: '16%' },
   tooltip: {
     trigger: 'axis',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderColor: 'rgba(0, 0, 0, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderColor: 'rgba(15, 23, 42, 0.08)',
     textStyle: { color: '#1f2937' },
     formatter: (params: any) => {
       if (!params || params.length === 0)
         return ''
       const date = params[0].name
-      let result = `${date}\n`
-      params.forEach((param: any) => {
+      const lines = params.map((param: any) => {
         const value = param.value?.[1]?.toFixed(2) || '0.00'
-        result += `${param.seriesName}: ${value}%\n`
+        return `${param.seriesName}: ${value}%`
       })
-      return result
+      return [date, ...lines].join('<br/>')
     },
   },
   xAxis: {
     type: 'category',
-    splitLine: { show: false },
     boundaryGap: ['0%', '0%'],
-    axisLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)' } },
+    axisLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.35)' } },
+    axisTick: { show: false },
     axisLabel: {
-      color: '#64748b',
+      color: '#94a3b8',
       fontSize: 10,
+      interval: Math.max(Math.ceil(chartData.value.length / 3), 1),
       formatter: (v: string) => {
         const parts = v.split('-')
-        return `${parts[1]}-${parts[2]}`
+        return `${parts[0]}-${parts[1]}-${parts[2]}`
       },
-      interval: Math.ceil(chartData.value.length / 6),
     },
+    splitLine: { show: false },
     data: chartData.value.map(item => item.name),
   },
   yAxis: {
     type: 'value',
-    name: '食息率 (%)',
     min: 'dataMin',
-    max: 'dataMax',
     axisLine: { show: false },
-    splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.06)', type: 'dashed' } },
+    axisTick: { show: false },
+    splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.25)', type: 'dashed' } },
     axisLabel: {
-      color: '#64748b',
+      color: '#94a3b8',
       fontSize: 10,
-      formatter: (v: number) => `${v.toFixed(2)}%`,
+      formatter: (v: number) => `${v.toFixed(1)}`,
     },
-    nameTextStyle: { color: '#64748b', fontSize: 10 },
   },
   series: [
     {
-      name: '食息率',
+      name: '股息率',
       type: 'line',
       showSymbol: false,
       smooth: true,
       data: chartData.value,
-      lineStyle: { width: 2, color: '#3b82f6' },
+      lineStyle: { width: 2, color: '#2371eb' },
       areaStyle: {
         color: {
           type: 'linear',
@@ -359,275 +312,232 @@ const chartOption = computed<EChartsOption>(() => ({
           x2: 0,
           y2: 1,
           colorStops: [
-            { offset: 0, color: hexToRgba('#3b82f6', 0.15) },
-            { offset: 1, color: hexToRgba('#3b82f6', 0.02) },
+            { offset: 0, color: hexToRgba('#2371eb', 0.14) },
+            { offset: 1, color: hexToRgba('#2371eb', 0.01) },
           ],
         },
       },
     },
     {
-      name: '余额宝',
+      name: '余额宝7日年化',
       type: 'line',
       showSymbol: false,
       smooth: true,
       data: yuEBaoChartData.value,
-      lineStyle: { width: 2, color: '#f59e0b', type: 'dashed' },
+      lineStyle: { width: 2, color: '#ff7a1a' },
     },
   ],
 }))
 
-// ==================== 数据加载函数 ====================
-/**
- * 加载资产详情
- */
-function loadAssetDetail(code: string) {
-  assetCode.value = code
-  fetchAssetDetail()
-}
-
-/**
- * 加载股息率历史数据
- */
-function loadFactorHistory(code: string, days: number) {
+function buildFactorParams(code: string, days: number) {
   const end = currentDate.value
   const start = new Date()
   start.setDate(start.getDate() - days)
-  const startDate = start.toISOString().split('T')[0]
-
-  factorParams.value = {
-    start_date: startDate,
+  return {
+    start_date: start.toISOString().split('T')[0],
     end_date: end,
     codes: code,
     factors: 'dividend_rate',
   }
-  fetchFactorHistory()
 }
 
-/**
- * 刷新数据（切换时间范围）
- */
-function refreshData() {
+async function refreshData() {
   if (!assetCode.value)
     return
-
   const option = TIME_RANGE_OPTIONS.find(o => o.value === currentTimeRange.value)
-  if (option) {
-    loadFactorHistory(assetCode.value, option.days)
-  }
+  if (!option)
+    return
+  factorParams.value = buildFactorParams(assetCode.value, option.days)
+  await fetchFactorHistory()
 }
 
-// ==================== 事件处理 ====================
+async function handleRangeChange() {
+  await refreshData()
+}
 
-// ==================== 生命周期 ====================
-const globalToast = useGlobalToast()
+function toText(value: unknown): string {
+  if (value == null)
+    return ''
+  const text = String(value).trim()
+  return text === '' ? '' : text
+}
 
-onMounted(() => {
-  const { code } = query.value
+onMounted(async () => {
+  const code = query.value.code
 
   if (!code) {
     globalToast.error({ msg: '缺少资产代码' })
+    loading.value = false
     return
   }
 
+  assetCode.value = code
   loading.value = true
-
-  // 加载资产详情
-  loadAssetDetail(code)
-
-  // 加载股息率历史数据
-  const option = TIME_RANGE_OPTIONS.find(o => o.value === currentTimeRange.value)
-  if (option) {
-    loadFactorHistory(code, option.days)
+  try {
+    const option = TIME_RANGE_OPTIONS.find(o => o.value === currentTimeRange.value) || TIME_RANGE_OPTIONS[0]
+    factorParams.value = buildFactorParams(code, option.days)
+    await Promise.all([fetchAssetDetail(), fetchFactorHistory()])
   }
-
-  loading.value = false
+  catch {
+    globalToast.error({ msg: '数据加载失败，请稍后重试' })
+  }
+  finally {
+    loading.value = false
+  }
 })
-
-// 监听数据变化
-watch([assetDetail, dividendHistory], () => {
-  loading.value = false
-})
-
-watch(
-  [isDividendHistoryFallback, dividendHistory],
-  ([isFallback, history]) => {
-    if (isFallback || history.length === 0)
-      return
-    const rangeStart = factorParams.value?.start_date
-    const rangeEnd = factorParams.value?.end_date
-    console.info('[asset-detail] dividend history filled', {
-      rangeStart,
-      rangeEnd,
-      points: history.length,
-      firstPoint: history[0],
-      lastPoint: history[history.length - 1],
-    })
-  },
-  { immediate: true },
-)
 </script>
 
 <template>
-  <view class="asset-detail-page min-h-screen from-slate-50 to-slate-100/50 bg-gradient-to-b pb-[env(safe-area-inset-bottom)]">
-    <!-- 加载状态 -->
-    <transition name="fade">
-      <view v-if="loading" class="loading-container flex flex-col items-center justify-center py-24">
-        <view class="relative">
-          <wd-loading type="spinner" size="28px" />
-          <view class="animate-pulse-soft absolute inset-0 rounded-full bg-blue-500/10" />
+  <view class="asset-detail-page min-h-screen pb-[env(safe-area-inset-bottom)]">
+    <view v-if="loading" class="flex items-center justify-center py-28">
+      <wd-loading type="ring" />
+    </view>
+
+    <view v-else class="px-4 pb-5 pt-2">
+      <view class="hero-panel relative overflow-hidden px-4 pb-5 pt-3 -mx-4">
+        <view class="hero-lines" />
+        <view class="hero-decoration" />
+        <view class="relative z-10">
+          <text class="block text-lg text-#0f172a font-700 leading-tight">
+            {{ assetTitle }}
+          </text>
+          <view class="mt-2 flex items-center gap-1.5 text-xs text-#475569">
+            <text>{{ assetDisplayCode }}</text>
+            <text class="text-#94a3b8">
+              |
+            </text>
+            <text>更新日期：{{ updatedDate }}</text>
+          </view>
         </view>
-        <text class="loading-text mt-3 text-sm text-slate-400 font-medium tracking-wide">
-          加载中...
+      </view>
+
+      <view class="mt-2 rounded-3xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]">
+        <view
+          v-for="(row, index) in detailRows"
+          :key="row.label"
+          class="detail-row flex items-center justify-between py-2"
+          :class="index < detailRows.length - 1 ? 'border-b border-#eef2f7' : ''"
+        >
+          <view class="flex items-center gap-2.5">
+            <wd-icon :name="row.icon" custom-class="text-#2b6ef5! text-base! leading-none!" />
+            <text class="text-sm text-#4b5563 leading-5">
+              {{ row.label }}
+            </text>
+          </view>
+          <text class="text-sm text-#1f2937 font-500 leading-5">
+            {{ row.value }}
+          </text>
+        </view>
+      </view>
+
+      <view class="mt-4 rounded-3xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]">
+        <view class="flex items-center gap-2">
+          <text class="text-lg text-#0f172a font-700">
+            股息率
+          </text>
+          <wd-icon name="info-circle" custom-class="text-#94a3b8! text-sm! leading-none!" />
+        </view>
+
+        <view class="mt-3 rounded-2xl bg-#f2f5fb p-3">
+          <text class="text-sm text-#9ca3af">
+            {{ latestLegendDate }}
+          </text>
+          <view class="mt-2 flex items-center justify-between gap-3">
+            <view class="legend-item">
+              <view class="legend-line legend-line-blue" />
+              <text class="text-xs text-#64748b">
+                股息率 {{ latestDividendValue }}
+              </text>
+            </view>
+            <view class="legend-item justify-end">
+              <view class="legend-line legend-line-orange" />
+              <text class="text-xs text-#64748b">
+                余额宝7日年化 {{ latestYuEBaoValue }}
+              </text>
+            </view>
+          </view>
+        </view>
+
+        <view class="mt-3 h-80">
+          <LineChart :option="chartOption" custom-class="h-full w-full" />
+        </view>
+
+        <view class="mt-3">
+          <SegmentedControl
+            v-model="currentTimeRange"
+            :options="TIME_RANGE_OPTIONS.map(o => ({ label: o.label, value: o.value }))"
+            @change="handleRangeChange"
+          />
+        </view>
+      </view>
+
+      <view class="mt-4 rounded-3xl px-1 pb-2 pt-1">
+        <text class="text-sm text-#94a3b8 font-500">
+          数据说明：
         </text>
-      </view>
-    </transition>
-
-    <transition name="fade">
-      <view v-if="!loading" class="content-container p-4 space-y-4">
-        <!-- 资产介绍卡片 -->
-        <view class="asset-card overflow-hidden rounded-2xl bg-white shadow-slate-200/50 shadow-sm ring-slate-900/5">
-          <view class="card-header border-b border-slate-100/80 px-5 py-4">
-            <view class="flex items-start justify-between">
-              <view class="flex-1">
-                <text class="asset-name text-xl text-slate-800 font-bold tracking-tight">
-                  {{ assetDetail?.name ?? '--' }}
-                </text>
-              </view>
-            </view>
-          </view>
-
-          <!-- 关键指标 -->
-          <view v-if="hasAnyMetrics" class="metrics-grid grid grid-cols-2 gap-3 px-5 py-4">
-            <view
-              v-if="hasDividendRate"
-              class="metric-card group relative overflow-hidden rounded-xl bg-gradient-to-br p-3"
-              :class="[dividendRateTheme.card, dividendRateTheme.ring]"
-            >
-              <view class="metric-label text-xs font-medium tracking-wider uppercase" :class="dividendRateTheme.label">
-                食息率
-              </view>
-              <text class="metric-value mt-1 text-lg font-bold tracking-tight" :class="dividendRateTheme.value">
-                {{ formattedDividendRate }}
-              </text>
-              <view class="absolute h-12 w-12 rounded-full blur-xl -right-2 -top-2" :class="dividendRateTheme.blur" />
-            </view>
-
-            <view
-              v-if="hasManagementCompany"
-              class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50"
-            >
-              <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
-                管理公司
-              </view>
-              <text class="metric-value mt-1 block truncate text-sm text-slate-700 font-medium leading-tight">
-                {{ assetDetail?.management_company ?? '--' }}
-              </text>
-            </view>
-
-            <view
-              v-if="hasEstablishmentDate"
-              class="metric-card group relative overflow-hidden rounded-xl from-slate-50 to-slate-100/30 bg-gradient-to-br p-3 ring-slate-200/50"
-            >
-              <view class="metric-label text-xs text-slate-400 font-medium tracking-wider uppercase">
-                成立日期
-              </view>
-              <text class="metric-value mt-1 text-sm text-slate-700 font-medium">
-                {{ assetDetail?.establishment_date ?? '--' }}
-              </text>
-            </view>
-
-            <view
-              v-if="hasMonthlyDividendInvestment"
-              class="metric-card group relative overflow-hidden rounded-xl from-blue-50 to-blue-100/30 bg-gradient-to-br p-3 ring-blue-200/50"
-            >
-              <view class="metric-label text-xs text-blue-600/70 font-medium tracking-wider uppercase">
-                月分红投入
-              </view>
-              <text class="metric-value mt-1 text-sm text-blue-700 font-semibold">
-                {{ assetDetail?.monthly_dividend_investment != null ? formatAssets(assetDetail.monthly_dividend_investment) : '--' }}
-              </text>
-            </view>
-          </view>
-
-          <!-- 资产描述 -->
-          <view v-if="assetDetail?.description" class="description-section border-t border-slate-100/80 from-slate-50/50 to-slate-100/30 bg-gradient-to-br px-5 py-4">
-            <view class="relative rounded-xl bg-white/60 p-4 ring-slate-200/50 backdrop-blur-sm">
-              <view class="absolute left-4 top-4 h-4 w-0.5 rounded-full from-blue-400 to-blue-500 bg-gradient-to-b" />
-              <text class="description-text pl-3 text-sm text-slate-600 font-medium leading-relaxed">
-                {{ assetDetail?.description }}
-              </text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 股息率走势 -->
-        <view class="chart-card overflow-hidden rounded-2xl bg-white shadow-slate-200/50 shadow-sm ring-slate-900/5">
-          <view class="chart-header flex items-center justify-between border-b border-slate-100/80 px-5 py-4">
-            <view class="flex items-center gap-2">
-              <text class="text-lg text-slate-800 font-bold tracking-tight">
-                食息率走势
-              </text>
-            </view>
-          </view>
-          <!-- 时间范围选择器 -->
-          <view class="px-4">
-            <SegmentedControl
-              v-model="currentTimeRange"
-              :options="TIME_RANGE_OPTIONS.map(o => ({ label: o.label, value: o.value }))"
-              @change="refreshData"
-            />
-          </view>
-
-          <!-- 图表容器 -->
-          <view class="chart-container relative px-2 pb-4 pt-2">
-            <view class="chart-wrapper h-72">
-              <LineChart :option="chartOption" custom-class="h-full w-full" />
-            </view>
-          </view>
+        <view class="mt-2.5 space-y-2">
+          <text class="block text-xs text-#94a3b8 leading-6">
+            1. 本表中“股息率”指标选取主要红利指数近12个月动态股息率；
+          </text>
+          <text class="block text-xs text-#94a3b8 leading-6">
+            2. 本表中“每月千元分红需总投入”仅考虑基于指数股息率计算所得的股息回报（理论值），对应ETF的实际分红到账取决于基金公司的分红策略，二者可能存在较大出入。
+          </text>
         </view>
       </view>
-    </transition>
+    </view>
   </view>
 </template>
 
 <style lang="scss" scoped>
-// 进入动画
-.fade-enter-active {
-  animation: fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+.asset-detail-page {
+  background:
+    linear-gradient(165deg, #c7daf8 0%, #d4e4fb 18%, #e6effb 32%, #f2f5fa 44%, #f2f5fa 100%);
 }
 
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.hero-panel {
+  min-height: 66px;
 }
 
-// 脉冲加载动画
-@keyframes pulse-soft {
-  0%, 100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.8;
-  }
+.hero-lines {
+  position: absolute;
+  left: -48px;
+  top: -18px;
+  height: 240px;
+  width: 240px;
+  background: repeating-linear-gradient(132deg, rgba(255, 255, 255, 0.3) 0 2px, transparent 2px 9px);
+  opacity: 0.45;
 }
 
-.animate-pulse-soft {
-  animation: pulse-soft 1.5s ease-in-out infinite;
+.hero-decoration {
+  position: absolute;
+  right: -34px;
+  bottom: -34px;
+  height: 132px;
+  width: 196px;
+  border-radius: 68px;
+  background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.18), transparent 55%),
+    radial-gradient(circle at 75% 30%, rgba(99, 102, 241, 0.24), transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(14, 165, 233, 0.18), transparent 45%);
 }
 
-// 指标卡片悬停效果
-.metric-card {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+.legend-item {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
 }
 
-.metric-card:active {
-  transform: scale(0.98);
-  opacity: 0.9;
+.legend-line {
+  height: 3px;
+  width: 16px;
+  border-radius: 999px;
+}
+
+.legend-line-blue {
+  background: #2371eb;
+}
+
+.legend-line-orange {
+  background: #ff7a1a;
 }
 </style>
