@@ -10,6 +10,7 @@ type _LocationUrl =
   "/subPages/etf/index" |
   "/subPages/etf/performance" |
   "/subPages/etf/profile" |
+  "/subPages/shixi-guide/index-list" |
   "/subPages/shixi-guide/index" |
   "/subPages/tamp/demo" |
   "/subPages/tamp/index" |
