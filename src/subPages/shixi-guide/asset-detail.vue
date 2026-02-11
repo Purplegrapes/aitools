@@ -396,7 +396,6 @@ onMounted(async () => {
     <view v-else class="px-4 pb-5 pt-2">
       <view class="hero-panel relative overflow-hidden px-4 pb-5 pt-3 -mx-4">
         <view class="hero-lines" />
-        <view class="hero-decoration" />
         <view class="relative z-10">
           <text class="block text-lg text-#0f172a font-700 leading-tight">
             {{ assetTitle }}
@@ -506,18 +505,6 @@ onMounted(async () => {
   width: 240px;
   background: repeating-linear-gradient(132deg, rgba(255, 255, 255, 0.3) 0 2px, transparent 2px 9px);
   opacity: 0.45;
-}
-
-.hero-decoration {
-  position: absolute;
-  right: -34px;
-  bottom: -34px;
-  height: 132px;
-  width: 196px;
-  border-radius: 68px;
-  background: radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.18), transparent 55%),
-    radial-gradient(circle at 75% 30%, rgba(99, 102, 241, 0.24), transparent 50%),
-    radial-gradient(circle at 70% 80%, rgba(14, 165, 233, 0.18), transparent 45%);
 }
 
 .legend-item {

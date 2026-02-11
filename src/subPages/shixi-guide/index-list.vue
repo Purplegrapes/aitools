@@ -215,11 +215,10 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
     @query="onQuery"
   >
     <view class="px-4 pb-2 pt-3">
-      <view class="flex items-center justify-between">
+      <view class="flex items-center justify-end">
         <text class="text-xs text-#b2bac7">
           数据更新日：{{ dataDate || '--' }}
         </text>
-        <wd-icon name="refresh" custom-class="text-#9ca3af! text-sm!" @click="refreshList" />
       </view>
     </view>
 
