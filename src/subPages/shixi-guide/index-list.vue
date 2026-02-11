@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { createGlobalLoadingMiddleware } from '@/api/core/middleware'
+import type { AssetPoolAsset, AssetPoolResponse } from './types'
 import { getAssetPoolData } from './api'
-import type { AssetPoolAsset, AssetPoolResponse } from './api'
 import { MonthlyDividendPoolCode } from './types'
 
 interface MarketTag {
@@ -18,6 +17,11 @@ interface DividendIndexItem {
   tag?: MarketTag
 }
 
+interface BasePagingExpose<T = any> {
+  pagingRef: ZPagingRef<T> | null
+  reload: (animate?: boolean) => Promise<ZPagingParams.ReturnData<T>> | undefined
+}
+
 definePage({
   name: 'dividend-index-list',
   layout: 'default',
@@ -27,38 +31,56 @@ definePage({
 })
 
 const router = useRouter()
+const route = useRoute()
 const descending = ref(true)
 
+const DEFAULT_POOL_CODE = MonthlyDividendPoolCode.ETF
 const dataDate = ref('')
-const currentPoolCode = ref<MonthlyDividendPoolCode>(MonthlyDividendPoolCode.ETF)
+const currentPoolCode = ref<MonthlyDividendPoolCode>(DEFAULT_POOL_CODE)
 const sourceList = ref<DividendIndexItem[]>([])
 
-const { send: fetchAssetPoolList } = useRequest(
-  () => getAssetPoolData(currentPoolCode.value),
-  {
-    immediate: false,
-    middleware: createGlobalLoadingMiddleware({
-      loadingText: '加载中...',
-    }),
-  },
-).onSuccess((res) => {
-  const payload = ((res as any)?.data ?? res) as Partial<AssetPoolResponse> | undefined
-  if (!payload) {
-    sourceList.value = []
-    dataDate.value = ''
-    return
-  }
-
-  dataDate.value = payload.adjust_date || ''
-
-  const assets = Array.isArray(payload.assets) ? payload.assets : []
-  sourceList.value = assets
-    .map(mapAssetToIndexItem)
-    .filter((item): item is DividendIndexItem => !!item)
-}).onError(() => {
-  sourceList.value = []
-  dataDate.value = ''
+const basePagingRef = ref<BasePagingExpose<DividendIndexItem> | null>(null)
+const pagingRef = computed<ZPagingRef<DividendIndexItem> | null>(() => {
+  return basePagingRef.value?.pagingRef ?? null
 })
+
+const { onQuery, reload } = usePagedQuery<Partial<AssetPoolResponse>, DividendIndexItem>({
+  pagingRef,
+  request: async (pageNo, pageSize) => {
+    const res = await getAssetPoolData(currentPoolCode.value, {
+      page_no: pageNo,
+      page_size: pageSize,
+    })
+    return ((res as any)?.data ?? res) as Partial<AssetPoolResponse>
+  },
+  getList: raw => (Array.isArray(raw.assets) ? raw.assets : [])
+    .map(mapAssetToIndexItem)
+    .filter((item): item is DividendIndexItem => !!item),
+  getTotal: (raw) => {
+    const total = Number(raw.total_count)
+    return Number.isFinite(total) ? total : null
+  },
+  onSuccess: (raw) => {
+    dataDate.value = raw.adjust_date || dataDate.value
+  },
+  onError: () => {
+    dataDate.value = ''
+  },
+})
+
+watch(
+  () => route.query?.poolCode,
+  (poolCodeQuery) => {
+    const nextPoolCode = normalizePoolCode(poolCodeQuery)
+    if (nextPoolCode === currentPoolCode.value)
+      return
+
+    currentPoolCode.value = nextPoolCode
+    dataDate.value = ''
+    reload()
+  },
+  { immediate: true },
+)
 
 const displayList = computed(() => {
   return [...sourceList.value].sort((a, b) => {
@@ -68,22 +90,16 @@ const displayList = computed(() => {
   })
 })
 
-onMounted(() => {
-  fetchAssetPoolList()
-})
-
 function toggleSort() {
   descending.value = !descending.value
 }
 
+function refreshList() {
+  reload(true)
+}
+
 function openDetail(item: DividendIndexItem) {
-  router.push({
-    name: 'asset-detail',
-    query: {
-      code: item.code,
-      name: item.name,
-    },
-  })
+  router.push(`/subPages/shixi-guide/asset-detail?code=${encodeURIComponent(item.code)}`)
 }
 
 function getRateClass(rate: number) {
@@ -161,21 +177,49 @@ function normalizeDividendRate(rate: number | null): number {
   if (rate == null || !Number.isFinite(rate))
     return 0
 
-  // 兼容后端返回小数(0.068)或百分数(6.8)两种口径
   if (Math.abs(rate) <= 1) {
     return rate * 100
   }
   return rate
 }
+
+function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
+  if (typeof value !== 'string' || !value.trim())
+    return DEFAULT_POOL_CODE
+
+  let decoded = value.trim()
+  try {
+    decoded = decodeURIComponent(decoded).trim()
+  }
+  catch {
+    decoded = value.trim()
+  }
+  if (
+    decoded === MonthlyDividendPoolCode.MAIN
+    || decoded === MonthlyDividendPoolCode.ETF
+    || decoded === MonthlyDividendPoolCode.FUND
+  ) {
+    return decoded
+  }
+  return DEFAULT_POOL_CODE
+}
 </script>
 
 <template>
-  <view class="min-h-screen bg-#f5f7fb text-#1f2937">
+  <BasePaging
+    ref="basePagingRef"
+    v-model:list="sourceList"
+    :fixed="true"
+    :page-size="10"
+    empty-text="暂无指数数据"
+    @query="onQuery"
+  >
     <view class="px-4 pb-3 pt-4">
-      <view class="flex justify-end">
+      <view class="flex items-center justify-between">
         <text class="text-base text-#b2bac7">
           数据更新日：{{ dataDate || '--' }}
         </text>
+        <wd-icon name="refresh" custom-class="text-#9ca3af! text-base!" @click="refreshList" />
       </view>
     </view>
 
@@ -208,12 +252,10 @@ function normalizeDividendRate(rate: number | null): number {
         custom-class="list-row-cell"
         :border="false"
         value-align="left"
-        clickable
-        @click="openDetail(item)"
       >
         <view class="w-full flex items-center">
           <view class="w-[45%] overflow-hidden">
-            <text class="block truncate text-base text-#1f2937 font-medium leading-6">
+            <text class="block truncate text-base text-#1f2937 font-medium leading-6" @click="openDetail(item)">
               {{ item.name }}
             </text>
             <view class="mt-1 flex items-center gap-1.5">
@@ -245,19 +287,8 @@ function normalizeDividendRate(rate: number | null): number {
           </view>
         </view>
       </wd-cell>
-
-      <view v-if="displayList.length === 0" class="py-8 text-center text-sm text-#9ca3af">
-        暂无指数数据
-      </view>
     </view>
-
-    <view v-if="displayList.length > 0" class="pb-[calc(env(safe-area-inset-bottom)+18px)] pt-6 text-center">
-      <view class="inline-flex items-center gap-2 text-lg text-#8b95a5">
-        <text>上滑加载更多</text>
-        <wd-loading custom-class="load-icon" type="ring" />
-      </view>
-    </view>
-  </view>
+  </BasePaging>
 </template>
 
 <style lang="scss" scoped>
@@ -307,10 +338,5 @@ function normalizeDividendRate(rate: number | null): number {
   color: #d1d5db !important;
   height: 10px !important;
   line-height: 10px !important;
-}
-
-.load-icon {
-  width: 16px !important;
-  height: 16px !important;
 }
 </style>

@@ -88,6 +88,8 @@ export interface YuEBaoPoint {
  * 月度分红资产池代码枚举
  */
 export enum MonthlyDividendPoolCode {
+  /** 主资产池 */
+  MAIN = 'main',
   /** 月月分红ETF */
   ETF = 'monthly-dividend-etf',
   /** 月月分红场外基金 */
@@ -116,4 +118,13 @@ export interface AssetPoolResponse {
   adjust_date: string
   assets: AssetPoolAsset[]
   total_count: number
+}
+
+/**
+ * 资产池分页参数
+ */
+export interface AssetPoolQueryParams {
+  page_no?: number
+  page_size?: number
+  adjust_date?: string
 }

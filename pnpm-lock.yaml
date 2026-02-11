@@ -101,6 +101,9 @@ importers:
       wot-design-uni:
         specifier: ^1.14.0
         version: 1.14.0(vue@3.4.38(typescript@5.5.4))
+      z-paging:
+        specifier: ^2.8.4
+        version: 2.8.8
     devDependencies:
       '@alova/wormhole':
         specifier: ^1.1.2
@@ -7889,6 +7892,10 @@ packages:
   yocto-queue@1.2.2:
     resolution: {integrity: sha512-4LCcse/U2MHZ63HAJVE+v71o7yOdIe4cZ70Wpf8D/IyjDKYQLV5GD46B+hSTjJsvV5PztjvHoU580EftxjDZFQ==}
     engines: {node: '>=12.20'}
+
+  z-paging@2.8.8:
+    resolution: {integrity: sha512-l8HWhqlv1TvoNLwbf1fd8rS0zjAoVE6tdEUhMhKrnRXkfHFULIXMbDpljcSr6IyQoMzfWxF4Nqml3+2ZDgjk7g==}
+    engines: {HBuilderX: ^3.0.7, uni-app: ^4.07}
 
   zod-validation-error@3.5.4:
     resolution: {integrity: sha512-+hEiRIiPobgyuFlEojnqjJnhFvg4r/i3cqgcm67eehZf/WBaK3g6cD02YU9mtdVxZjv8CzCA9n/Rhrs3yAAvAw==}
@@ -17624,6 +17631,8 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yocto-queue@1.2.2: {}
+
+  z-paging@2.8.8: {}
 
   zod-validation-error@3.5.4(zod@3.25.76):
     dependencies:

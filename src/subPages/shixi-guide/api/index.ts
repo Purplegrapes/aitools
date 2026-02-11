@@ -4,6 +4,7 @@
  */
 import { alovaInstance } from '@/api/core/instance'
 import { MonthlyDividendPoolCode } from '../types'
+import type { AssetPoolQueryParams } from '../types'
 
 /**
  * 获取资产详情
@@ -35,10 +36,8 @@ export function getFactorHistory(params: {
  */
 export function getAssetPoolData(
   poolCode: MonthlyDividendPoolCode = MonthlyDividendPoolCode.ETF,
-  adjustDate?: string,
+  params?: AssetPoolQueryParams,
 ) {
-  const params = adjustDate ? { adjust_date: adjustDate } : undefined
-
   return alovaInstance.Get(`/shixi-api/asset-pools/${poolCode}/assets`, {
     params,
   })

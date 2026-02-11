@@ -82,21 +82,21 @@
           }
         },
         {
+          "path": "shixi-guide/asset-detail",
+          "type": "page",
+          "name": "asset-detail",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "资产详情"
+          }
+        },
+        {
           "path": "shixi-guide/index-list",
           "type": "page",
           "name": "dividend-index-list",
           "layout": "default",
           "style": {
             "navigationBarTitleText": "红利指数浏览器"
-          }
-        },
-        {
-          "path": "shixi-guide/index",
-          "type": "page",
-          "name": "asset-detail",
-          "layout": "default",
-          "style": {
-            "navigationBarTitleText": "资产详情"
           }
         },
         {
