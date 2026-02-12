@@ -95,7 +95,7 @@ function toggleSort() {
 }
 
 function openDetail(item: DividendIndexItem) {
-  router.push(`/subPages/shixi-guide/asset-detail?code=${encodeURIComponent(item.code)}`)
+  router.push(`/subPages/shixi-guide/asset-detail?code=${encodeURIComponent(item.code)}&assetType=${encodeURIComponent(currentPoolCode.value)}`)
 }
 
 function getRateClass(rate: number) {

@@ -3,8 +3,9 @@ import type { EChartsOption } from 'echarts'
 import type { ApiFactorHistoryResponse, ChartDataPoint, DividendRatePoint, TimeRange, YuEBaoPoint } from './types'
 import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
-import { formatDecimalToPercent } from '@/utils/format'
+import { formatAssets, formatDecimalToPercent } from '@/utils/format'
 import { getAssetDetail, getFactorHistory } from './api'
+import { MonthlyDividendPoolCode } from './types'
 
 defineOptions({
   componentPlaceholder: {
@@ -30,7 +31,7 @@ const TIME_RANGE_OPTIONS: Array<{ value: TimeRange, label: string, days: number 
   { value: '1q', label: '近一季度', days: 90 },
 ] as const
 
-const query = computed(() => route.query as { code?: string, name?: string })
+const query = computed(() => route.query as { code?: string, name?: string, assetType?: string, poolCode?: string })
 
 const currentTimeRange = ref<TimeRange>('1w')
 const loading = ref(true)
@@ -86,8 +87,31 @@ const monthlyInvestmentText = computed(() => {
   return Number(value).toFixed(2)
 })
 
+const etfMonthlyInvestmentText = computed(() => {
+  const value = assetDetail.value?.monthly_dividend_investment
+  if (value == null || Number.isNaN(Number(value)))
+    return '--'
+  return formatAssets(Number(value))
+})
+
+const isEtfAsset = computed(() => {
+  const assetType = toText(query.value.assetType || query.value.poolCode).toLowerCase()
+  if (!assetType)
+    return false
+  return assetType === MonthlyDividendPoolCode.ETF || assetType.includes('etf')
+})
+
 const detailRows = computed(() => {
   const detail = (assetDetail.value ?? {}) as Record<string, unknown>
+  if (isEtfAsset.value) {
+    return [
+      { label: '股息率(TTM)', value: formattedDividendRate.value, icon: 'chart' },
+      { label: '管理公司', value: toText(detail.management_company) || '--', icon: 'layers' },
+      { label: '成立日期', value: toText(detail.establishment_date) || '--', icon: 'time' },
+      { label: '月分红投入', value: etfMonthlyInvestmentText.value, icon: 'creditcard' },
+    ]
+  }
+
   const shortName = toText(detail.short_name)
     || toText(assetTitle.value.replace(/指数$/, ''))
     || '--'
