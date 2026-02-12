@@ -87,43 +87,62 @@ const monthlyInvestmentText = computed(() => {
   return Number(value).toFixed(2)
 })
 
-const etfMonthlyInvestmentText = computed(() => {
-  const value = assetDetail.value?.monthly_dividend_investment
-  if (value == null || Number.isNaN(Number(value)))
-    return '--'
-  return formatAssets(Number(value))
-})
-
-const isEtfAsset = computed(() => {
-  const assetType = toText(query.value.assetType || query.value.poolCode).toLowerCase()
-  if (!assetType)
-    return false
-  return assetType === MonthlyDividendPoolCode.ETF || assetType.includes('etf')
-})
-
 const detailRows = computed(() => {
   const detail = (assetDetail.value ?? {}) as Record<string, unknown>
-  if (isEtfAsset.value) {
+  if (query.value.assetType === 'INDEX') {
+    const shortName = toText(detail.short_name)
+      || toText(assetTitle.value.replace(/指数$/, ''))
+      || '--'
+
     return [
-      { label: '股息率(TTM)', value: formattedDividendRate.value, icon: 'chart' },
-      { label: '管理公司', value: toText(detail.management_company) || '--', icon: 'layers' },
-      { label: '成立日期', value: toText(detail.establishment_date) || '--', icon: 'time' },
-      { label: '月分红投入', value: etfMonthlyInvestmentText.value, icon: 'creditcard' },
+      { label: '指数简称', value: shortName, icon: 'chart-pie' },
+      { label: '指数成分个数', value: toText(detail.constituent_count) || toText(detail.constituents_count) || '--', icon: 'layers' },
+      { label: '指数加权方式', value: toText(detail.weight_method) || '--', icon: 'swap' },
+      { label: '指数样本调整周期', value: toText(detail.rebalance_cycle) || '--', icon: 'time' },
+      { label: '食息率(TTM)', value: formattedDividendRate.value, icon: 'chart' },
+      { label: '每月千元分红需总投入(万元)', value: monthlyInvestmentText.value, icon: 'creditcard' },
     ]
   }
 
-  const shortName = toText(detail.short_name)
-    || toText(assetTitle.value.replace(/指数$/, ''))
-    || '--'
+  const rows: Array<{ label: string, value: string, icon: string }> = []
 
-  return [
-    { label: '指数简称', value: shortName, icon: 'chart-pie' },
-    { label: '指数成分个数', value: toText(detail.constituent_count) || toText(detail.constituents_count) || '--', icon: 'layers' },
-    { label: '指数加权方式', value: toText(detail.weight_method) || '--', icon: 'swap' },
-    { label: '指数样本调整周期', value: toText(detail.rebalance_cycle) || '--', icon: 'time' },
-    { label: '食息率(TTM)', value: formattedDividendRate.value, icon: 'chart' },
-    { label: '每月千元分红需总投入(万元)', value: monthlyInvestmentText.value, icon: 'creditcard' },
-  ]
+  const dividendRate = toNumber(detail.dividend_rate)
+  if (dividendRate != null) {
+    rows.push({
+      label: '食息率',
+      value: formatDecimalToPercent(dividendRate),
+      icon: 'chart',
+    })
+  }
+
+  const managementCompany = toText(detail.management_company)
+  if (managementCompany) {
+    rows.push({
+      label: '管理公司',
+      value: managementCompany,
+      icon: 'layers',
+    })
+  }
+
+  const establishmentDate = toText(detail.establishment_date)
+  if (establishmentDate) {
+    rows.push({
+      label: '成立日期',
+      value: establishmentDate,
+      icon: 'time',
+    })
+  }
+
+  const monthlyInvestment = toNumber(detail.monthly_dividend_investment)
+  if (monthlyInvestment != null) {
+    rows.push({
+      label: '月分红投入',
+      value: formatAssets(monthlyInvestment),
+      icon: 'creditcard',
+    })
+  }
+
+  return rows
 })
 
 function parseDateUTC(dateString: string): Date | null {
@@ -386,6 +405,13 @@ function toText(value: unknown): string {
   return text === '' ? '' : text
 }
 
+function toNumber(value: unknown): number | null {
+  if (value == null)
+    return null
+  const numberValue = Number(value)
+  return Number.isFinite(numberValue) ? numberValue : null
+}
+
 onMounted(async () => {
   const code = query.value.code
 
@@ -434,7 +460,10 @@ onMounted(async () => {
         </view>
       </view>
 
-      <view class="mt-2 rounded-3xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]">
+      <view
+        v-if="detailRows.length"
+        class="mt-2 rounded-3xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]"
+      >
         <view
           v-for="(row, index) in detailRows"
           :key="row.label"
@@ -494,7 +523,7 @@ onMounted(async () => {
         </view>
       </view>
 
-      <view class="mt-4 rounded-3xl px-1 pb-2 pt-1">
+      <view v-if="query.assetType === 'INDEX'" class="mt-4 rounded-3xl px-1 pb-2 pt-1">
         <text class="text-sm text-#94a3b8 font-500">
           数据说明：
         </text>
