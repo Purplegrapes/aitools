@@ -307,7 +307,7 @@ const chartOption = computed<EChartsOption>(() => ({
         const value = param.value?.[1]?.toFixed(2) || '0.00'
         return `${param.seriesName}: ${value}%`
       })
-      return [date, ...lines].join('<br/>')
+      return [date, ...lines].join('\n')
     },
   },
   xAxis: {
