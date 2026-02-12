@@ -94,10 +94,6 @@ function toggleSort() {
   descending.value = !descending.value
 }
 
-function refreshList() {
-  reload(true)
-}
-
 function openDetail(item: DividendIndexItem) {
   router.push(`/subPages/shixi-guide/asset-detail?code=${encodeURIComponent(item.code)}`)
 }
@@ -254,7 +250,7 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
       >
         <view class="w-full flex items-center" @click="openDetail(item)">
           <view class="w-[45%] overflow-hidden">
-            <text class="block truncate text-sm text-#1f2937 font-medium leading-5">
+            <text class="block truncate text-xs text-#1f2937 font-medium leading-5">
               {{ item.name }}
             </text>
             <view class="mt-1 flex items-center gap-1.5">
@@ -274,13 +270,13 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
           </view>
 
           <view class="w-[30%] text-center">
-            <text class="text-base font-semibold leading-5" :class="getRateClass(item.dividendRate)">
+            <text class="text-sm font-semibold leading-5" :class="getRateClass(item.dividendRate)">
               {{ formatRate(item.dividendRate) }}
             </text>
           </view>
 
           <view class="w-[25%] text-right">
-            <text class="text-base text-#111827 font-semibold leading-5">
+            <text class="text-sm text-#111827 font-semibold leading-5">
               {{ item.constituentCount }}
             </text>
           </view>

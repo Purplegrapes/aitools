@@ -97,7 +97,7 @@ const detailRows = computed(() => {
     { label: '指数成分个数', value: toText(detail.constituent_count) || toText(detail.constituents_count) || '--', icon: 'layers' },
     { label: '指数加权方式', value: toText(detail.weight_method) || '--', icon: 'swap' },
     { label: '指数样本调整周期', value: toText(detail.rebalance_cycle) || '--', icon: 'time' },
-    { label: '股息率(TTM)', value: formattedDividendRate.value, icon: 'chart' },
+    { label: '食息率(TTM)', value: formattedDividendRate.value, icon: 'chart' },
     { label: '每月千元分红需总投入(万元)', value: monthlyInvestmentText.value, icon: 'creditcard' },
   ]
 })
@@ -298,7 +298,7 @@ const chartOption = computed<EChartsOption>(() => ({
   },
   series: [
     {
-      name: '股息率',
+      name: '食息率',
       type: 'line',
       showSymbol: false,
       smooth: true,
@@ -432,7 +432,7 @@ onMounted(async () => {
       <view class="mt-4 rounded-3xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]">
         <view class="flex items-center gap-2">
           <text class="text-lg text-#0f172a font-700">
-            股息率
+            食息率
           </text>
           <wd-icon name="info-circle" custom-class="text-#94a3b8! text-sm! leading-none!" />
         </view>
@@ -445,7 +445,7 @@ onMounted(async () => {
             <view class="legend-item">
               <view class="legend-line legend-line-blue" />
               <text class="text-xs text-#64748b">
-                股息率 {{ latestDividendValue }}
+                食息率 {{ latestDividendValue }}
               </text>
             </view>
             <view class="legend-item justify-end">

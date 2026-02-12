@@ -97,7 +97,7 @@ async function redirectToTarget(referer: string) {
 <style lang="scss" scoped>
 .tamp-page {
   min-height: 100vh;
-  background: #f9f9f9;
+  background: #ffffff;
 }
 
 .content {
