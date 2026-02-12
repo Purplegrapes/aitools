@@ -13,12 +13,15 @@ const showBack = computed(() => {
 const navbarConfig = computed(() => {
   // 从页面 definePage 的 style 中获取导航栏标题
   const title = (route as any)?.style?.navigationBarTitleText
+  const isAssetDetail = route.name === 'asset-detail'
   return {
     title,
     leftArrow: showBack.value,
-    border: false,
+    bordered: false,
     fixed: true,
-    placeholder: true,
+    placeholder: !isAssetDetail,
+    customStyle: isAssetDetail ? 'background: transparent; box-shadow: none;' : '',
+    zIndex: isAssetDetail ? 20 : 10,
     safeAreaInsetTop: true,
     onClickLeft: showBack.value ? () => router.back() : undefined,
   }
