@@ -5,7 +5,6 @@ import SegmentedControl from '@/components/SegmentedControl.vue'
 import LineChart from '@/subEcharts/echarts/components/LineChart.vue'
 import { formatAssets, formatDecimalToPercent } from '@/utils/format'
 import { getAssetDetail, getFactorHistory } from './api'
-import { MonthlyDividendPoolCode } from './types'
 
 defineOptions({
   componentPlaceholder: {
@@ -444,8 +443,7 @@ onMounted(async () => {
     </view>
 
     <view v-else class="px-4 pb-5 pt-2">
-      <view class="hero-panel relative overflow-hidden px-4 pb-5 pt-3 -mx-4">
-        <view class="hero-lines" />
+      <view class="relative overflow-hidden px-4 pb-4 pt-3 -mx-4">
         <view class="relative z-10">
           <text class="block text-lg text-#0f172a font-700 leading-tight">
             {{ assetTitle }}
@@ -455,6 +453,7 @@ onMounted(async () => {
             <text class="text-#94a3b8">
               |
             </text>
+            <wd-icon name="calendar" custom-class="text-secondary text-xs leading-none" />
             <text>更新日期：{{ updatedDate }}</text>
           </view>
         </view>
@@ -471,12 +470,11 @@ onMounted(async () => {
           :class="index < detailRows.length - 1 ? 'border-b border-#eef2f7' : ''"
         >
           <view class="flex items-center gap-2.5">
-            <wd-icon :name="row.icon" custom-class="text-#2b6ef5! text-base! leading-none!" />
-            <text class="text-sm text-#4b5563 leading-5">
+            <text class="text-sm text-regular leading-5">
               {{ row.label }}
             </text>
           </view>
-          <text class="text-sm text-#1f2937 font-500 leading-5">
+          <text class="text-sm text-#1f2937 leading-5">
             {{ row.value }}
           </text>
         </view>
@@ -542,22 +540,7 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .asset-detail-page {
-  background:
-    linear-gradient(165deg, #c7daf8 0%, #d4e4fb 18%, #e6effb 32%, #f2f5fa 44%, #f2f5fa 100%);
-}
-
-.hero-panel {
-  min-height: 66px;
-}
-
-.hero-lines {
-  position: absolute;
-  left: -48px;
-  top: -18px;
-  height: 240px;
-  width: 240px;
-  background: repeating-linear-gradient(132deg, rgba(255, 255, 255, 0.3) 0 2px, transparent 2px 9px);
-  opacity: 0.45;
+  background: linear-gradient( 180deg, #CFE3FB 0%, #EBF3FE 48.81%, #F5F7FA 100%);
 }
 
 .legend-item {

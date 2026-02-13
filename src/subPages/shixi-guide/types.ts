@@ -88,8 +88,8 @@ export interface YuEBaoPoint {
  * 月度分红资产池代码枚举
  */
 export enum MonthlyDividendPoolCode {
-  /** 主资产池 */
-  MAIN = 'main',
+  /** 红利指数浏览器 */
+  INDEX_BROWSER = 'dividend-index-browser',
   /** 月月分红ETF */
   ETF = 'monthly-dividend-etf',
   /** 月月分红场外基金 */

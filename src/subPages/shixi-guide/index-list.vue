@@ -13,7 +13,7 @@ interface DividendIndexItem {
   name: string
   code: string
   dividendRate: number
-  constituentCount: number
+  updatedDate: string
   tag?: MarketTag
 }
 
@@ -34,7 +34,7 @@ const router = useRouter()
 const route = useRoute()
 const descending = ref(true)
 
-const DEFAULT_POOL_CODE = MonthlyDividendPoolCode.ETF
+const DEFAULT_POOL_CODE = MonthlyDividendPoolCode.INDEX_BROWSER
 const dataDate = ref('')
 const currentPoolCode = ref<MonthlyDividendPoolCode>(DEFAULT_POOL_CODE)
 const sourceList = ref<DividendIndexItem[]>([])
@@ -99,7 +99,7 @@ function openDetail(item: DividendIndexItem) {
 }
 
 function getRateClass(rate: number) {
-  return rate >= 0 ? 'text-#ef4444' : 'text-#16a34a'
+  return rate >= 0 ? 'text-red' : 'text-green'
 }
 
 function formatRate(rate: number) {
@@ -115,14 +115,16 @@ function mapAssetToIndexItem(asset: AssetPoolAsset): DividendIndexItem | null {
 
   const rawDividendRate = toNumber(raw.dividend_rate, raw.dividendRate, raw.dividend_yield)
   const dividendRate = normalizeDividendRate(rawDividendRate)
-  const constituentCount = toNumber(raw.constituent_count, raw.constituents_count, raw.count) ?? 0
   const marketTag = toStringValue(raw.market_tag, raw.tag, raw.market, raw.exchange)
+  const updatedDate = formatDateValue(
+    toStringValue(raw.updated_at, raw.update_date, raw.adjust_date),
+  )
 
   return {
     name,
     code,
     dividendRate,
-    constituentCount,
+    updatedDate,
     tag: createMarketTag(marketTag),
   }
 }
@@ -199,6 +201,20 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
   }
   return DEFAULT_POOL_CODE
 }
+
+function formatDateValue(raw: string): string {
+  if (!raw)
+    return '--'
+  if (raw.includes('T'))
+    return raw.split('T')[0] || '--'
+  return raw.slice(0, 10) || '--'
+}
+
+function getRowUpdatedDate(item: DividendIndexItem): string {
+  if (item.updatedDate !== '--')
+    return item.updatedDate
+  return formatDateValue(dataDate.value)
+}
 </script>
 
 <template>
@@ -237,7 +253,7 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
           </view>
         </view>
         <text class="w-[25%] text-right">
-          成分个数
+          更新日期
         </text>
       </view>
 
@@ -250,11 +266,11 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
       >
         <view class="w-full flex items-center" @click="openDetail(item)">
           <view class="w-[45%] overflow-hidden">
-            <text class="block truncate text-xs text-#1f2937 font-medium leading-5">
+            <text class="block truncate text-sm text-primary font-medium leading-5">
               {{ item.name }}
             </text>
             <view class="mt-1 flex items-center gap-1.5">
-              <text class="text-xs text-#8b95a5 leading-4">
+              <text class="text-xs text-secondary leading-4">
                 {{ item.code }}
               </text>
               <wd-tag
@@ -276,8 +292,8 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
           </view>
 
           <view class="w-[25%] text-right">
-            <text class="text-sm text-#111827 font-semibold leading-5">
-              {{ item.constituentCount }}
+            <text class="text-sm text-primary leading-5">
+              {{ getRowUpdatedDate(item) }}
             </text>
           </view>
         </view>
@@ -301,8 +317,8 @@ function normalizePoolCode(value: unknown): MonthlyDividendPoolCode {
 }
 
 :deep(.list-row-cell .wd-cell__wrapper) {
-  min-height: 64px !important;
-  padding: 7px 0 !important;
+  min-height: 112rpx !important;
+  padding: 0 !important;
   border-bottom: 1rpx solid #e5e7eb !important;
   align-items: center !important;
 }

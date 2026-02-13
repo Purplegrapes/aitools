@@ -8,6 +8,17 @@ import {
 } from 'unocss'
 
 export default defineConfig({
+  theme: {
+    colors: {
+      primary: '#1D2129',
+      regular: '#4E5969',
+      secondary: '#8A95A1',
+      tertiary: '#BBBFCB',
+      blue: '#1890ff',
+      red: '#F02D30 ',
+      green: '#1AAE52',
+    },
+  },
   presets: [
     presetUni({
       attributify: false,
