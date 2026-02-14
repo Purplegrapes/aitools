@@ -96,7 +96,7 @@ const detailRows = computed(() => {
     return [
       { label: '指数简称', value: shortName, icon: 'chart-pie' },
       { label: '指数成分个数', value: toText(detail.constituent_count) || toText(detail.constituents_count) || '--', icon: 'layers' },
-      { label: '指数加权方式', value: toText(detail.weight_method) || '--', icon: 'swap' },
+      { label: '指数加权方式', value: toText(detail.weighting_method) || '--', icon: 'swap' },
       { label: '指数样本调整周期', value: toText(detail.rebalance_cycle) || '--', icon: 'time' },
       { label: '食息率(TTM)', value: formattedDividendRate.value, icon: 'chart' },
       { label: '每月千元分红需总投入(万元)', value: monthlyInvestmentText.value, icon: 'creditcard' },
