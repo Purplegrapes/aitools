@@ -445,12 +445,12 @@ onMounted(async () => {
     <view v-else class="px-4 pb-5 pt-2">
       <view class="relative overflow-hidden px-4 pb-4 pt-3 -mx-4">
         <view class="relative z-10">
-          <text class="block text-lg text-#0f172a font-700 leading-tight">
+          <text class="block text-xl text-primary font-500 leading-tight">
             {{ assetTitle }}
           </text>
-          <view class="mt-2 flex items-center gap-1.5 text-xs text-#475569">
+          <view class="mt-2 flex items-center gap-1.5 text-sm text-secondary">
             <text>{{ assetDisplayCode }}</text>
-            <text class="text-#94a3b8">
+            <text class="text-secondary">
               |
             </text>
             <wd-icon name="calendar" custom-class="text-secondary text-xs leading-none" />
@@ -461,7 +461,7 @@ onMounted(async () => {
 
       <view
         v-if="detailRows.length"
-        class="mt-2 rounded-3xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]"
+        class="rounded-2xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]"
       >
         <view
           v-for="(row, index) in detailRows"
@@ -474,35 +474,41 @@ onMounted(async () => {
               {{ row.label }}
             </text>
           </view>
-          <text class="text-sm text-#1f2937 leading-5">
+          <text class="text-sm text-primary leading-5">
             {{ row.value }}
           </text>
         </view>
       </view>
 
-      <view class="mt-4 rounded-3xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]">
+      <view class="mt-4 rounded-2xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]">
         <view class="flex items-center gap-2">
-          <text class="text-lg text-#0f172a font-700">
+          <text class="text-base text-primary font-500">
             食息率
           </text>
           <wd-icon name="info-circle" custom-class="text-#94a3b8! text-sm! leading-none!" />
         </view>
 
-        <view class="mt-3 rounded-2xl bg-#f2f5fb p-3">
+        <view class="mt-3 rounded-xl bg-#f2f5fb p-3">
           <text class="text-sm text-#9ca3af">
             {{ latestLegendDate }}
           </text>
           <view class="mt-2 flex items-center justify-between gap-3">
             <view class="legend-item">
               <view class="legend-line legend-line-blue" />
-              <text class="text-xs text-#64748b">
-                食息率 {{ latestDividendValue }}
+              <text class="text-xs text-secondary">
+                食息率
+              </text>
+              <text class="text-xs text-primary">
+                {{ latestDividendValue }}
               </text>
             </view>
             <view class="legend-item justify-end">
               <view class="legend-line legend-line-orange" />
-              <text class="text-xs text-#64748b">
-                余额宝7日年化 {{ latestYuEBaoValue }}
+              <text class="text-xs text-secondary">
+                余额宝7日年化
+              </text>
+              <text class="text-xs text-primary">
+                {{ latestYuEBaoValue }}
               </text>
             </view>
           </view>
