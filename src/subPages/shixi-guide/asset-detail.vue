@@ -437,28 +437,32 @@ onMounted(async () => {
 </script>
 
 <template>
-  <view class="asset-detail-page min-h-screen pb-[env(safe-area-inset-bottom)]">
+  <view class="min-h-screen from-#CFE3FB via-#EBF3FE to-#F5F7FA bg-gradient-to-b pb-[env(safe-area-inset-bottom)]">
     <view v-if="loading" class="flex items-center justify-center py-28">
       <wd-loading type="ring" />
     </view>
 
     <view v-else class="px-4 pb-5 pt-2">
-      <view class="relative overflow-hidden px-4 pb-4 pt-3 -mx-4">
-        <view class="relative z-10">
-          <text class="block text-xl text-primary font-500 leading-tight">
-            {{ assetTitle }}
+      <!-- 顶部标题区域 -->
+      <view class="pb-4">
+        <text class="block text-xl text-primary font-500 leading-tight">
+          {{ assetTitle }}
+        </text>
+        <view class="mt-2 flex items-center gap-1.5">
+          <text class="text-sm text-secondary">
+            {{ assetDisplayCode }}
           </text>
-          <view class="mt-2 flex items-center gap-1.5 text-sm text-secondary">
-            <text>{{ assetDisplayCode }}</text>
-            <text class="text-secondary">
-              |
-            </text>
-            <wd-icon name="calendar" custom-class="text-secondary text-xs leading-none" />
-            <text>更新日期：{{ updatedDate }}</text>
-          </view>
+          <text class="text-secondary">
+            |
+          </text>
+          <wd-icon name="calendar" custom-class="text-12px! text-secondary! leading-none!" />
+          <text class="text-sm text-secondary">
+            更新日期：{{ updatedDate }}
+          </text>
         </view>
       </view>
 
+      <!-- 指数详情卡片 -->
       <view
         v-if="detailRows.length"
         class="rounded-2xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]"
@@ -466,35 +470,34 @@ onMounted(async () => {
         <view
           v-for="(row, index) in detailRows"
           :key="row.label"
-          class="detail-row flex items-center justify-between py-2"
+          class="flex items-center justify-between py-2"
           :class="index < detailRows.length - 1 ? 'border-b border-#eef2f7' : ''"
         >
-          <view class="flex items-center gap-2.5">
-            <text class="text-sm text-regular leading-5">
-              {{ row.label }}
-            </text>
-          </view>
+          <text class="text-sm text-regular leading-5">
+            {{ row.label }}
+          </text>
           <text class="text-sm text-primary leading-5">
             {{ row.value }}
           </text>
         </view>
       </view>
 
+      <!-- 食息率图表卡片 -->
       <view class="mt-4 rounded-2xl bg-white p-3.5 shadow-[0_2px_16px_rgba(15,23,42,0.06)]">
         <view class="flex items-center gap-2">
           <text class="text-base text-primary font-500">
             食息率
           </text>
-          <wd-icon name="info-circle" custom-class="text-#94a3b8! text-sm! leading-none!" />
+          <wd-icon name="info-circle" custom-class="text-14px! text-tertiary! leading-none!" />
         </view>
 
         <view class="mt-3 rounded-xl bg-#f2f5fb p-3">
-          <text class="text-sm text-#9ca3af">
+          <text class="text-sm text-tertiary">
             {{ latestLegendDate }}
           </text>
           <view class="mt-2 flex items-center justify-between gap-3">
-            <view class="legend-item">
-              <view class="legend-line legend-line-blue" />
+            <view class="flex flex-1 items-center gap-1.5">
+              <view class="h-0.75 w-4 rounded-full bg-blue" />
               <text class="text-xs text-secondary">
                 食息率
               </text>
@@ -502,9 +505,9 @@ onMounted(async () => {
                 {{ latestDividendValue }}
               </text>
             </view>
-            <view class="legend-item justify-end">
-              <view class="legend-line legend-line-orange" />
-              <text class="text-xs text-secondary">
+            <view class="flex flex-1 items-center justify-end gap-1.5">
+              <view class="h-0.75 w-4 rounded-full bg-#ff7a1a" />
+              <text class="shrink-0 whitespace-nowrap text-xs text-secondary">
                 余额宝7日年化
               </text>
               <text class="text-xs text-primary">
@@ -527,16 +530,17 @@ onMounted(async () => {
         </view>
       </view>
 
-      <view v-if="query.assetType === 'INDEX'" class="mt-4 rounded-3xl px-1 pb-2 pt-1">
-        <text class="text-sm text-#94a3b8 font-500">
+      <!-- 数据说明 -->
+      <view v-if="query.assetType === 'INDEX'" class="mt-4 px-1 pb-2 pt-1">
+        <text class="text-sm text-tertiary font-500">
           数据说明：
         </text>
         <view class="mt-2.5 space-y-2">
-          <text class="block text-xs text-#94a3b8 leading-6">
-            1. 本表中“股息率”指标选取主要红利指数近12个月动态股息率；
+          <text class="block text-xs text-tertiary leading-6">
+            1. 本表中"股息率"指标选取主要红利指数近12个月动态股息率；
           </text>
-          <text class="block text-xs text-#94a3b8 leading-6">
-            2. 本表中“每月千元分红需总投入”仅考虑基于指数股息率计算所得的股息回报（理论值），对应ETF的实际分红到账取决于基金公司的分红策略，二者可能存在较大出入。
+          <text class="block text-xs text-tertiary leading-6">
+            2. 本表中"每月千元分红需总投入"仅考虑基于指数股息率计算所得的股息回报（理论值），对应ETF的实际分红到账取决于基金公司的分红策略，二者可能存在较大出入。
           </text>
         </view>
       </view>
@@ -545,28 +549,5 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-.asset-detail-page {
-  background: linear-gradient( 180deg, #CFE3FB 0%, #EBF3FE 48.81%, #F5F7FA 100%);
-}
-
-.legend-item {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: 6px;
-}
-
-.legend-line {
-  height: 3px;
-  width: 16px;
-  border-radius: 999px;
-}
-
-.legend-line-blue {
-  background: #2371eb;
-}
-
-.legend-line-orange {
-  background: #ff7a1a;
-}
+// 保留无法用 UnoCSS 表达的样式
 </style>
