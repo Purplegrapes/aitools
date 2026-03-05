@@ -18,6 +18,7 @@ definePage({
   layout: 'default',
   style: {
     navigationBarTitleText: '指数详情',
+    backgroundColor: '#F5F7FA',
   },
 })
 
@@ -437,12 +438,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <view class="min-h-screen from-#CFE3FB via-#EBF3FE to-#F5F7FA bg-gradient-to-b pb-[env(safe-area-inset-bottom)]">
-    <view v-if="loading" class="flex items-center justify-center py-28">
+  <view class="relative min-h-screen pb-[env(safe-area-inset-bottom)]">
+    <!-- 渐变背景 - 只覆盖页面高度的 40% -->
+    <view class="absolute left-0 right-0 top-0 h-[460rpx] from-#CFE3FB via-#EBF3FE to-#F5F7FA bg-gradient-to-b" />
+    <view v-if="loading" class="relative z-1 flex items-center justify-center py-28">
       <wd-loading type="ring" />
     </view>
 
-    <view v-else class="px-4 pb-5 pt-2">
+    <view v-else class="relative z-1 px-4 pb-5 pt-2">
       <!-- 顶部标题区域 -->
       <view class="pb-4">
         <text class="block text-xl text-primary font-500 leading-tight">

@@ -87,7 +87,8 @@
           "name": "asset-detail",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "指数详情"
+            "navigationBarTitleText": "指数详情",
+            "backgroundColor": "#F5F7FA"
           }
         },
         {
