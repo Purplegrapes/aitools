@@ -250,7 +250,7 @@ onMounted(() => {
           <view v-if="currentManager" class="space-y-4">
             <!-- 基金经理头部信息 -->
             <view class="flex items-center gap-3">
-              <view class="h-12 w-12 flex items-center justify-center rounded-full from-blue-400 to-blue-600 bg-gradient-to-br">
+              <view class="from-blue-400 to-blue-600 h-12 w-12 flex items-center justify-center rounded-full bg-gradient-to-br">
                 <text class="text-lg text-white font-semibold">
                   {{ currentManager.name?.charAt(0) || '基' }}
                 </text>
@@ -325,7 +325,7 @@ onMounted(() => {
                   <view class="mb-1 text-xs text-gray-500">
                     市盈率 (PE)
                   </view>
-                  <view class="text-lg text-blue-600 font-bold">
+                  <view class="text-blue-600 text-lg font-bold">
                     {{ currentIndicators.pe || '--' }}
                   </view>
                 </view>
@@ -341,7 +341,7 @@ onMounted(() => {
                   <view class="mb-1 text-xs text-gray-500">
                     股息率
                   </view>
-                  <view class="text-base text-green-600 font-semibold">
+                  <view class="text-green-600 text-base font-semibold">
                     {{ formatPercentage(currentIndicators.dividendYield) }}
                   </view>
                 </view>

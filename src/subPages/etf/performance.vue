@@ -296,8 +296,8 @@ function handlePeriodChange(value: string) {
   <view class="relative min-h-screen overflow-hidden bg-slate-50">
     <!-- 背景装饰 -->
     <view class="pointer-events-none fixed inset-0 z-0">
-      <view class="absolute h-300px w-300px rounded-full bg-green-100 opacity-40 blur-80px -right-100px -top-100px" />
-      <view class="absolute bottom-20% h-250px w-250px rounded-full bg-blue-100 opacity-40 blur-80px -left-80px" />
+      <view class="bg-green-100 absolute h-300px w-300px rounded-full opacity-40 blur-80px -right-100px -top-100px" />
+      <view class="bg-blue-100 absolute bottom-20% h-250px w-250px rounded-full opacity-40 blur-80px -left-80px" />
       <view class="absolute top-1/2 h-200px w-200px rounded-full bg-amber-100 opacity-40 blur-80px -right-50px" />
     </view>
 

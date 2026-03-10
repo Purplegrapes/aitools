@@ -83,7 +83,7 @@ const introParagraphs = computed(() => {
 
     <!-- 错误状态 -->
     <view v-else-if="error" class="min-h-screen flex flex-col items-center justify-center gap-4">
-      <text class="text-sm text-red-500">
+      <text class="text-red-500 text-sm">
         加载失败，请重试
       </text>
     </view>

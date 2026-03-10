@@ -964,7 +964,7 @@ onUnload(() => {
         <text class="text-sm text-slate-800 font-semibold">
           关键指标
         </text>
-        <view class="flex items-center gap-1 text-xs text-blue-600" @click="goFundDetail">
+        <view class="text-blue-600 flex items-center gap-1 text-xs" @click="goFundDetail">
           <text>基本资料</text>
           <wd-icon name="arrow-right" custom-class="text-blue-600!" />
         </view>
@@ -1005,7 +1005,7 @@ onUnload(() => {
             <text class="mb-1 block text-xs text-slate-500">
               市盈率 (PE)
             </text>
-            <text class="text-xl text-blue-600 font-bold">
+            <text class="text-blue-600 text-xl font-bold">
               {{ currentValuationData.pe || '--' }}
             </text>
           </view>
@@ -1021,7 +1021,7 @@ onUnload(() => {
             <text class="mb-1 block text-xs text-slate-500">
               股息率
             </text>
-            <text class="text-base text-green-600 font-semibold">
+            <text class="text-green-600 text-base font-semibold">
               {{ formatPercentage(currentValuationData.dividend_yield) }}
             </text>
           </view>

@@ -19,6 +19,7 @@ definePage({
   style: {
     navigationBarTitleText: '指数详情',
     backgroundColor: '#F5F7FA',
+    navigationBarBackgroundColor: '#CFE3FB',
   },
 })
 

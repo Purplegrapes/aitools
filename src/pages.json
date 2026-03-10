@@ -14,7 +14,7 @@
     "animationDuration": 300
   },
   "pages": [
-    // #ifdef H5 || MP-WEIXIN
+    // #ifdef MP-WEIXIN
     {
       "path": "pages/index/index",
       "type": "home",
@@ -25,6 +25,17 @@
       }
     },
     // #endif
+    {
+      "path": "pages/index/index",
+      "type": "home",
+      "name": "home",
+      "layout": "tabbar",
+      "style": {
+        "navigationBarTitleText": "Beta Mini",
+        "navigationBarBackgroundColor": "#4F46E5",
+        "navigationBarTextStyle": "white"
+      }
+    },
     {
       "path": "pages/about/index",
       "type": "page",
@@ -88,7 +99,8 @@
           "layout": "default",
           "style": {
             "navigationBarTitleText": "指数详情",
-            "backgroundColor": "#F5F7FA"
+            "backgroundColor": "#F5F7FA",
+            "navigationBarBackgroundColor": "#CFE3FB"
           }
         },
         {
