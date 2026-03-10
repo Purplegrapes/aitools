@@ -73,6 +73,18 @@ function getTampBaseURL(): string {
 }
 
 /**
+ * 获取 Tools API 基础 URL
+ */
+function getToolsBaseURL(): string {
+  // #ifdef H5
+  return ''
+  // #endif
+  // #ifndef H5
+  return import.meta.env.VITE_TOOLS_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || ''
+  // #endif
+}
+
+/**
  * 获取存储的 token
  */
 function getToken(): string {
@@ -106,9 +118,6 @@ export const alovaInstance = createAlova({
     if (method.url.startsWith('/app-api')) {
       token = cookie.get('ticket')
     }
-    // 资产 API 使用不同的 baseURL
-    // 判断是否需要使用资产 API 服务器
-
     if (method.url.startsWith('/shixi-api')) {
       const assetBaseURL = getAssetBaseURL()
       if (assetBaseURL) {
@@ -136,6 +145,18 @@ export const alovaInstance = createAlova({
       }
     }
 
+    if (method.url.startsWith('/tools-api')) {
+      const toolsBaseURL = getToolsBaseURL()
+      if (toolsBaseURL) {
+        // #ifndef H5
+        method.url = `${toolsBaseURL}${method.url}`
+        // #endif
+        // #ifdef H5
+        // H5 环境由代理处理，保持 URL 不变
+        // #endif
+      }
+    }
+
     // 添加 token 到请求头
     if (token) {
       method.config.headers.Authorization = `${token}`
@@ -156,8 +177,10 @@ export const alovaInstance = createAlova({
       let apiType = '[Main API]'
       if (method.url.includes('/api/assets') || method.url.startsWith('/shixi-api'))
         apiType = '[Asset API]'
-      else if (method.url.startsWith('/tamp-api'))
+      else if (method.url.startsWith('/tamp-api') || method.url.startsWith('/app-api'))
         apiType = '[TAMP API]'
+      else if (method.url.startsWith('/tools-api'))
+        apiType = '[Tools API]'
 
       console.log(`${apiType} Request] ${method.type} ${method.url}`, method.data || method.config.params)
       console.log(`[Environment] ${import.meta.env.VITE_ENV_NAME}`)
