@@ -45,7 +45,7 @@ definePage({
   layout: 'default',
   style: {
     navigationBarTitleText: 'ETF详情',
-    navigationBarBackgroundColor: '#f8fafc',
+    navigationBarBackgroundColor: '#FFFFFF',
     navigationBarTextStyle: 'black',
   },
 })
@@ -936,132 +936,136 @@ onUnload(() => {
 </script>
 
 <template>
-  <view class="min-h-screen bg-gray-50 pb-[env(safe-area-inset-bottom)]">
-    <!-- Sticky Tabs -->
-    <wd-sticky :z-index="99">
-      <wd-tabs v-model="tabValue" sticky @click="handleTabsChange">
-        <block v-for="item in tabs" :key="item.name">
-          <wd-tab :title="item.label" :name="item.name" />
-        </block>
-      </wd-tabs>
+  <view class="min-h-screen bg-[#F8FAFC] pb-[env(safe-area-inset-bottom)]">
+    <!-- Sticky Tabs - 浅色主题 -->
+    <wd-sticky :z-index="99" :offset-top="0">
+      <view class="border-b border-black/[0.08] bg-white/95 backdrop-blur-xl">
+        <wd-tabs v-model="tabValue" sticky line-color="#00D4AA" @click="handleTabsChange">
+          <block v-for="item in tabs" :key="item.name">
+            <wd-tab :title="item.label" :name="item.name" />
+          </block>
+        </wd-tabs>
+      </view>
     </wd-sticky>
 
     <!-- 内容区域 -->
-    <view class="px-2 space-y-3">
+    <view class="px-3 space-y-3">
       <!-- 详情卡片 -->
-      <wd-collapse v-model="collapseValue">
-        <wd-collapse-item title="投资说明" name="detail">
-          <text class="text-sm text-gray-600 leading-relaxed">
-            {{ currentData.investIdea || '暂无说明' }}
+      <view class="border border-black/[0.08] rounded-2xl bg-white p-4 shadow-sm">
+        <wd-collapse v-model="collapseValue">
+          <wd-collapse-item title="投资说明" name="detail">
+            <text class="text-sm text-[#64748B] leading-relaxed">
+              {{ currentData.investIdea || '暂无说明' }}
+            </text>
+          </wd-collapse-item>
+        </wd-collapse>
+      </view>
+
+      <!-- 关键指标卡片 -->
+      <view class="border border-black/[0.08] rounded-2xl bg-white p-4 shadow-sm">
+        <view class="mb-4 flex items-center justify-between">
+          <text class="text-sm text-[#1F2937] font-semibold">
+            关键指标
           </text>
-        </wd-collapse-item>
-      </wd-collapse>
+          <view class="flex items-center gap-1 text-xs text-[#00D4AA]" @click="goFundDetail">
+            <text>基本资料</text>
+            <wd-icon name="arrow-right" custom-class="text-[#00D4AA]!" />
+          </view>
+        </view>
+
+        <view class="grid grid-cols-3 gap-4">
+          <!-- 行情数据 -->
+          <view v-if="tabValue === 'quotation'" class="space-y-3">
+            <view v-if="segmentedValue.quotation === '日内' && configShow" class="text-center">
+              <text class="mb-1 block text-xs text-[#64748B]">
+                当前价格
+              </text>
+              <text class="text-xl font-bold" :class="getPriceColorClass(currentData.riseFall)">
+                {{ currentData.currentPrice || '--' }}
+              </text>
+            </view>
+            <view v-else class="text-center">
+              <text class="mb-1 block text-xs text-[#64748B]">
+                后复权收盘价
+              </text>
+              <text class="text-xl text-[#1F2937] font-bold tabular-nums">
+                {{ currentData.quotationData?.[currentData.quotationData?.length - 1]?.f_mkt_close_price_adj || '--' }}
+              </text>
+            </view>
+            <view class="text-center">
+              <text class="mb-1 block text-xs text-[#64748B]">
+                折溢价率
+              </text>
+              <text class="text-base font-semibold tabular-nums" :class="getPriceColorClass(currentData.premiumRate)">
+                {{ formatPercentage(currentData.premiumRate) }}
+              </text>
+            </view>
+          </view>
+
+          <!-- 估值数据 -->
+          <view v-else class="space-y-3">
+            <view class="text-center">
+              <text class="mb-1 block text-xs text-[#64748B]">
+                市盈率 (PE)
+              </text>
+              <text class="text-xl text-[#0A4FE5] font-bold tabular-nums">
+                {{ currentValuationData.pe || '--' }}
+              </text>
+            </view>
+            <view class="text-center">
+              <text class="mb-1 block text-xs text-[#64748B]">
+                市净率 (PB)
+              </text>
+              <text class="text-xl text-[#FFD700] font-bold tabular-nums">
+                {{ currentValuationData.pb || '--' }}
+              </text>
+            </view>
+            <view class="text-center">
+              <text class="mb-1 block text-xs text-[#64748B]">
+                股息率
+              </text>
+              <text class="text-base text-[#00C853] font-semibold tabular-nums">
+                {{ formatPercentage(currentValuationData.dividend_yield) }}
+              </text>
+            </view>
+          </view>
+
+          <!-- 通用数据 -->
+          <view class="space-y-3">
+            <view class="text-center">
+              <text class="mb-1 block text-xs text-[#64748B]">
+                净资产(亿)
+              </text>
+              <text class="text-lg text-[#1F2937] font-semibold tabular-nums">
+                {{ currentData.fundNetAssets ? formatAssets(currentData.fundNetAssets) : '--' }}
+              </text>
+            </view>
+            <view v-if="segmentedValue.quotation !== '日内'" class="text-center">
+              <text class="mb-1 block text-xs text-[#64748B]">
+                年涨跌幅
+              </text>
+              <text class="text-base font-semibold tabular-nums" :class="getPriceColorClass(currentData.yearRiseFall)">
+                {{ formatPercentage(currentData.yearRiseFall) }}
+              </text>
+            </view>
+          </view>
+
+          <view class="space-y-3">
+            <view class="text-center">
+              <text class="mb-1 block text-xs text-[#64748B]">
+                数据日期
+              </text>
+              <text class="text-sm text-[#1F2937] tabular-nums">
+                {{ currentData.date || '--' }}
+              </text>
+            </view>
+          </view>
+        </view>
+      </view>
     </view>
 
-    <!-- 关键指标卡片 -->
-    <wd-card custom-class="m-3! py-3!">
-      <view class="mb-4 flex items-center justify-between">
-        <text class="text-sm text-slate-800 font-semibold">
-          关键指标
-        </text>
-        <view class="text-blue-600 flex items-center gap-1 text-xs" @click="goFundDetail">
-          <text>基本资料</text>
-          <wd-icon name="arrow-right" custom-class="text-blue-600!" />
-        </view>
-      </view>
-
-      <view class="grid grid-cols-3 gap-4">
-        <!-- 行情数据 -->
-        <view v-if="tabValue === 'quotation'" class="space-y-3">
-          <view v-if="segmentedValue.quotation === '日内' && configShow" class="text-center">
-            <text class="mb-1 block text-xs text-slate-500">
-              当前价格
-            </text>
-            <text class="text-xl font-bold" :class="getPriceColorClass(currentData.riseFall)">
-              {{ currentData.currentPrice || '--' }}
-            </text>
-          </view>
-          <view v-else class="text-center">
-            <text class="mb-1 block text-xs text-slate-500">
-              后复权收盘价
-            </text>
-            <text class="text-xl text-slate-800 font-bold">
-              {{ currentData.quotationData?.[currentData.quotationData?.length - 1]?.f_mkt_close_price_adj || '--' }}
-            </text>
-          </view>
-          <view class="text-center">
-            <text class="mb-1 block text-xs text-slate-500">
-              折溢价率
-            </text>
-            <text class="text-base font-semibold" :class="getPriceColorClass(currentData.premiumRate)">
-              {{ formatPercentage(currentData.premiumRate) }}
-            </text>
-          </view>
-        </view>
-
-        <!-- 估值数据 -->
-        <view v-else class="space-y-3">
-          <view class="text-center">
-            <text class="mb-1 block text-xs text-slate-500">
-              市盈率 (PE)
-            </text>
-            <text class="text-blue-600 text-xl font-bold">
-              {{ currentValuationData.pe || '--' }}
-            </text>
-          </view>
-          <view class="text-center">
-            <text class="mb-1 block text-xs text-slate-500">
-              市净率 (PB)
-            </text>
-            <text class="text-xl text-amber-600 font-bold">
-              {{ currentValuationData.pb || '--' }}
-            </text>
-          </view>
-          <view class="text-center">
-            <text class="mb-1 block text-xs text-slate-500">
-              股息率
-            </text>
-            <text class="text-green-600 text-base font-semibold">
-              {{ formatPercentage(currentValuationData.dividend_yield) }}
-            </text>
-          </view>
-        </view>
-
-        <!-- 通用数据 -->
-        <view class="space-y-3">
-          <view class="text-center">
-            <text class="mb-1 block text-xs text-slate-500">
-              净资产(亿)
-            </text>
-            <text class="text-lg text-slate-800 font-semibold">
-              {{ currentData.fundNetAssets ? formatAssets(currentData.fundNetAssets) : '--' }}
-            </text>
-          </view>
-          <view v-if="segmentedValue.quotation !== '日内'" class="text-center">
-            <text class="mb-1 block text-xs text-slate-500">
-              年涨跌幅
-            </text>
-            <text class="text-base font-semibold" :class="getPriceColorClass(currentData.yearRiseFall)">
-              {{ formatPercentage(currentData.yearRiseFall) }}
-            </text>
-          </view>
-        </view>
-
-        <view class="space-y-3">
-          <view class="text-center">
-            <text class="mb-1 block text-xs text-slate-500">
-              数据日期
-            </text>
-            <text class="text-sm text-slate-700">
-              {{ currentData.date || '--' }}
-            </text>
-          </view>
-        </view>
-      </view>
-    </wd-card>
-
-    <view class="p-3">
-      <!-- 分段选择器 -->
+    <view class="px-3">
+      <!-- 分段选择器 - 深色主题 -->
       <SegmentedControl
         v-if="tabValue === 'quotation'"
         :model-value="segmentedValue.quotation"
@@ -1079,41 +1083,41 @@ onUnload(() => {
     </view>
 
     <!-- 图表卡片 -->
-    <wd-card custom-class="my-3! py-3!">
+    <view class="mx-3 border border-black/[0.08] rounded-2xl bg-white p-4">
       <view class="h-80">
         <LineChart v-if="tabValue === 'quotation'" :option="quotationOption" custom-class="h-full w-full" />
         <LineChart v-else :option="valuationOption" custom-class="h-full w-full" />
       </view>
-    </wd-card>
+    </view>
 
-    <!-- 图表 Tooltip -->
-    <view v-if="showChartTip" class="rounded-2xl bg-white/80 p-4 shadow-sm backdrop-blur-md">
-      <view class="mb-3 text-sm text-slate-800 font-semibold">
+    <!-- 图表 Tooltip - 深色玻璃态 -->
+    <view v-if="showChartTip" class="mx-3 border border-black/[0.12] rounded-2xl bg-black/[0.03] p-4 shadow-xl backdrop-blur-xl">
+      <view class="mb-3 text-sm text-[#1F2937] font-semibold">
         {{ handleData?.name || handleData?.[0]?.name || '' }}
       </view>
       <!-- 行情 tooltip -->
       <view v-if="tabValue === 'quotation'" class="space-y-2">
         <view class="flex items-center justify-between">
-          <text class="text-xs text-slate-500">
+          <text class="text-xs text-[#64748B]">
             {{ segmentedValue.quotation === '日内' ? '历史价格' : '后复权价' }}
           </text>
-          <text class="text-sm font-semibold" :style="{ color: '#3b82f6' }">
+          <text class="text-sm text-[#0A4FE5] font-semibold tabular-nums">
             {{ segmentedValue.quotation === '日内' ? handleData?.currentPrice : handleData?.f_mkt_close_price_adj }}
           </text>
         </view>
         <view class="flex items-center justify-between">
-          <text class="text-xs text-slate-500">
+          <text class="text-xs text-[#64748B]">
             涨跌幅
           </text>
-          <text class="text-sm font-semibold" :style="{ color: getValueColor(handleData?.riseFall) }">
+          <text class="text-sm font-semibold tabular-nums" :style="{ color: getValueColor(handleData?.riseFall) }">
             {{ formatPercentage(handleData?.riseFall) }}
           </text>
         </view>
         <view class="flex items-center justify-between">
-          <text class="text-xs text-slate-500">
+          <text class="text-xs text-[#64748B]">
             成交额
           </text>
-          <text class="text-sm text-slate-800 font-semibold">
+          <text class="text-sm text-[#1F2937] font-semibold tabular-nums">
             {{ segmentedValue.quotation === '日内' ? formatAssets(handleData?.tradeAmountIntraDay) : formatAssets(handleData?.f_mkt_amount) }}
           </text>
         </view>
@@ -1121,18 +1125,18 @@ onUnload(() => {
       <!-- 估值 tooltip -->
       <view v-if="tabValue === 'valuation'" class="space-y-2">
         <view class="flex items-center justify-between">
-          <text class="text-xs text-slate-500">
+          <text class="text-xs text-[#64748B]">
             市盈率 (PE)
           </text>
-          <text class="text-sm font-semibold" :style="{ color: '#3b82f6' }">
+          <text class="text-sm text-[#0A4FE5] font-semibold tabular-nums">
             {{ handleData?.[0]?.data?.pe || '--' }}
           </text>
         </view>
         <view class="flex items-center justify-between">
-          <text class="text-xs text-slate-500">
+          <text class="text-xs text-[#64748B]">
             市净率 (PB)
           </text>
-          <text class="text-sm font-semibold" :style="{ color: '#f59e0b' }">
+          <text class="text-sm text-[#FFD700] font-semibold tabular-nums">
             {{ handleData?.[1]?.data?.pb || '--' }}
           </text>
         </view>
@@ -1140,3 +1144,10 @@ onUnload(() => {
     </view>
   </view>
 </template>
+
+<style scoped>
+/* 覆盖 wd-sticky 吸顶容器 top 值，使其在 H5 环境下紧贴顶部 */
+:deep(.wd-sticky__container) {
+  top: 0 !important;
+}
+</style>

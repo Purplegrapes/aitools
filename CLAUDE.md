@@ -122,6 +122,32 @@ alwaysApply: false
 - 图标: 通过 UnoCSS preset 使用 `i-carbon-{icon-name}`
 - **类名顺序**: 运行 `pnpm lint:fix` 自动排序 UnoCSS 类名
 
+### 字体大小规范（uni-app 多端兼容）⚠️
+- **可以使用 Tailwind 默认字号**: `text-xs` ~ `text-xl`（最大不超过 36rpx）
+- **需要自定义时使用 `rpx` 单位**: `text-[28rpx]` 等
+- **字体上限**: 页面中最大字体不超过 36rpx（除非特殊场景）
+
+#### Tailwind 默认字号对照表
+| 类名 | 大小 | 适用场景 |
+|------|------|----------|
+| `text-xs` | 24rpx | 极小文字（标签、注释） |
+| `text-sm` | 28rpx | 小文字（辅助信息） |
+| `text-base` | 32rpx | 正文（基础字号） |
+| `text-lg` | 36rpx | 小标题（**最大允许**） |
+| `text-xl` | 40rpx | ⚠️ 超过 36rpx 限制 |
+| `text-2xl` | 48rpx | ⚠️ 超过 36rpx 限制 |
+
+```vue
+<!-- ✅ 优先使用 Tailwind 默认字号（≤36rpx） -->
+<text class="text-xs">极小文字</text>
+<text class="text-sm">辅助信息</text>
+<text class="text-base">正文文字</text>
+<text class="text-lg font-medium">小标题</text>
+
+<!-- ✅ 需要自定义大小时使用 rpx -->
+<text class="text-[26rpx]">自定义大小</text>
+```
+
 ### 常用模式
 ```vue
 <!-- 布局 -->

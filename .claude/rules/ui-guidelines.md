@@ -17,6 +17,44 @@ alwaysApply: false
 - 响应式前缀: `sm:`, `md:` (在移动端优先的 uni-app 中较少使用)。
 - 图标: 通过 UnoCSS preset 使用 `i-carbon-{icon-name}`。
 
+### 字体大小规范（uni-app 多端兼容）
+- **可以使用 Tailwind 默认字号**: `text-xs` ~ `text-3xl`（最大不超过 36rpx）
+- **需要更大字体时使用 `rpx` 单位**: `text-[40rpx]` 等
+- **字体上限**: 页面中最大字体不超过 36rpx（除非特殊场景如超大标题）
+
+#### Tailwind 默认字号对照表
+| 类名 | 大小 | 适用场景 |
+|------|------|----------|
+| `text-xs` | 24rpx | 极小文字（标签、注释） |
+| `text-sm` | 28rpx | 小文字（辅助信息） |
+| `text-base` | 32rpx | 正文（基础字号） |
+| `text-lg` | 36rpx | 小标题 |
+| `text-xl` | 40rpx | 标题 |
+| `text-2xl` | 48rpx | 大标题 |
+| `text-3xl` | 60rpx | 特大标题（⚠️ 超过 36rpx 限制） |
+
+### ✅ 正确示例
+```vue
+<!-- 优先使用 Tailwind 默认字号（≤36rpx） -->
+<text class="text-xs">极小文字</text>
+<text class="text-sm">辅助信息</text>
+<text class="text-base">正文文字</text>
+<text class="text-lg font-medium">小标题</text>
+
+<!-- 需要自定义大小时使用 rpx -->
+<text class="text-[28rpx]">自定义大小</text>
+```
+
+### ❌ 错误示例
+```vue
+<!-- 避免使用超过 36rpx 的 Tailwind 类名 -->
+<text class="text-xl">标题</text>  <!-- 40rpx -->
+<text class="text-2xl">大标题</text>  <!-- 48rpx -->
+
+<!-- 避免使用 px 单位，无法响应式适配 -->
+<text class="text-[14px]">正文</text>
+```
+
 ## 🧩 组件库
 - **核心库**: `wot-design-uni` (`wd-` 前缀)。
 - **文档**: [wot-design-uni](https://wot-ui.cn).

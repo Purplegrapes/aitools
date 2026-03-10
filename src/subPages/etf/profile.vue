@@ -20,6 +20,8 @@ definePage({
   layout: 'default',
   style: {
     navigationBarTitleText: '基金简况',
+    navigationBarBackgroundColor: '#FFFFFF',
+    navigationBarTextStyle: 'black',
   },
 })
 
@@ -225,13 +227,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <view class="min-h-screen bg-gray-50 pb-[env(safe-area-inset-bottom)]">
-    <view class="p-2 space-y-3">
-      <!-- 基础信息卡片 -->
+  <view class="min-h-screen bg-[#0A1628] pb-[env(safe-area-inset-bottom)]">
+    <view class="p-3 space-y-3">
+      <!-- 基础信息卡片 - 深色主题 -->
       <wd-collapse v-model="collapseValue">
         <wd-collapse-item title="基础信息" name="basic">
           <view class="space-y-3">
-            <wd-cell-group border custom-class="rounded-2! overflow-hidden">
+            <wd-cell-group border custom-class="rounded-2xl! overflow-hidden bg-white">
               <wd-cell title="基金代码" :value="currentEtfInfo.code || '--'" />
               <wd-cell title="基金全称" :value="currentEtfInfo.name || '--'" />
               <wd-cell title="基金类型" :value="currentEtfInfo.fundType || '--'" />
@@ -250,36 +252,36 @@ onMounted(() => {
           <view v-if="currentManager" class="space-y-4">
             <!-- 基金经理头部信息 -->
             <view class="flex items-center gap-3">
-              <view class="from-blue-400 to-blue-600 h-12 w-12 flex items-center justify-center rounded-full bg-gradient-to-br">
+              <view class="h-12 w-12 flex items-center justify-center rounded-full from-[#0A4FE5] to-[#00D4AA] bg-gradient-to-br">
                 <text class="text-lg text-white font-semibold">
                   {{ currentManager.name?.charAt(0) || '基' }}
                 </text>
               </view>
               <view class="flex-1">
-                <view class="text-base text-gray-800 font-semibold">
+                <view class="text-base text-white font-semibold">
                   {{ currentManager.name || '--' }}
                 </view>
-                <view class="text-xs text-gray-500">
+                <view class="text-xs text-[#9AA0A6]">
                   {{ currentManager.education || '--' }} | {{ formatExperience(currentManager.experience) }}经验
                 </view>
               </view>
             </view>
 
             <!-- 基金经理详细信息 -->
-            <wd-cell-group border custom-class="rounded-2! overflow-hidden">
+            <wd-cell-group border custom-class="rounded-2xl! overflow-hidden bg-white">
               <wd-cell title="管理规模" :value="formatManageAssets(currentManager.manageAssets)" />
               <wd-cell title="在管基金" :value="currentManager.manageFunds ? `${currentManager.manageFunds}只` : '--'" />
               <wd-cell title="管理该基金起始日" :value="currentManager.startDate || '--'" />
             </wd-cell-group>
 
             <!-- 基金经理简介 -->
-            <view v-if="currentManager.intro" class="rounded-xl bg-gray-50 p-3">
-              <text class="text-sm text-gray-600 leading-relaxed">
+            <view v-if="currentManager.intro" class="border border-black/[0.08] rounded-xl bg-white p-3">
+              <text class="text-sm text-[#9AA0A6] leading-relaxed">
                 {{ currentManager.intro }}
               </text>
             </view>
           </view>
-          <view v-else class="py-4 text-center text-sm text-gray-400">
+          <view v-else class="py-4 text-center text-sm text-[#5F6368]">
             暂无基金经理信息
           </view>
         </wd-collapse-item>
@@ -289,10 +291,10 @@ onMounted(() => {
           <view v-if="currentIndicators" class="space-y-4">
             <!-- 规模指标 -->
             <view>
-              <view class="mb-2 text-sm text-gray-800 font-semibold">
+              <view class="mb-2 text-sm text-white font-semibold">
                 规模指标
               </view>
-              <wd-cell-group border custom-class="rounded-2! overflow-hidden">
+              <wd-cell-group border custom-class="rounded-2xl! overflow-hidden bg-white">
                 <wd-cell title="净资产" :value="formatAssets(currentIndicators.netAssets)" />
                 <wd-cell title="日成交额" :value="formatAssets(currentIndicators.dailyTurnover)" />
               </wd-cell-group>
@@ -300,15 +302,15 @@ onMounted(() => {
 
             <!-- 业绩指标 -->
             <view>
-              <view class="mb-2 text-sm text-gray-800 font-semibold">
+              <view class="mb-2 text-sm text-white font-semibold">
                 业绩指标
               </view>
               <view class="grid grid-cols-3 gap-2">
-                <view v-for="period in ['1w', '1m', '3m', '6m', '1y', '3y', 'ytd']" :key="period" class="rounded-xl bg-gray-50 p-3 text-center">
-                  <view class="mb-1 text-xs text-gray-500">
+                <view v-for="period in ['1w', '1m', '3m', '6m', '1y', '3y', 'ytd']" :key="period" class="border border-black/[0.04] rounded-xl bg-white p-3 text-center">
+                  <view class="mb-1 text-xs text-[#9AA0A6]">
                     {{ period === 'ytd' ? '年初至今' : `近${period === '1w' ? '1周' : period === '1m' ? '1月' : period === '1y' ? '1年' : period === '3y' ? '3年' : `${period}月`}` }}
                   </view>
-                  <view class="text-base font-semibold" :class="getValueColorClass(getReturnValue(currentIndicators, period))">
+                  <view class="text-base font-semibold tabular-nums" :class="getValueColorClass(getReturnValue(currentIndicators, period))">
                     {{ formatPercentage(getReturnValue(currentIndicators, period)) }}
                   </view>
                 </view>
@@ -317,39 +319,39 @@ onMounted(() => {
 
             <!-- 估值指标 -->
             <view>
-              <view class="mb-2 text-sm text-gray-800 font-semibold">
+              <view class="mb-2 text-sm text-white font-semibold">
                 估值指标
               </view>
               <view class="grid grid-cols-2 gap-2">
-                <view class="rounded-xl bg-gray-50 p-3 text-center">
-                  <view class="mb-1 text-xs text-gray-500">
+                <view class="border border-black/[0.04] rounded-xl bg-white p-3 text-center">
+                  <view class="mb-1 text-xs text-[#9AA0A6]">
                     市盈率 (PE)
                   </view>
-                  <view class="text-blue-600 text-lg font-bold">
+                  <view class="text-lg text-[#0A4FE5] font-bold tabular-nums">
                     {{ currentIndicators.pe || '--' }}
                   </view>
                 </view>
-                <view class="rounded-xl bg-gray-50 p-3 text-center">
-                  <view class="mb-1 text-xs text-gray-500">
+                <view class="border border-black/[0.04] rounded-xl bg-white p-3 text-center">
+                  <view class="mb-1 text-xs text-[#9AA0A6]">
                     市净率 (PB)
                   </view>
-                  <view class="text-lg text-orange-600 font-bold">
+                  <view class="text-lg text-[#FFD700] font-bold tabular-nums">
                     {{ currentIndicators.pb || '--' }}
                   </view>
                 </view>
-                <view class="rounded-xl bg-gray-50 p-3 text-center">
-                  <view class="mb-1 text-xs text-gray-500">
+                <view class="border border-black/[0.04] rounded-xl bg-white p-3 text-center">
+                  <view class="mb-1 text-xs text-[#9AA0A6]">
                     股息率
                   </view>
-                  <view class="text-green-600 text-base font-semibold">
+                  <view class="text-base text-[#00C853] font-semibold tabular-nums">
                     {{ formatPercentage(currentIndicators.dividendYield) }}
                   </view>
                 </view>
-                <view class="rounded-xl bg-gray-50 p-3 text-center">
-                  <view class="mb-1 text-xs text-gray-500">
+                <view class="border border-black/[0.04] rounded-xl bg-white p-3 text-center">
+                  <view class="mb-1 text-xs text-[#9AA0A6]">
                     盈利收益率
                   </view>
-                  <view class="text-base text-purple-600 font-semibold">
+                  <view class="text-base text-[#A78BFA] font-semibold tabular-nums">
                     {{ formatPercentage(currentIndicators.profitYield) }}
                   </view>
                 </view>
@@ -358,17 +360,17 @@ onMounted(() => {
 
             <!-- 风险指标 -->
             <view>
-              <view class="mb-2 text-sm text-gray-800 font-semibold">
+              <view class="mb-2 text-sm text-white font-semibold">
                 风险指标
               </view>
-              <wd-cell-group border custom-class="rounded-2! overflow-hidden">
+              <wd-cell-group border custom-class="rounded-2xl! overflow-hidden bg-white">
                 <wd-cell title="波动率" :value="currentIndicators.volatility ? `${(currentIndicators.volatility * 100).toFixed(2)}%` : '--'" />
                 <wd-cell title="最大回撤" :value="formatPercentage(currentIndicators.maxDrawdown)" :value-class="getValueColorClass(currentIndicators.maxDrawdown)" />
                 <wd-cell title="夏普比率" :value="currentIndicators.sharpeRatio?.toFixed(2) || '--'" />
               </wd-cell-group>
             </view>
           </view>
-          <view v-else class="py-4 text-center text-sm text-gray-400">
+          <view v-else class="py-4 text-center text-sm text-[#5F6368]">
             暂无核心指标数据
           </view>
         </wd-collapse-item>
@@ -377,7 +379,7 @@ onMounted(() => {
         <wd-collapse-item title="资产结构" name="assets">
           <view v-if="currentAssetData.length" class="space-y-4">
             <!-- Tab切换 -->
-            <wd-tabs v-model="assetTabValue" @click="handleAssetTabChange">
+            <wd-tabs v-model="assetTabValue" line-color="#00D4AA" @click="handleAssetTabChange">
               <block v-for="(tab, index) in assetTabs" :key="index">
                 <wd-tab :title="tab" :name="index" />
               </block>
@@ -385,15 +387,15 @@ onMounted(() => {
 
             <!-- 资产配置（饼图） -->
             <view v-if="assetTabValue === 0" class="space-y-3">
-              <view class="h-50 rounded-2xl bg-white">
+              <view class="h-50 border border-black/[0.08] rounded-2xl bg-white">
                 <PieChart v-if="assetPieOption.series?.[0]?.data?.length" :option="assetPieOption" custom-class="h-200px" />
-                <view v-else class="h-full flex items-center justify-center text-sm text-gray-400">
+                <view v-else class="h-full flex items-center justify-center text-sm text-[#5F6368]">
                   暂无数据
                 </view>
               </view>
 
               <!-- 资产配置列表 -->
-              <wd-cell-group border custom-class="rounded-2! overflow-hidden">
+              <wd-cell-group border custom-class="rounded-2xl! overflow-hidden bg-white">
                 <block v-for="(item, index) in currentAssetData" :key="index">
                   <wd-cell :title="item.name" :value="formatPercentage(item.percentage)" />
                 </block>
@@ -402,14 +404,14 @@ onMounted(() => {
 
             <!-- 行业配置/前十大持仓（列表） -->
             <view v-else>
-              <wd-cell-group border custom-class="rounded-2! overflow-hidden">
+              <wd-cell-group border custom-class="rounded-2xl! overflow-hidden bg-white">
                 <block v-for="(item, index) in currentAssetData" :key="index">
                   <wd-cell :title="item.name" :value="formatPercentage(item.percentage)" />
                 </block>
               </wd-cell-group>
             </view>
           </view>
-          <view v-else class="py-4 text-center text-sm text-gray-400">
+          <view v-else class="py-4 text-center text-sm text-[#5F6368]">
             暂无资产结构数据
           </view>
         </wd-collapse-item>

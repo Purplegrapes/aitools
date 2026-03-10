@@ -14,7 +14,9 @@ type _LocationUrl =
   "/subPages/shixi-guide/index-list" |
   "/subPages/tamp/demo" |
   "/subPages/tamp/index" |
-  "/subPages/tamp/marketing";
+  "/subPages/tamp/marketing" |
+  "/subPages/tools/entry" |
+  "/subPages/tools/demo/index";
 
 interface NavigateToOptions {
   url: _LocationUrl;
