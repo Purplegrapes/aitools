@@ -120,6 +120,7 @@ alwaysApply: false
 - 使用工具类: `flex`, `items-center`, `text-primary`, `m-4`
 - 响应式前缀: `sm:`, `md:` (在移动端优先的 uni-app 中较少使用)
 - 图标: 通过 UnoCSS preset 使用 `i-carbon-{icon-name}`
+- 字体大小: 优先使用 UnoCSS 语义化字号，如 `text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`；移动端页面最大字号不超过 `text-2xl`，不要在业务页面使用 `text-[xxrpx]` 或其他任意值字号，避免移动端视觉失衡
 - **类名顺序**: 运行 `pnpm lint:fix` 自动排序 UnoCSS 类名
 
 ### 常用模式

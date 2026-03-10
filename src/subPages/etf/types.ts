@@ -162,6 +162,7 @@ export interface ValuationDetailData {
  */
 export interface ValuationTrendPoint {
   time: string
+  name: string
   value: [string, number]
 }
 
