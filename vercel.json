@@ -3,6 +3,22 @@
   "outputDirectory": "dist/build/h5",
   "rewrites": [
     {
+      "source": "/shixi-api/:path*",
+      "destination": "https://shixi.betalpha.com/api/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://cngz.yhlsd.com/api/:path*"
+    },
+    {
+      "source": "/djapi/:path*",
+      "destination": "https://cngz.yhlsd.com/djapi/:path*"
+    },
+    {
+      "source": "/app-api/:path*",
+      "destination": "https://tamp-cd-3.betalpha.com/app-api/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
