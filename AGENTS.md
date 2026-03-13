@@ -120,7 +120,13 @@ alwaysApply: false
 - 使用工具类: `flex`, `items-center`, `text-primary`, `m-4`
 - 响应式前缀: `sm:`, `md:` (在移动端优先的 uni-app 中较少使用)
 - 图标: 通过 UnoCSS preset 使用 `i-carbon-{icon-name}`
-- 字体大小: 优先使用 UnoCSS 语义化字号，如 `text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`；移动端页面最大字号不超过 `text-2xl`，不要在业务页面使用 `text-[xxrpx]` 或其他任意值字号，避免移动端视觉失衡
+- 字体大小: 优先使用 UnoCSS 内置语义化字号，如 `text-xs`, `text-sm`, `text-base`, `text-lg`
+- 字体上限: 移动端页面常规内容默认控制在 `text-lg` 及以下；只有关键金额、主标题等极少数场景才允许提升到 `text-xl` 或 `text-2xl`
+- 禁止任意值字号: 业务页面不要使用 `text-[xxrpx]`、`text-[xxpx]` 这类任意值字号
+- 颜色来源: 文本色、背景色、边框色优先使用 `uno.config.ts` 中定义的语义 token，如 `text-primary`, `text-secondary`, `bg-page`, `bg-surface`, `text-danger`
+- 禁止零散色值: 业务页面尽量不要直接写 `#xxxxxx`、`rgb()` 等颜色值；新增颜色先沉淀到 `uno.config.ts`
+- 单位规范: 业务样式不要再出现 `px` 单位；自定义尺寸统一使用 `rpx`
+- `rpx` 使用原则: `rpx` 只用于间距、圆角、阴影、定位、组件尺寸等移动端尺寸表达，并且要以保守视觉为准，优先复用已有间距等级，避免单页出现过大留白或过密排版
 - **类名顺序**: 运行 `pnpm lint:fix` 自动排序 UnoCSS 类名
 
 ### 常用模式
@@ -129,13 +135,18 @@ alwaysApply: false
 <view class="flex flex-col items-center justify-center gap-4" />
 
 <!-- 颜色 -->
-<text class="text-gray-500 text-sm" />
+<text class="text-secondary text-sm" />
 
 <!-- 间距 -->
 <view class="p-4 mb-4" />
 
 <!-- 圆角和阴影 -->
 <view class="rounded-2xl shadow-sm" />
+
+<!-- 页面底色与卡片 -->
+<view class="bg-page p-4">
+  <view class="bg-surface rounded-2xl p-4" />
+</view>
 ```
 
 ## 🧩 组件库

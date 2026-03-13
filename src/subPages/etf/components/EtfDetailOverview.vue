@@ -60,7 +60,7 @@ function getSummaryClass(accent?: SummaryItem['accent']) {
           <text>{{ description }}</text>
           <text
             v-if="descriptionExpandable"
-            class="ml-[8rpx] inline-block text-[#8A95A1]"
+            class="ml-[8rpx] inline-block text-xs text-[#8A95A1]"
             @tap="emit('toggle-description')"
           >
             {{ descriptionExpanded ? '收起' : '展开' }}
@@ -85,10 +85,10 @@ function getSummaryClass(accent?: SummaryItem['accent']) {
             :key="item.label"
             class="min-w-0"
           >
-            <view class="mb-[16rpx] text-xs text-[#5D6773]">
+            <view class="mb-[16rpx] text-sm text-[#5D6773]">
               {{ item.label }}
             </view>
-            <view class="truncate text-xs font-500 leading-none" :class="getSummaryClass(item.accent)">
+            <view class="truncate text-sm font-500 leading-none" :class="getSummaryClass(item.accent)">
               {{ item.value }}
             </view>
           </view>
