@@ -65,12 +65,12 @@ function handleSelectHotSearch(item: HotSearchFund) {
 </script>
 
 <template>
-  <view class="min-h-screen overflow-hidden bg-page">
+  <view class="relative min-h-screen overflow-x-hidden bg-page">
     <view class="pointer-events-none absolute inset-x-0 top-0 h-[420rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.18),_transparent_60%)]" />
     <view class="pointer-events-none absolute left-[-120rpx] top-[120rpx] h-[280rpx] w-[280rpx] rounded-full bg-[rgba(24,144,255,0.08)] blur-[40rpx]" />
     <view class="pointer-events-none absolute right-[-80rpx] top-[260rpx] h-[220rpx] w-[220rpx] rounded-full bg-[rgba(29,33,41,0.05)] blur-[44rpx]" />
 
-    <view class="relative mx-auto max-w-[680rpx] px-4 pb-10 pt-4">
+    <view class="relative mx-auto box-border max-w-[680rpx] w-full pb-10 pt-4">
       <view>
         <view>
           <text class="mt-[18rpx] block text-[48rpx] text-primary font-700 leading-[1.08] tracking-[1rpx]">
