@@ -20,7 +20,7 @@ definePage({
   layout: 'default',
   style: {
     navigationBarTitleText: '业绩走势',
-    navigationBarBackgroundColor: '#f8fafc',
+    navigationBarBackgroundColor: '#FFFFFF',
     navigationBarTextStyle: 'black',
   },
 })
@@ -293,21 +293,21 @@ function handlePeriodChange(value: string) {
 </script>
 
 <template>
-  <view class="relative min-h-screen overflow-hidden bg-slate-50">
-    <!-- 背景装饰 -->
+  <view class="relative min-h-screen overflow-hidden bg-[#F8FAFC]">
+    <!-- 背景装饰 - 深色主题 -->
     <view class="pointer-events-none fixed inset-0 z-0">
-      <view class="absolute h-300px w-300px rounded-full bg-green-100 opacity-40 blur-80px -right-100px -top-100px" />
-      <view class="absolute bottom-20% h-250px w-250px rounded-full bg-blue-100 opacity-40 blur-80px -left-80px" />
-      <view class="absolute top-1/2 h-200px w-200px rounded-full bg-amber-100 opacity-40 blur-80px -right-50px" />
+      <view class="absolute h-300px w-300px rounded-full bg-[#0A4FE5] opacity-20 blur-80px -right-100px -top-100px" />
+      <view class="absolute bottom-20% h-250px w-250px rounded-full bg-[#00D4AA] opacity-20 blur-80px -left-80px" />
+      <view class="absolute top-1/2 h-200px w-200px rounded-full bg-[#FFD700] opacity-20 blur-80px -right-50px" />
     </view>
 
     <!-- 主内容区 -->
     <view class="relative z-1 p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
       <!-- 头部概览卡片 -->
-      <text class="mb-3 block text-sm text-slate-800 font-semibold">
+      <text class="mb-3 block text-sm text-[#1F2937] font-semibold">
         业绩概览
       </text>
-      <wd-card custom-class="m-0! my-2! py-2!">
+      <view class="mb-3 border border-black/[0.08] rounded-2xl bg-white p-4">
         <view class="mb-5 flex items-center justify-between">
           <view class="flex items-center gap-1 px-4 py-2">
             <text class="text-xs">
@@ -320,31 +320,31 @@ function handlePeriodChange(value: string) {
         </view>
         <view class="grid grid-cols-3 gap-3">
           <view class="text-center">
-            <text class="mb-2 block text-xs text-slate-500">
+            <text class="mb-2 block text-xs text-[#9AA0A6]">
               夏普比率
             </text>
-            <text class="block text-base text-slate-800 font-semibold">
+            <text class="block text-base text-[#1F2937] font-semibold tabular-nums">
               {{ currentIndicators?.sharpeRatio?.toFixed(2) || '--' }}
             </text>
           </view>
           <view class="text-center">
-            <text class="mb-2 block text-xs text-slate-500">
+            <text class="mb-2 block text-xs text-[#9AA0A6]">
               最大回撤
             </text>
-            <text class="block text-base font-semibold" :style="{ color: getValueColor(currentIndicators?.maxDrawdown) }">
+            <text class="block text-base font-semibold tabular-nums" :style="{ color: getValueColor(currentIndicators?.maxDrawdown) }">
               {{ formatPercentage(currentIndicators?.maxDrawdown) }}
             </text>
           </view>
           <view class="text-center">
-            <text class="mb-2 block text-xs text-slate-500">
+            <text class="mb-2 block text-xs text-[#9AA0A6]">
               波动率
             </text>
-            <text class="block text-base text-slate-800 font-semibold">
+            <text class="block text-base text-[#1F2937] font-semibold tabular-nums">
               {{ currentIndicators?.volatility ? `${(currentIndicators.volatility * 100).toFixed(2)}%` : '--' }}
             </text>
           </view>
         </view>
-      </wd-card>
+      </view>
 
       <!-- 图表类型选择器 -->
       <view class="mb-3">
@@ -355,17 +355,17 @@ function handlePeriodChange(value: string) {
       </view>
 
       <!-- 图表区域 -->
-      <text class="mb-3 block text-sm text-slate-800 font-semibold">
+      <text class="mb-3 block text-sm text-[#1F2937] font-semibold">
         {{ chartTypeOptions.find(o => o.value === chartType)?.label }}走势
       </text>
-      <wd-card custom-class="m-0! my-2! py-2!">
+      <view class="mb-3 border border-black/[0.08] rounded-2xl bg-white p-4">
         <view class="mb-4 flex flex-wrap items-center justify-between gap-3">
           <view class="flex flex-wrap gap-1.5">
             <view
               v-for="period in periodOptions"
               :key="period.value"
-              class="rounded-lg px-3 py-1.5 text-xs transition-all"
-              :class="activePeriod === period.value ? 'bg-blue-50 text-blue-600 font-semibold' : 'bg-slate-100 text-slate-500'"
+              class="cursor-pointer rounded-lg px-3 py-1.5 text-xs transition-all"
+              :class="activePeriod === period.value ? 'bg-[#0A4FE5]/20 text-[#0A4FE5] font-semibold' : 'bg-[#253850] text-[#9AA0A6]'"
               @tap="handlePeriodChange(period.value)"
             >
               {{ period.label }}
@@ -375,96 +375,96 @@ function handlePeriodChange(value: string) {
         <view class="h-70">
           <LineChart :option="chartOption" custom-class="h-full w-full" />
         </view>
-      </wd-card>
+      </view>
 
       <!-- 业绩对比卡片 -->
       <view class="mb-3">
-        <text class="mb-3 block text-sm text-slate-800 font-semibold">
+        <text class="mb-3 block text-sm text-[#1F2937] font-semibold">
           业绩对比
         </text>
         <view class="grid grid-cols-3 gap-3">
-          <wd-card custom-class="m-0!">
+          <view class="border border-black/[0.08] rounded-2xl bg-white p-4">
             <view class="mb-3 flex flex-col items-center">
               <text class="text-2xl">
                 🎯
               </text>
-              <text class="text-xs text-slate-500">
+              <text class="text-xs text-[#9AA0A6]">
                 相对基准
               </text>
             </view>
             <view class="flex flex-col items-center gap-1">
-              <text class="text-lg font-bold" :style="{ color: getValueColor(5.23) }">
+              <text class="text-lg font-bold tabular-nums" :style="{ color: getValueColor(5.23) }">
                 +5.23%
               </text>
-              <text class="text-xs text-slate-400">
+              <text class="text-xs text-[#5F6368]">
                 近1年
               </text>
             </view>
-          </wd-card>
-          <wd-card custom-class="m-0!">
+          </view>
+          <view class="border border-black/[0.08] rounded-2xl bg-white p-4">
             <view class="mb-3 flex flex-col items-center gap-2">
               <text class="text-2xl">
                 📊
               </text>
-              <text class="text-xs text-slate-500">
+              <text class="text-xs text-[#9AA0A6]">
                 同类排名
               </text>
             </view>
             <view class="flex flex-col items-center gap-1">
-              <text class="text-lg text-amber-500 font-bold">
+              <text class="text-lg text-[#FFD700] font-bold">
                 前15%
               </text>
-              <text class="text-xs text-slate-400">
+              <text class="text-xs text-[#5F6368]">
                 近1年
               </text>
             </view>
-          </wd-card>
-          <wd-card custom-class="m-0!">
+          </view>
+          <view class="border border-black/[0.08] rounded-2xl bg-white p-4">
             <view class="mb-3 flex flex-col items-center gap-2">
               <text class="text-2xl">
                 ⭐
               </text>
-              <text class="text-xs text-slate-500">
+              <text class="text-xs text-[#9AA0A6]">
                 晨星评级
               </text>
             </view>
             <view class="flex flex-col items-center gap-1">
-              <text class="text-lg text-amber-500 font-bold">
+              <text class="text-lg text-[#FFD700] font-bold">
                 ★★★★☆
               </text>
-              <text class="text-xs text-slate-400">
+              <text class="text-xs text-[#5F6368]">
                 五年评级
               </text>
             </view>
-          </wd-card>
+          </view>
         </view>
       </view>
 
       <!-- 年度收益分布 -->
-      <text class="mb-4 block text-sm text-slate-800 font-semibold">
+      <text class="mb-4 block text-sm text-[#1F2937] font-semibold">
         年度收益分布
       </text>
-      <wd-card custom-class="p-y-2! m-0!">
+      <view class="border border-black/[0.08] rounded-2xl bg-white p-4">
         <view class="flex flex-col gap-4">
           <view v-for="item in yearlyReturns" :key="item.year" class="flex items-center gap-3">
-            <text class="w-12 text-sm text-slate-500 font-medium">
+            <text class="w-12 text-sm text-[#9AA0A6] font-medium tabular-nums">
               {{ item.year }}
             </text>
-            <view class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+            <view class="h-2 flex-1 overflow-hidden rounded-full bg-[#253850]">
               <view
                 class="relative h-full rounded-full transition-all duration-800"
-                :class="item.positive ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-gradient-to-r from-red-500 to-red-400'"
+                :class="item.positive ? 'bg-gradient-to-r from-[#00E676] to-[#00C853]' : 'bg-gradient-to-r from-[#FF6B6B] to-[#FF4D4F]'"
                 :style="{ width: `${Math.min(Math.abs(item.value), 30)}%` }"
               >
                 <view class="animate-shimmer absolute inset-0 from-transparent via-white/40 to-transparent bg-gradient-to-r" />
               </view>
             </view>
-            <text class="w-20 text-right text-sm font-semibold" :class="item.positive ? 'text-green-600' : 'text-red-500'">
+            <text class="w-20 text-right text-sm font-semibold tabular-nums" :class="item.positive ? 'text-[#00C853]' : 'text-[#FF4D4F]'">
               {{ item.positive ? '+' : '' }}{{ item.value.toFixed(2) }}%
             </text>
           </view>
         </view>
-      </wd-card>
+      </view>
     </view>
   </view>
 </template>

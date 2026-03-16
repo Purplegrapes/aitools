@@ -14,7 +14,7 @@
     "animationDuration": 300
   },
   "pages": [
-    // #ifdef H5 || MP-WEIXIN
+    // #ifdef MP-WEIXIN
     {
       "path": "pages/index/index",
       "type": "home",
@@ -25,6 +25,17 @@
       }
     },
     // #endif
+    {
+      "path": "pages/index/index",
+      "type": "home",
+      "name": "home",
+      "layout": "tabbar",
+      "style": {
+        "navigationBarTitleText": "Beta Mini",
+        "navigationBarBackgroundColor": "#4F46E5",
+        "navigationBarTextStyle": "white"
+      }
+    },
     {
       "path": "pages/about/index",
       "type": "page",
@@ -39,7 +50,7 @@
     {
       "root": "subPages",
       "pages": [
-        // #ifdef H5 || MP-WEIXIN
+        // #ifdef MP-WEIXIN
         {
           "path": "etf/detail",
           "type": "page",
@@ -52,6 +63,17 @@
           }
         },
         // #endif
+        {
+          "path": "etf/detail",
+          "type": "page",
+          "name": "etf-detail",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "ETF详情",
+            "navigationBarBackgroundColor": "#FFFFFF",
+            "navigationBarTextStyle": "black"
+          }
+        },
         {
           "path": "etf/index",
           "type": "page",
@@ -68,7 +90,7 @@
           "layout": "default",
           "style": {
             "navigationBarTitleText": "业绩走势",
-            "navigationBarBackgroundColor": "#f8fafc",
+            "navigationBarBackgroundColor": "#FFFFFF",
             "navigationBarTextStyle": "black"
           }
         },
@@ -78,7 +100,9 @@
           "name": "etf-profile",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "基金简况"
+            "navigationBarTitleText": "基金简况",
+            "navigationBarBackgroundColor": "#FFFFFF",
+            "navigationBarTextStyle": "black"
           }
         },
         {
@@ -88,7 +112,8 @@
           "layout": "default",
           "style": {
             "navigationBarTitleText": "指数详情",
-            "backgroundColor": "#F5F7FA"
+            "backgroundColor": "#F5F7FA",
+            "navigationBarBackgroundColor": "#CFE3FB"
           }
         },
         {
@@ -125,6 +150,57 @@
           "layout": "default",
           "style": {
             "navigationBarTitleText": "产品介绍"
+          }
+        },
+        {
+          "path": "tools/entry",
+          "type": "page",
+          "name": "tools-entry",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "工具页跳转中"
+          }
+        },
+        {
+          "path": "etf/valuation-tool/index",
+          "type": "page",
+          "name": "etf-valuation-tool-home",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "ETF估值工具",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
+          "path": "etf/valuation-tool/result",
+          "type": "page",
+          "name": "etf-valuation-tool-result",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "基金详情",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
+          "path": "etf/valuation-tool/search",
+          "type": "page",
+          "name": "etf-valuation-tool-search",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "基金搜索",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
+          "path": "tools/demo/index",
+          "type": "page",
+          "name": "tools-demo",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "嵌入式工具页 Demo"
           }
         }
       ]

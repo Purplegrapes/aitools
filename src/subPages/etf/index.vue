@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * ETF 估值表主页
+ * 金融科技风格 - 深色高级界面
+ */
 import type {
   CategoryData,
   EtfInfo,
@@ -8,7 +12,18 @@ import type {
   WotTabEvent,
 } from './types'
 import { useEtfUserStore } from '@/store/etfUserStore'
-import { login } from './api'
+import {
+  etfInfoList,
+  factorValue,
+  getAshare,
+  getTabList,
+  login,
+  realtime,
+  showQuote as showQuoteApi,
+  valuationDetail,
+  watchlistAdd,
+  watchlistDel,
+} from './api'
 import CustomTable from './components/CustomTable.vue'
 import {
   REALTIME_POLLING_INTERVAL,
@@ -19,10 +34,7 @@ import {
   mergeAllColumns,
   navbar,
 } from './data'
-import {
-  isApiResponse,
-  isNestedValuationDetailResponse,
-} from './types'
+import { isApiResponse } from './types'
 
 definePage({
   name: 'etf',
@@ -141,7 +153,7 @@ function mergeEtfData(
   performanceData: PerformanceData,
   realtimeData: RealtimeData[],
 ): EtfInfo & Partial<RealtimeData> & Partial<ValuationData> & Partial<PerformanceData> {
-  const valuation = valuationData.find((it: ValuationData) => it.index_code === item.trackIndexCode)
+  const valuation = findValuation(item.trackIndexCode, valuationData)
   const performanceFields = extractPerformanceFields(item.code, performanceData)
   const realData = realtimeData.find((it: RealtimeData) => it?.code === item?.code) || {}
 
@@ -153,6 +165,58 @@ function mergeEtfData(
   }
 }
 
+function normalizeSecurityCode(code?: string): string {
+  return String(code || '').trim().toUpperCase()
+}
+
+function normalizeDigits(code?: string): string {
+  return normalizeSecurityCode(code).replace(/\D/g, '')
+}
+
+function findValuation(trackIndexCode: string, valuations: ValuationData[]): ValuationData | undefined {
+  const targetCode = normalizeSecurityCode(trackIndexCode)
+  const targetDigits = normalizeDigits(trackIndexCode)
+
+  return valuations.find((item) => {
+    const rawCode = item.index_code || item.indexCode || item.code
+    const currentCode = normalizeSecurityCode(rawCode)
+
+    if (currentCode === targetCode)
+      return true
+
+    return !!targetDigits && normalizeDigits(rawCode) === targetDigits
+  })
+}
+
+function extractValuationList(res: unknown): ValuationData[] {
+  if (!res || typeof res !== 'object')
+    return []
+
+  const apiData = (res as { data?: unknown }).data
+
+  if (Array.isArray(apiData))
+    return apiData as ValuationData[]
+
+  if (!apiData || typeof apiData !== 'object')
+    return []
+
+  const nestedData = (apiData as { data?: unknown }).data
+
+  if (Array.isArray((apiData as { valuations?: unknown }).valuations)) {
+    return (apiData as { valuations: ValuationData[] }).valuations
+  }
+
+  if (
+    nestedData
+    && typeof nestedData === 'object'
+    && Array.isArray((nestedData as { valuations?: unknown }).valuations)
+  ) {
+    return (nestedData as { valuations: ValuationData[] }).valuations
+  }
+
+  return []
+}
+
 /**
  * 获取ETF列表 - 使用 useRequest
  */
@@ -160,7 +224,7 @@ const {
   data: etfListData,
   loading: etfLoading,
   send: fetchEtfList,
-} = useRequest(() => (Apis as any).etf.etfInfoList(), {
+} = useRequest(() => etfInfoList(), {
   immediate: false,
 })
 
@@ -196,12 +260,10 @@ const { send: fetchPerformanceData } = useRequest(
       'f_mkt_return_1y',
       'f_mkt_return_3y',
     ]
-    return (Apis as any).etf.factorValue({
-      data: {
-        securityCodes: codes,
-        factorCodes,
-        securityType: 'ETF',
-      },
+    return factorValue({
+      securityCodes: codes,
+      factorCodes,
+      securityType: 'ETF',
     })
   },
   {
@@ -222,22 +284,12 @@ const valuationData = ref<ValuationData[]>([])
  * 获取估值数据
  */
 const { send: fetchValuationData } = useRequest(
-  () => (Apis as any).etf.valuationDetail({
-    params: {
-      source: 'lsd',
-      category_code: '6',
-    },
-  }),
+  () => valuationDetail(),
   {
     immediate: false,
   },
 ).onSuccess((res) => {
-  if (isNestedValuationDetailResponse(res)) {
-    valuationData.value = res?.data?.data?.valuations || []
-  }
-  else {
-    valuationData.value = []
-  }
+  valuationData.value = extractValuationList(res)
   // 获取完估值数据后，获取业绩数据
   fetchPerformanceData()
 })
@@ -261,9 +313,7 @@ const { send: fetchRealtime } = useRequest(
       securityCodes: etfList.value.map((item: EtfInfo) => item.code),
       assetType: 'ETF',
     }
-    return (Apis as any).etf.realtime({
-      data: params,
-    })
+    return realtime(params)
   },
   {
     immediate: false,
@@ -311,7 +361,7 @@ onUnmounted(() => {
 const {
   data: categoryData,
   loading: categoryLoading,
-} = useRequest(() => (Apis as any).etf.getTabList(), {
+} = useRequest(() => getTabList(), {
   immediate: true,
 }).onError((error) => {
   GlobalToast.error(error.error?.message || '获取分类列表失败')
@@ -333,7 +383,7 @@ const categoryList = computed(() => {
  */
 const {
   data: dataDateData,
-} = useRequest(() => (Apis as any).etf.getAshare(), {
+} = useRequest(() => getAshare(), {
   immediate: true,
 })
 
@@ -347,7 +397,7 @@ const dataDate = computed(() => dataDateData.value || '-')
  */
 const {
   data: showQuoteData,
-} = useRequest(() => (Apis as any).etf.showQuote(), {
+} = useRequest(() => showQuoteApi(), {
   immediate: true,
 })
 
@@ -388,6 +438,10 @@ const filteredList = computed(() => {
     return mergeEtfData(item, valuationData.value, performanceData.value, realtimeData.value)
   })
 })
+
+const lowValuationCount = computed(() => filteredList.value.filter(item => Number(item.valuation_status) === 1).length)
+
+const highValuationCount = computed(() => filteredList.value.filter(item => Number(item.valuation_status) === 3).length)
 
 /**
  * 可显示的分类Tab
@@ -466,8 +520,8 @@ function handleRowClick(row: EtfInfo & RealtimeData) {
  */
 function handleOptionalClick(row: EtfInfo) {
   const requestFn = row.watchList
-    ? () => (Apis as any).etf.watchlistDel({ pathParams: { code: row.code } })
-    : () => (Apis as any).etf.watchlistAdd({ data: { code: row.code } })
+    ? () => watchlistDel(row.code)
+    : () => watchlistAdd({ code: row.code })
 
   const { send } = useRequest(requestFn, {
     immediate: true,
@@ -502,52 +556,96 @@ function handleOptionalClick(row: EtfInfo) {
 </script>
 
 <template>
-  <view class="min-h-screen bg-[#f5f5f5]">
-    <!-- 顶部导航 -->
-    <view class="sticky top-0 z-[999] mb-1 bg-white">
-      <wd-tabs v-model="activeNav" @click="handleNavChange">
-        <wd-tab
-          v-for="item in navbarItems"
-          :key="item.name"
-          :title="item.label"
-          :name="item.name"
-        />
-      </wd-tabs>
+  <view class="min-h-screen bg-[#F8FAFC]">
+    <!-- 顶部导航栏 -->
+    <view class="sticky top-0 z-[999] border-b border-black/[0.08] bg-white/95 backdrop-blur-xl">
+      <view class="flex items-center justify-between px-4 py-3">
+        <view class="flex items-center gap-2">
+          <view class="h-8 w-8 flex items-center justify-center rounded-lg from-[#0A4FE5] to-[#00D4AA] bg-gradient-to-br">
+            <text class="text-sm text-white font-bold">
+              E
+            </text>
+          </view>
+          <text class="text-base text-[#1F2937] font-semibold">
+            ETF估值表
+          </text>
+        </view>
+        <view class="flex items-center gap-1">
+          <view class="h-2 w-2 rounded-full bg-[#00D4AA]" />
+          <text class="text-xs text-[#64748B]">
+            {{ dataDate }}更新
+          </text>
+        </view>
+      </view>
+
+      <!-- 导航 Tabs -->
+      <view class="px-2">
+        <wd-tabs v-model="activeNav" line-color="#00D4AA" @click="handleNavChange">
+          <wd-tab
+            v-for="item in navbarItems"
+            :key="item.name"
+            :title="item.label"
+            :name="item.name"
+          />
+        </wd-tabs>
+      </view>
     </view>
 
-    <!-- 头部信息 -->
-    <view class="mb-2 flex items-center justify-between bg-white p-12rpx">
-      <text class="text-base text-[#333] font-bold">
-        ETF估值表
-      </text>
-      <text class="text-sm text-[#999]">
-        {{ dataDate }}更新
-      </text>
+    <!-- 分类 Tab -->
+    <view v-if="!categoryLoading" class="sticky top-[110rpx] z-[998] border-b border-black/[0.08] bg-white/95 backdrop-blur-xl">
+      <view class="px-2">
+        <wd-tabs v-model="activeTab" sticky line-color="#0A4FE5" @click="handleTabChange">
+          <wd-tab
+            v-for="item in visibleTabs"
+            :key="item.name"
+            :title="item.label"
+            :name="item.name"
+          />
+        </wd-tabs>
+      </view>
     </view>
 
-    <!-- 分类Tab -->
-    <view v-if="!categoryLoading" class="sticky top-10 z-[998] mb-2 bg-white">
-      <wd-tabs v-model="activeTab" sticky @click="handleTabChange">
-        <wd-tab
-          v-for="item in visibleTabs"
-          :key="item.name"
-          :title="item.label"
-          :name="item.name"
-        />
-      </wd-tabs>
+    <!-- 数据概览卡片 -->
+    <view class="grid grid-cols-3 mx-3 mt-3 gap-2">
+      <view class="border border-black/[0.08] rounded-xl bg-white p-3 text-center shadow-sm">
+        <text class="mb-1 block text-xs text-[#64748B]">
+          ETF总数
+        </text>
+        <text class="text-lg text-[#1F2937] font-semibold">
+          {{ etfList.length || '--' }}
+        </text>
+      </view>
+      <view class="border border-black/[0.08] rounded-xl bg-white p-3 text-center shadow-sm">
+        <text class="mb-1 block text-xs text-[#64748B]">
+          低估
+        </text>
+        <text class="text-lg text-[#00C853] font-semibold">
+          {{ lowValuationCount }}
+        </text>
+      </view>
+      <view class="border border-black/[0.08] rounded-xl bg-white p-3 text-center shadow-sm">
+        <text class="mb-1 block text-xs text-[#64748B]">
+          高估
+        </text>
+        <text class="text-lg text-[#FF4D4F] font-semibold">
+          {{ highValuationCount }}
+        </text>
+      </view>
     </view>
 
     <!-- 表格区域 -->
-    <custom-table
-      ref="tableRef"
-      :columns="columns"
-      :table-data="filteredList"
-      :loading="etfLoading"
-      :scroll-left="scrollLeft"
-      :row-click="handleRowClick"
-      :optional-click="handleOptionalClick"
-      @update:scroll-left="handleScrollChange"
-    />
+    <view class="mx-3 mt-3">
+      <custom-table
+        ref="tableRef"
+        :columns="columns"
+        :table-data="filteredList"
+        :loading="etfLoading"
+        :scroll-left="scrollLeft"
+        :row-click="handleRowClick"
+        :optional-click="handleOptionalClick"
+        @update:scroll-left="handleScrollChange"
+      />
+    </view>
 
     <!-- 底部安全区域 -->
     <view class="h-[env(safe-area-inset-bottom)]" />

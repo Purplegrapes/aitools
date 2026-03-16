@@ -7,9 +7,11 @@
  * @FilePath: /wot-starter/src/api/core/handlers.ts
  */
 import type { Method } from 'alova'
+import { useEmbeddedToolStore } from '@/store/embeddedToolStore'
 import { useEtfUserStore } from '@/store/etfUserStore'
 import { useTampStore } from '@/store/tampStore'
 import { handleExternalRedirect } from '@/subPages/tamp/utils/externalRedirect'
+import { useEmbeddedAuth } from '@/subPages/tools/composables/useEmbeddedAuth'
 
 // Custom error class for API errors
 export class ApiError extends Error {
@@ -34,6 +36,25 @@ interface ApiResponse {
   more?: boolean
 }
 
+async function handleEmbeddedUnauthorized(data?: any) {
+  const embeddedToolStore = useEmbeddedToolStore()
+  const { recover, isEmbeddedToolPage } = useEmbeddedAuth()
+
+  if (!embeddedToolStore.sessionReady || !isEmbeddedToolPage())
+    return false
+
+  const globalToast = useGlobalToast()
+  const result = await recover()
+
+  if (result.status === 'success') {
+    globalToast.warning({ msg: '登录状态已恢复，请重试当前操作', duration: 1200 })
+    throw new ApiError('登录状态已恢复，请重试当前操作', 401, data)
+  }
+
+  globalToast.error(result.message || '登录已过期，请返回小程序重新进入')
+  throw new ApiError(result.message || '登录已过期，请返回小程序重新进入', 401, data)
+}
+
 // Handle successful responses
 export async function handleAlovaResponse(
   response: UniApp.RequestSuccessCallbackResult | UniApp.UploadFileSuccessCallbackResult | UniApp.DownloadSuccessData,
@@ -44,6 +65,9 @@ export async function handleAlovaResponse(
 
   // 处理401/403错误（单 token 模式不再尝试刷新）
   if ((statusCode === 401 || statusCode === 403)) {
+    if (await handleEmbeddedUnauthorized(data))
+      return data as ApiResponse
+
     const userStore = useEtfUserStore()
     const tampStore = useTampStore()
     await userStore.logout()
@@ -73,7 +97,7 @@ export async function handleAlovaResponse(
 }
 
 // Handle request errors
-export function handleAlovaError(error: any, method: Method) {
+export async function handleAlovaError(error: any, method: Method) {
   const globalToast = useGlobalToast()
   // Log error in development
   if (import.meta.env.MODE === 'development') {
@@ -82,13 +106,10 @@ export function handleAlovaError(error: any, method: Method) {
 
   // 处理401/403错误（如果不是在handleAlovaResponse中处理的）
   if (error instanceof ApiError && (error.code === 401 || error.code === 403)) {
-    // 如果是未授权错误，清除用户信息并跳转到登录页
-    globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
-    const timer = setTimeout(() => {
-      clearTimeout(timer)
-      // router.replaceAll({ name: 'login' })
-    }, 500)
-    throw new ApiError('登录已过期，请重新登录！', error.code, error.data)
+    if (!method.url.startsWith('/tools-api')) {
+      globalToast.error({ msg: error.message || '登录已过期，请重新登录！', duration: 500 })
+    }
+    throw error
   }
 
   // Handle different types of errors

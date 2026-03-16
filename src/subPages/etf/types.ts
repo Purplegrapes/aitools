@@ -64,6 +64,8 @@ export interface RealtimeData {
  */
 export interface ValuationData {
   index_code: string
+  indexCode?: string
+  code?: string
   pe?: number
   pb?: number
   dividend_yield?: number
@@ -73,6 +75,7 @@ export interface ValuationData {
   pe_percent_r10y?: number
   pb_percent_r5y?: number
   pb_percent_r10y?: number
+  valuation_status?: number
 }
 
 /**
@@ -162,6 +165,7 @@ export interface ValuationDetailData {
  */
 export interface ValuationTrendPoint {
   time: string
+  name: string
   value: [string, number]
 }
 

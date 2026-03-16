@@ -1,10 +1,10 @@
+import type { AssetPoolQueryParams } from '../types'
 /**
  * 食息指南子包独立 API 接口
  * 使用主 alova 实例，根据 URL 前缀自动匹配资产 API 服务器
  */
 import { alovaInstance } from '@/api/core/instance'
 import { MonthlyDividendPoolCode } from '../types'
-import type { AssetPoolQueryParams } from '../types'
 
 /**
  * 获取资产详情

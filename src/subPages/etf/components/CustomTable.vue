@@ -1,9 +1,10 @@
 <script setup lang="ts">
 /**
- * 自定义表格组件
+ * 自定义表格组件 - 深色金融科技风格
  * 用于展示 ETF 数据列表
- * 现代金融数据美学设计
  */
+import { valuationStatus } from '../design-system'
+
 interface Column {
   props: string
   label?: string
@@ -61,7 +62,6 @@ const fixedColumnsOffset = computed(() => {
   for (const col of visibleColumns.value) {
     if (col.fixed) {
       offsets[col.props] = accumulatedWidth
-      // 固定列宽度 = 原始宽度 + 额外空间
       accumulatedWidth += (col.width ? col.width * 2 : 100) + FIXED_COLUMN_EXTRA_WIDTH
     }
   }
@@ -84,7 +84,6 @@ function getFixedLeftStyle(column: Column): string | undefined {
  */
 const tableWidth = computed(() => {
   return visibleColumns.value.reduce((sum, col) => {
-    // 固定列增加额外空间
     const width = col.width ? col.width * 2 : 100
     return sum + (col.fixed ? width + FIXED_COLUMN_EXTRA_WIDTH : width)
   }, 0)
@@ -156,24 +155,23 @@ function getAlign(column: Column): string {
 }
 
 /**
- * 获取单元格颜色 - 浅色主题优化
+ * 获取单元格颜色 - 浅色主题
  */
 function getCellColor(row: any, column: Column): string {
   const value = row[column.props]
   if (column.props === 'priceChangeRatio' || column.props === 'premiumRate') {
     if (value > 0)
-      return '#ef4444' // 红色上涨
+      return '#FF4D4F'
     if (value < 0)
-      return '#22c55e' // 绿色下跌
+      return '#00C853'
   }
-  return '#1e293b' // 深色文字
+  return '#1F2937'
 }
 
 /**
  * 获取单元格宽度
  */
 function getColumnWidth(column: Column): string {
-  // 固定列增加额外宽度用于阴影和遮挡
   if (column.fixed) {
     const baseWidth = column.width ? column.width * 2 : 100
     return `${baseWidth + FIXED_COLUMN_EXTRA_WIDTH}rpx`
@@ -197,52 +195,80 @@ function getCellStyle(column: Column) {
   return style
 }
 
-/**
- * 获取行背景样式
- */
-function getRowStyle(row: any): Record<string, string> | null {
-  const config = getValuationConfig(row)
-  return config ? { backgroundColor: config.bgColor } : null
+function getHeaderCellStyle(column: Column) {
+  return {
+    ...getCellStyle(column),
+    ...(column.fixed
+      ? {
+          zIndex: '60',
+          backgroundColor: '#FFFFFF',
+        }
+      : {}),
+  }
+}
+
+function getFixedCellBackground(row: any): string {
+  const status = Number(row.valuation_status)
+  if (status === 1)
+    return '#EAF9F0'
+  if (status === 2)
+    return '#FFF7E6'
+  if (status === 3)
+    return '#FFF1F0'
+  return '#FFFFFF'
+}
+
+function getBodyCellStyle(row: any, column: Column) {
+  return {
+    ...getCellStyle(column),
+    ...(column.fixed
+      ? {
+          zIndex: '20',
+          backgroundColor: getFixedCellBackground(row),
+        }
+      : {}),
+  }
 }
 
 /**
- * 估值状态配置 - 浅色主题优化
+ * 获取行背景样式 - 深色主题
  */
-const VALUATION_STATUS_CONFIG: Record<
-  string,
-  { label: string, bgColor: string, textColor: string, rgbaColor: string }
-> = {
-  1: { label: '低估', bgColor: '#dcfce7', textColor: '#166534', rgbaColor: '#bbf7d0' },
-  2: { label: '适中', bgColor: '#fef3c7', textColor: '#b45309', rgbaColor: '#fde68a' },
-  3: { label: '高估', bgColor: '#fee2e2', textColor: '#b91c1c', rgbaColor: '#fecaca' },
+function getRowStyle(row: any): Record<string, string> | null {
+  const config = getValuationConfig(row)
+  return config ? { backgroundColor: config.bg } : null
 }
 
 /**
  * 获取估值状态配置
  */
 function getValuationConfig(row: any) {
-  return VALUATION_STATUS_CONFIG[row.valuation_status]
+  const status = Number(row.valuation_status)
+  if (status === 1)
+    return valuationStatus.low
+  if (status === 2)
+    return valuationStatus.medium
+  if (status === 3)
+    return valuationStatus.high
+  return null
 }
 
 /**
  * 判断是否是最后一个固定列
  */
 function isLastFixedColumn(index: number): boolean {
-  // 从当前索引开始，往后找，如果后面没有固定列了，说明当前是最后一个固定列
   for (let i = index + 1; i < visibleColumns.value.length; i++) {
-    if (visibleColumns.value[i].fixed) {
+    if (visibleColumns.value[i].fixed === true)
       return false
-    }
   }
-  return visibleColumns.value[index].fixed
+  return visibleColumns.value[index].fixed === true
 }
 </script>
 
 <template>
-  <view class="custom-table overflow-hidden bg-slate-50">
+  <view class="custom-table overflow-hidden bg-[#F8FAFC]">
     <!-- 加载状态 -->
     <view v-if="loading" class="flex justify-center py-10">
-      <wd-loading type="spinner" />
+      <wd-loading type="spinner" size="24px" color="#00D4AA" />
     </view>
 
     <!-- 可滚动的表格容器 -->
@@ -258,21 +284,24 @@ function isLastFixedColumn(index: number): boolean {
       scroll-x
       scroll-y
       :scroll-left="currentScrollLeft"
-      :style="{ height: 'calc(100vh - 350rpx)' }"
+      :style="{ height: 'calc(100vh - 380rpx)' }"
       @scroll="handleScroll"
     >
       <view class="flex flex-col" :style="{ width: `${tableWidth}rpx` }">
         <!-- 表头 -->
-        <view class="sticky top-0 z-10 flex border-b border-slate-200/60 bg-white/80 backdrop-blur-md">
+        <view
+          class="sticky top-0 flex border-b border-black/[0.08] bg-white/95 backdrop-blur-xl"
+          :style="{ zIndex: 50 }"
+        >
           <view
             v-for="(column, colIndex) in visibleColumns"
             :key="column.props"
-            class="box-border flex flex-shrink-0 items-center px-3 py-3 text-xs text-slate-500 font-medium"
+            class="box-border flex flex-shrink-0 items-center px-3 py-3 text-xs text-[#64748B] font-medium"
             :class="[
-              column.fixed ? 'sticky z-15 bg-white/95' : '',
+              column.fixed ? 'sticky' : '',
               column.fixed && currentScrollLeft > 0 && isLastFixedColumn(colIndex) ? 'fixed-column-shadow' : '',
             ]"
-            :style="getCellStyle(column)"
+            :style="getHeaderCellStyle(column)"
           >
             <text class="leading-tight">
               {{ column.label || '' }}
@@ -285,7 +314,7 @@ function isLastFixedColumn(index: number): boolean {
           <view
             v-for="(row, index) in tableData"
             :key="index"
-            class="relative flex border-b border-slate-100/80 bg-white transition-all duration-200 active:scale-[0.99] active:bg-slate-50"
+            class="relative flex border-b border-black/[0.04] bg-white transition-all duration-200 active:scale-[0.99] active:bg-[#F1F5F9]"
             :class="{ 'rounded-t-xl': index === 0, 'rounded-b-xl': index === tableData.length - 1 }"
             :style="getRowStyle(row)"
             @click="handleRowClick(row)"
@@ -295,19 +324,16 @@ function isLastFixedColumn(index: number): boolean {
               :key="column.props"
               class="box-border flex flex-shrink-0 items-center px-3 py-3 text-sm"
               :class="[
-                column.fixed ? 'sticky z-5' : '',
+                column.fixed ? 'sticky' : '',
                 column.fixed && currentScrollLeft > 0 && isLastFixedColumn(colIndex) ? 'fixed-column-shadow' : '',
               ]"
-              :style="{
-                ...getCellStyle(column),
-                ...(column.fixed ? { backgroundColor: getRowStyle(row)?.backgroundColor || '#ffffff' } : {}),
-              }"
+              :style="getBodyCellStyle(row, column)"
             >
               <!-- 自选列 -->
               <template v-if="column.props === 'optional'">
                 <wd-icon
                   name="star-on"
-                  :color="row.watchList ? '#f59e0b' : '#cbd5e1'"
+                  :color="row.watchList ? '#FFD700' : '#CBD5E1'"
                   size="20px"
                   custom-class="transition-transform active:scale-125"
                   @click="(e) => handleOptionalClick(row, e)"
@@ -319,20 +345,23 @@ function isLastFixedColumn(index: number): boolean {
                   <text class="font-medium leading-tight" :style="{ color: getCellColor(row, column) }">
                     {{ formatValue(row, column) }}
                   </text>
-                  <wd-tag
+                  <view
                     v-if="getValuationConfig(row)"
-                    :color="getValuationConfig(row)!.textColor"
-                    :bg-color="getValuationConfig(row)!.rgbaColor"
-                    custom-class="valuation-tag rounded-md px-2 py-0.5 text-xs font-medium"
+                    class="border rounded-md px-2 py-0.5 text-xs font-medium"
+                    :style="{
+                      backgroundColor: getValuationConfig(row)!.bg,
+                      color: getValuationConfig(row)!.text,
+                      borderColor: getValuationConfig(row)!.border,
+                    }"
                   >
                     {{ getValuationConfig(row)!.label }}
-                  </wd-tag>
+                  </view>
                 </view>
               </template>
               <!-- 普通列 -->
               <template v-else>
                 <text
-                  class="font-medium leading-tight"
+                  class="font-medium leading-tight tabular-nums"
                   :style="{ color: getCellColor(row, column) }"
                 >
                   {{ formatValue(row, column) }}
@@ -343,10 +372,12 @@ function isLastFixedColumn(index: number): boolean {
 
           <!-- 空状态 -->
           <view v-if="!loading && tableData.length === 0" class="flex flex-col items-center justify-center py-20">
-            <text class="mb-3 text-4xl">
-              📊
-            </text>
-            <text class="text-sm text-slate-400">
+            <view class="mb-3 h-16 w-16 flex items-center justify-center rounded-full bg-black/[0.03]">
+              <text class="text-3xl">
+                📊
+              </text>
+            </view>
+            <text class="text-sm text-[#94A3B8]">
               暂无数据
             </text>
           </view>
@@ -357,10 +388,17 @@ function isLastFixedColumn(index: number): boolean {
 </template>
 
 <style scoped>
-/* 估值标签优化 */
-:deep(.valuation-tag) {
-  border: none !important;
-  font-size: 11px !important;
-  padding: 2px 8px !important;
+.fixed-column-shadow {
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
+}
+
+/* 确保固定列有正确的背景 */
+:deep(.wd-tabs) {
+  background-color: transparent !important;
+}
+
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+  display: none;
 }
 </style>
