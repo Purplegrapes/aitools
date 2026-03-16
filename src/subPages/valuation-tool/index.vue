@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { HotSearchFund, MarketSentiment } from './types'
 import { getHotSearchFunds, getMarketSentiment } from './api/valuationTool'
+import HomeActionBar from './components/HomeActionBar.vue'
 import HotSearchList from './components/HotSearchList.vue'
 import SentimentCard from './components/SentimentCard.vue'
 import ValuationSearchBar from './components/ValuationSearchBar.vue'
 import { fallbackHotSearches, fallbackMarketSentiment } from './mock'
-import { createResultPath, createSearchPath } from './utils'
+import { createHoldingsPath, createResultPath, createSearchPath, createWatchlistPath } from './utils'
 
 definePage({
   name: 'valuation-tool-home',
@@ -62,6 +63,14 @@ function handleSearch() {
 function handleSelectHotSearch(item: HotSearchFund) {
   router.push(createResultPath(item.code))
 }
+
+function handleOpenWatchlist() {
+  router.push(createWatchlistPath())
+}
+
+function handleOpenHoldings() {
+  router.push(createHoldingsPath())
+}
 </script>
 
 <template>
@@ -70,7 +79,7 @@ function handleSelectHotSearch(item: HotSearchFund) {
     <view class="pointer-events-none absolute left-[-120rpx] top-[120rpx] h-[280rpx] w-[280rpx] rounded-full bg-[rgba(24,144,255,0.08)] blur-[40rpx]" />
     <view class="pointer-events-none absolute right-[-80rpx] top-[260rpx] h-[220rpx] w-[220rpx] rounded-full bg-[rgba(29,33,41,0.05)] blur-[44rpx]" />
 
-    <view class="relative mx-auto box-border max-w-[680rpx] w-full pb-10 pt-4">
+    <view class="relative mx-auto box-border max-w-[680rpx] w-full pb-[180rpx] pt-4">
       <view>
         <view>
           <text class="mt-[18rpx] block text-[48rpx] text-primary font-700 leading-[1.08] tracking-[1rpx]">
@@ -164,5 +173,10 @@ function handleSelectHotSearch(item: HotSearchFund) {
         </view>
       </view>
     </view>
+
+    <HomeActionBar
+      @open-holdings="handleOpenHoldings"
+      @open-watchlist="handleOpenWatchlist"
+    />
   </view>
 </template>

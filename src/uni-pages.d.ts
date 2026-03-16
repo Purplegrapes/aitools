@@ -16,6 +16,7 @@ type _LocationUrl =
   "/subPages/tamp/index" |
   "/subPages/tamp/marketing" |
   "/subPages/tools/entry" |
+  "/subPages/valuation-tool/holdings" |
   "/subPages/valuation-tool/index" |
   "/subPages/valuation-tool/mine-scan" |
   "/subPages/valuation-tool/result" |

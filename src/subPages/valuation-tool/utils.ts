@@ -24,6 +24,10 @@ export function createWatchlistPath() {
   return '/subPages/valuation-tool/watchlist'
 }
 
+export function createHoldingsPath() {
+  return '/subPages/valuation-tool/holdings'
+}
+
 export function createMineScanPath(code: string) {
   return `/subPages/valuation-tool/mine-scan?code=${encodeURIComponent(code)}`
 }

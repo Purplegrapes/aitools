@@ -162,6 +162,17 @@
           }
         },
         {
+          "path": "valuation-tool/holdings",
+          "type": "page",
+          "name": "valuation-tool-holdings",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "持有基金",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
           "path": "valuation-tool/index",
           "type": "page",
           "name": "valuation-tool-home",
