@@ -6,6 +6,8 @@ import type {
   HotSearchFund,
   MarketSentiment,
   SearchResultViewModel,
+  ValuationWatchlistFund,
+  ValuationWatchlistMutationInput,
 } from './types'
 
 export const fallbackMarketSentiment: MarketSentiment = {
@@ -175,4 +177,85 @@ function inferTodayTag(tags: string[]) {
   if (tagText.includes('黄金') || tagText.includes('科技'))
     return '今天波动较大'
   return '今天偏弱'
+}
+
+const VALUATION_WATCHLIST_STORAGE_KEY = 'valuationToolWatchlist'
+
+const fallbackWatchlistCatalog: Record<string, ValuationWatchlistFund> = {
+  '110020': {
+    code: '110020',
+    name: '易方达沪深300ETF联接A',
+    dailyChange: 1.26,
+    updateTime: '14:05',
+    watchlisted: true,
+  },
+  '270042': {
+    code: '270042',
+    name: '广发纳斯达克100ETF联接',
+    dailyChange: -0.84,
+    updateTime: '14:05',
+    watchlisted: true,
+  },
+  '009051': {
+    code: '009051',
+    name: '易方达中证红利',
+    dailyChange: 0.36,
+    updateTime: '14:05',
+    watchlisted: true,
+  },
+}
+
+export function getFallbackWatchlistFunds() {
+  const storedList = readStoredWatchlist()
+  if (storedList)
+    return storedList
+  return Object.values(fallbackWatchlistCatalog)
+}
+
+export function saveFallbackWatchlistFund(input: ValuationWatchlistMutationInput) {
+  const currentList = getFallbackWatchlistFunds()
+  const nextItem: ValuationWatchlistFund = {
+    code: input.code,
+    name: input.name || fallbackWatchlistCatalog[input.code]?.name || `基金 ${input.code}`,
+    dailyChange: input.dailyChange ?? fallbackWatchlistCatalog[input.code]?.dailyChange ?? null,
+    updateTime: input.updateTime || fallbackWatchlistCatalog[input.code]?.updateTime || '14:05',
+    watchlisted: true,
+  }
+
+  const nextList = [...currentList.filter(item => item.code !== input.code), nextItem]
+  writeStoredWatchlist(nextList)
+  return nextItem
+}
+
+export function removeFallbackWatchlistFund(code: string) {
+  const nextList = getFallbackWatchlistFunds().filter(item => item.code !== code)
+  writeStoredWatchlist(nextList)
+  return nextList
+}
+
+function readStoredWatchlist() {
+  try {
+    const storedValue = uni.getStorageSync(VALUATION_WATCHLIST_STORAGE_KEY)
+    if (storedValue === '' || storedValue === undefined || storedValue === null)
+      return null
+    if (!Array.isArray(storedValue))
+      return null
+
+    return storedValue.map((item) => {
+      return {
+        code: item.code,
+        name: item.name,
+        dailyChange: typeof item.dailyChange === 'number' ? item.dailyChange : null,
+        updateTime: typeof item.updateTime === 'string' ? item.updateTime : '14:05',
+        watchlisted: true,
+      } satisfies ValuationWatchlistFund
+    })
+  }
+  catch {
+    return null
+  }
+}
+
+function writeStoredWatchlist(items: ValuationWatchlistFund[]) {
+  uni.setStorageSync(VALUATION_WATCHLIST_STORAGE_KEY, items)
 }

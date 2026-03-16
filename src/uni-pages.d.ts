@@ -17,8 +17,10 @@ type _LocationUrl =
   "/subPages/tamp/marketing" |
   "/subPages/tools/entry" |
   "/subPages/etf/valuation-tool/index" |
+  "/subPages/etf/valuation-tool/mine-scan" |
   "/subPages/etf/valuation-tool/result" |
   "/subPages/etf/valuation-tool/search" |
+  "/subPages/etf/valuation-tool/watchlist" |
   "/subPages/tools/demo/index";
 
 interface NavigateToOptions {

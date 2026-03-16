@@ -80,3 +80,18 @@ export interface DetailStateMeta {
   description: string
   primaryAction: string
 }
+
+export interface ValuationWatchlistFund {
+  code: string
+  name: string
+  dailyChange: number | null
+  updateTime?: string
+  watchlisted: boolean
+}
+
+export interface ValuationWatchlistMutationInput {
+  code: string
+  name?: string
+  dailyChange?: number | null
+  updateTime?: string
+}

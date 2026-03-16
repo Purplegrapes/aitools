@@ -3,7 +3,7 @@
 ## 文档说明
 
 - 文档目的：基于当前静态页面，反向整理服务端需要提供给前端调用的接口
-- 适用范围：首页市场情绪、热搜榜单、基金搜索、基金结果详情
+- 适用范围：首页市场情绪、热搜榜单、基金搜索、基金结果详情、valuation-tool 专属自选能力
 - 接口前缀建议：`/api/v1`
 - 返回格式建议：统一使用 `{ code, msg, data }`
 
@@ -305,7 +305,172 @@ GET /api/v1/funds/110020/result
 
 ---
 
-## 5. 详情页状态约定
+## 5. 获取 valuation-tool 自选基金列表
+
+### 接口
+
+`GET /api/v1/valuation-tool/watchlist`
+
+### 用途
+
+用于 valuation-tool 独立“自选基金”列表页。
+
+### 请求参数
+
+无
+
+### 返回字段
+
+#### data
+
+推荐使用对象包裹列表，便于后续扩展分页或统计信息。
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `items` | array | 是 | 自选基金列表 |
+
+#### items[]
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `code` | string | 是 | 基金代码 |
+| `name` | string | 是 | 基金名称 |
+| `watchlisted` | boolean | 是 | 是否已自选 |
+| `dailyChange` | number \| null | 是 | 当日涨幅，单位 `%`，暂无数据时返回 `null` |
+| `updateTime` | string | 否 | 当日涨幅更新时间 |
+
+### 返回示例
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "items": [
+      {
+        "code": "110020",
+        "name": "易方达沪深300ETF联接A",
+        "watchlisted": true,
+        "dailyChange": 1.26,
+        "updateTime": "2026-03-16 14:05"
+      },
+      {
+        "code": "270042",
+        "name": "广发纳斯达克100ETF联接",
+        "watchlisted": true,
+        "dailyChange": -0.84,
+        "updateTime": "2026-03-16 14:05"
+      }
+    ]
+  }
+}
+```
+
+### 说明
+
+- 这是 valuation-tool 专属自选接口，不复用 ETF 主工具页既有 watchlist 接口
+- `dailyChange` 为列表页核心展示字段，新接口需要直接支持
+- 当某只基金暂无当日涨幅时，建议返回 `null`，前端进入降级展示
+
+---
+
+## 6. 新增 valuation-tool 自选基金
+
+### 接口
+
+`POST /api/v1/valuation-tool/watchlist`
+
+### 用途
+
+用于基金详情页“加入自选”操作。
+
+### 请求参数
+
+#### body
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `code` | string | 是 | 基金代码 |
+| `name` | string | 否 | 基金名称，便于服务端落库或校验 |
+| `dailyChange` | number \| null | 否 | 当前页面已拿到的当日涨幅，可选透传 |
+| `updateTime` | string | 否 | 当前页面展示所用更新时间，可选透传 |
+
+### 请求示例
+
+```json
+{
+  "code": "110020",
+  "name": "易方达沪深300ETF联接A",
+  "dailyChange": 1.26,
+  "updateTime": "2026-03-16 14:05"
+}
+```
+
+### 返回示例
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "success": true,
+    "code": "110020",
+    "watchlisted": true
+  }
+}
+```
+
+### 说明
+
+- 若该基金已在 valuation-tool 自选列表中，建议返回幂等成功
+- 返回体中建议显式返回 `watchlisted=true`，方便前端立即切换按钮态
+
+---
+
+## 7. 删除 valuation-tool 自选基金
+
+### 接口
+
+`DELETE /api/v1/valuation-tool/watchlist/{code}`
+
+### 用途
+
+用于基金详情页“取消自选”和自选列表页移除操作。
+
+### 路径参数
+
+| 参数 | 位置 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `code` | path | string | 是 | 基金代码 |
+
+### 请求示例
+
+```http
+DELETE /api/v1/valuation-tool/watchlist/110020
+```
+
+### 返回示例
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "success": true,
+    "code": "110020",
+    "watchlisted": false
+  }
+}
+```
+
+### 说明
+
+- 建议删除接口同样保持幂等：目标不存在时也可返回成功
+- 返回体中建议显式返回 `watchlisted=false`，便于前端同步状态
+
+---
+
+## 8. 详情页状态约定
 
 当前静态原型中存在以下几种状态页：
 
@@ -316,7 +481,7 @@ GET /api/v1/funds/110020/result
 
 建议统一由 `GET /api/v1/funds/{code}/result` 返回 `status` 控制，而不是为每种状态再拆独立业务接口。
 
-### 5.1 正常结果
+### 8.1 正常结果
 
 ```json
 {
@@ -328,7 +493,7 @@ GET /api/v1/funds/110020/result
 }
 ```
 
-### 5.2 无结果
+### 8.2 无结果
 
 ```json
 {
@@ -343,7 +508,7 @@ GET /api/v1/funds/110020/result
 前端处理建议：
 - 进入“抱歉，系统里还没这只基金”页面
 
-### 5.3 缺值
+### 8.3 缺值
 
 ```json
 {
@@ -358,7 +523,7 @@ GET /api/v1/funds/110020/result
 前端处理建议：
 - 展示“该基金部分关键数据暂缺”状态页
 
-### 5.4 加载中
+### 8.4 加载中
 
 ```json
 {
@@ -375,7 +540,7 @@ GET /api/v1/funds/110020/result
 
 ---
 
-## 6. 前端页面与接口映射关系
+## 9. 前端页面与接口映射关系
 
 ### 首页
 
@@ -395,23 +560,36 @@ GET /api/v1/funds/110020/result
 依赖接口：
 
 - `GET /api/v1/funds/{code}/result`
+- `POST /api/v1/valuation-tool/watchlist`
+- `DELETE /api/v1/valuation-tool/watchlist/{code}`
+- `GET /api/v1/valuation-tool/watchlist`
+
+### 自选基金列表页
+
+依赖接口：
+
+- `GET /api/v1/valuation-tool/watchlist`
+- `DELETE /api/v1/valuation-tool/watchlist/{code}`
 
 ---
 
-## 7. 最小可用接口集合
+## 10. 最小可用接口集合
 
-如果先做 MVP，只需要以下 4 个接口：
+如果先做 MVP，只需要以下 7 个接口：
 
 1. `GET /api/v1/market/sentiment`
 2. `GET /api/v1/funds/hot-searches`
 3. `GET /api/v1/funds/search?q=`
 4. `GET /api/v1/funds/{code}/result`
+5. `GET /api/v1/valuation-tool/watchlist`
+6. `POST /api/v1/valuation-tool/watchlist`
+7. `DELETE /api/v1/valuation-tool/watchlist/{code}`
 
-这 4 个接口足够驱动当前静态页面的全部核心功能。
+这 7 个接口足够驱动当前 valuation-tool 的首页、详情页、自选列表页和自选操作链路。
 
 ---
 
-## 8. 备注
+## 11. 备注
 
 - 当前静态页面未体现真实后端 API 调用，本文件为基于页面功能反向设计的服务端接口说明
 - 建议后续结合真实数据源再补充：

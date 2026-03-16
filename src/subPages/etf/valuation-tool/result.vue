@@ -2,10 +2,19 @@
 import type { DiscoveryFundValuation, FundIntraday, FundResult } from './types'
 import { getFundValuation } from '@/api/discovery'
 import { getFundResult } from '../api/valuationTool'
+import DetailActionBar from './components/DetailActionBar.vue'
 import DetailStateCard from './components/DetailStateCard.vue'
 import DetailSummaryCards from './components/DetailSummaryCards.vue'
+import { useValuationWatchlist } from './composables/useValuationWatchlist'
 import { detailStateMetaMap, getFallbackFundResult } from './mock'
-import { createSearchPath, isFundResultStatus, mapValuationToIntraday, normalizeKeyword } from './utils'
+import {
+  createMineScanPath,
+  createSearchPath,
+  createWatchlistPath,
+  isFundResultStatus,
+  mapValuationToIntraday,
+  normalizeKeyword,
+} from './utils'
 
 definePage({
   name: 'etf-valuation-tool-result',
@@ -22,6 +31,11 @@ const route = useRoute()
 const fundCode = computed(() => normalizeKeyword(route.query.code))
 const requestError = shallowRef(false)
 const valuationError = shallowRef(false)
+const {
+  refreshWatchlist,
+  toggleWatchlist,
+  isWatchlisted,
+} = useValuationWatchlist()
 
 const {
   data: resultResponse,
@@ -82,6 +96,7 @@ const displayResult = computed<FundResult>(() => {
 
 const stateMeta = computed(() => detailStateMetaMap[displayStatus.value])
 const showDetail = computed(() => displayStatus.value === 'ok')
+const watchlisted = computed(() => isWatchlisted(fundCode.value))
 
 watch(
   fundCode,
@@ -94,6 +109,7 @@ watch(
     valuationError.value = false
     fetchResult()
     fetchValuation()
+    refreshWatchlist()
   },
   { immediate: true },
 )
@@ -104,10 +120,33 @@ function handlePrimaryAction() {
   else
     router.replace('/subPages/etf/valuation-tool/index')
 }
+
+function handleOpenWatchlist() {
+  router.push(createWatchlistPath())
+}
+
+function handleOpenMineScan() {
+  if (!fundCode.value)
+    return
+
+  router.push(createMineScanPath(fundCode.value))
+}
+
+function handleToggleWatchlist() {
+  if (!fundCode.value)
+    return
+
+  toggleWatchlist({
+    code: fundCode.value,
+    name: displayResult.value.name,
+    dailyChange: displayResult.value.intraday?.value ?? null,
+    updateTime: displayResult.value.intraday?.updateTime,
+  })
+}
 </script>
 
 <template>
-  <view class="min-h-screen bg-page px-4 pb-8 pt-4">
+  <view class="min-h-screen bg-page px-4 pt-4" :class="showDetail ? 'pb-[220rpx]' : 'pb-8'">
     <view class="mx-auto max-w-[680rpx] flex flex-col gap-4">
       <view v-if="loading && !showDetail" class="rounded-4 bg-surface p-6 text-center shadow-sm">
         <wd-loading />
@@ -133,5 +172,13 @@ function handlePrimaryAction() {
         </view>
       </template>
     </view>
+
+    <DetailActionBar
+      v-if="showDetail"
+      :watchlisted="watchlisted"
+      @open-mine-scan="handleOpenMineScan"
+      @open-watchlist="handleOpenWatchlist"
+      @toggle="handleToggleWatchlist"
+    />
   </view>
 </template>

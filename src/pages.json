@@ -173,6 +173,17 @@
           }
         },
         {
+          "path": "etf/valuation-tool/mine-scan",
+          "type": "page",
+          "name": "etf-valuation-tool-mine-scan",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "基金扫雷",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
           "path": "etf/valuation-tool/result",
           "type": "page",
           "name": "etf-valuation-tool-result",
@@ -190,6 +201,17 @@
           "layout": "default",
           "style": {
             "navigationBarTitleText": "基金搜索",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
+          "path": "etf/valuation-tool/watchlist",
+          "type": "page",
+          "name": "etf-valuation-tool-watchlist",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "自选基金",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
           }

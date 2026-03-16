@@ -20,6 +20,14 @@ export function createResultPath(code: string) {
   return `/subPages/etf/valuation-tool/result?code=${encodeURIComponent(code)}`
 }
 
+export function createWatchlistPath() {
+  return '/subPages/etf/valuation-tool/watchlist'
+}
+
+export function createMineScanPath(code: string) {
+  return `/subPages/etf/valuation-tool/mine-scan?code=${encodeURIComponent(code)}`
+}
+
 export function isFundResultStatus(value: unknown): value is FundResultStatus {
   return value === 'ok' || value === 'not_found' || value === 'missing_value' || value === 'loading'
 }
@@ -68,4 +76,19 @@ function formatCurrentTime() {
 function formatSignedNumber(value: number, fractionDigits: number) {
   const sign = value > 0 ? '+' : ''
   return `${sign}${value.toFixed(fractionDigits)}`
+}
+
+export function formatDailyChange(value?: number | null) {
+  if (value === null || value === undefined || Number.isNaN(Number(value)))
+    return '--'
+
+  const numericValue = Number(value)
+  const sign = numericValue > 0 ? '+' : ''
+  return `${sign}${numericValue.toFixed(2)}%`
+}
+
+export function getDailyChangeTone(value?: number | null) {
+  if (value === null || value === undefined || Number(value) === 0)
+    return 'text-primary'
+  return Number(value) > 0 ? 'text-danger' : 'text-success'
 }
