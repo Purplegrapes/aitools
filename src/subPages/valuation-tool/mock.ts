@@ -207,7 +207,7 @@ const fallbackWatchlistCatalog: Record<string, ValuationWatchlistFund> = {
 
 export function getFallbackWatchlistFunds() {
   const storedList = readStoredWatchlist()
-  if (storedList)
+  if (storedList?.length)
     return storedList
   return Object.values(fallbackWatchlistCatalog)
 }

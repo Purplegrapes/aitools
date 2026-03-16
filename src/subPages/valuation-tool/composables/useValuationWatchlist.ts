@@ -36,7 +36,10 @@ export function useValuationWatchlist() {
     try {
       const response = await getValuationWatchlist().send()
       const items = (response as { data?: ValuationWatchlistFund[] | { items?: ValuationWatchlistFund[] } } | undefined)?.data
-      watchlistItemsState.value = normalizeWatchlistItems(Array.isArray(items) ? items : items?.items)
+      const normalizedItems = normalizeWatchlistItems(Array.isArray(items) ? items : items?.items)
+      watchlistItemsState.value = import.meta.env.DEV && !normalizedItems.length
+        ? normalizeWatchlistItems(getFallbackWatchlistFunds())
+        : normalizedItems
       watchlistLoadedState.value = true
     }
     catch {
