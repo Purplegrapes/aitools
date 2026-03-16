@@ -162,6 +162,39 @@
           }
         },
         {
+          "path": "etf/valuation-tool/index",
+          "type": "page",
+          "name": "etf-valuation-tool-home",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "ETF估值工具",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
+          "path": "etf/valuation-tool/result",
+          "type": "page",
+          "name": "etf-valuation-tool-result",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "基金详情",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
+          "path": "etf/valuation-tool/search",
+          "type": "page",
+          "name": "etf-valuation-tool-search",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "基金搜索",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
           "path": "tools/demo/index",
           "type": "page",
           "name": "tools-demo",

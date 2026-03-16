@@ -83,6 +83,15 @@ const allTools: ToolItem[] = [
     popular: true,
   },
   {
+    id: 'etf-valuation-tool',
+    name: 'ETF翻译器',
+    description: '小白快速看懂基金',
+    icon: 'idea',
+    category: 'investment',
+    route: { name: 'etf-valuation-tool-home' },
+    popular: true,
+  },
+  {
     id: 'asset-detail',
     name: '资产详情',
     description: '查看资产表现',

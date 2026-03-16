@@ -48,6 +48,11 @@ export default defineConfig({
         target: 'https://cngz.yhlsd.com',
         changeOrigin: true,
       },
+      '/discovery-api': {
+        target: 'https://ai.firstindex.cn',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/discovery-api/, ''),
+      },
     },
   },
   plugins: [
