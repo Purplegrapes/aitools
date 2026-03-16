@@ -74,15 +74,6 @@ const categories = {
 const allTools: ToolItem[] = [
   // 投资工具
   {
-    id: 'etf-valuation',
-    name: '今日几星',
-    description: 'ETF估值表',
-    icon: 'chart-line',
-    category: 'investment',
-    route: { name: 'etf' },
-    popular: true,
-  },
-  {
     id: 'etf-valuation-tool',
     name: 'ETF翻译器',
     description: '小白快速看懂基金',
@@ -90,17 +81,6 @@ const allTools: ToolItem[] = [
     category: 'investment',
     route: { name: 'etf-valuation-tool-home' },
     popular: true,
-  },
-  {
-    id: 'asset-detail',
-    name: '资产详情',
-    description: '查看资产表现',
-    icon: 'chart-pie',
-    category: 'investment',
-    route: {
-      name: 'asset-detail',
-      params: { code: '515080_OF' },
-    },
   },
   {
     id: 'performance',
@@ -111,23 +91,13 @@ const allTools: ToolItem[] = [
   },
   // 数据工具
   {
-    id: 'food-interest',
-    name: '食息指南',
-    description: '饮食与收益',
-    icon: 'data',
-    category: 'data',
-    route: {
-      name: 'asset-detail',
-      params: { code: '515080_OF' },
-    },
-    popular: true,
-  },
-  {
-    id: 'market-data',
-    name: '市场数据',
-    description: '实时行情数据',
+    id: 'etf-valuation',
+    name: '今日几星',
+    description: 'ETF估值表',
     icon: 'chart-bar',
     category: 'data',
+    route: { name: 'etf' },
+    popular: true,
   },
   {
     id: 'calendar',
@@ -136,29 +106,7 @@ const allTools: ToolItem[] = [
     icon: 'calendar',
     category: 'data',
   },
-  // 营销工具
-  {
-    id: 'tamp-marketing',
-    name: 'TAMP营销页',
-    description: '产品营销展示',
-    icon: 'document',
-    category: 'marketing',
-    route: {
-      name: 'tamp-marketing',
-      params: {
-        shopId: 'V0000821',
-        portfolioCode: 'CFJH_0422',
-      },
-    },
-    popular: true,
-  },
-  {
-    id: 'promo-material',
-    name: '宣传材料',
-    description: '营销素材库',
-    icon: 'image',
-    category: 'marketing',
-  },
+
   // 其他工具
   {
     id: 'calculator',
@@ -167,21 +115,7 @@ const allTools: ToolItem[] = [
     icon: 'calculation',
     category: 'other',
   },
-  {
-    id: 'settings',
-    name: '设置',
-    description: '偏好设置',
-    icon: 'setting',
-    category: 'other',
-  },
 ]
-
-/**
- * 常用工具（最多8个）
- */
-const popularTools = computed(() =>
-  allTools.filter(tool => tool.popular).slice(0, 8),
-)
 
 /**
  * 按分类分组的工具
@@ -239,66 +173,21 @@ function getCategoryIcon(category: ToolCategory): string {
 <template>
   <view class="min-h-screen bg-[#F5F5F5]">
     <!-- 顶部欢迎区域 -->
-    <view class="from-indigo-600 to-indigo-500 bg-gradient-to-br px-4 pb-12 pt-6">
+    <view class="from-indigo-600 to-indigo-500 bg-gradient-to-br px-4 pb-6 pt-6">
       <view class="flex items-center justify-between">
         <view>
           <text class="text-2xl text-white font-bold">
             Beta Mini
           </text>
           <text class="mt-1 block text-sm text-white/80">
-            您的智能工具集合
+            您的投资工具集合
           </text>
-        </view>
-        <view class="h-12 w-12 rounded-full bg-white/20 p-1">
-          <view class="h-full w-full flex items-center justify-center rounded-full bg-white/30">
-            <wd-icon name="user" custom-class="text-white! text-5!" />
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 常用工具区域 -->
-    <view class="mx-4 -mt-6">
-      <view class="rounded-2xl bg-white p-4 shadow-sm">
-        <view class="mb-3 flex items-center gap-2">
-          <wd-icon name="star" custom-class="text-yellow-500! text-5!" />
-          <text class="text-base text-[#1D2129] font-semibold">
-            常用工具
-          </text>
-        </view>
-        <view class="grid grid-cols-4 gap-4">
-          <view
-            v-for="tool in popularTools"
-            :key="tool.id"
-            class="flex flex-col items-center gap-2"
-            @click="handleToolClick(tool)"
-          >
-            <view
-              class="h-12 w-12 flex items-center justify-center rounded-2xl transition-all duration-200 active:scale-95"
-              :class="getCategoryConfig(tool.category).color"
-            >
-              <wd-icon
-                :name="tool.icon"
-                :custom-class="`${getCategoryConfig(tool.category).iconColor} text-5!`"
-              />
-            </view>
-            <text class="text-center text-xs text-[#4E5969]">
-              {{ tool.name }}
-            </text>
-          </view>
         </view>
       </view>
     </view>
 
     <!-- 全部工具区域 -->
     <view class="mt-4 px-4">
-      <view class="mb-3 flex items-center gap-2">
-        <wd-icon name="list" custom-class="text-indigo-500! text-5!" />
-        <text class="text-base text-[#1D2129] font-semibold">
-          全部工具
-        </text>
-      </view>
-
       <!-- 按分类展示 -->
       <view
         v-for="(tools, category) in groupedTools"

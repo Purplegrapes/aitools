@@ -61,7 +61,9 @@ export function watchlistDel(code: string) {
  * 估值详情
  */
 export function valuationDetail() {
-  return alovaInstance.Get('/djapi/fundx/base/vip/valuation/show/detail')
+  return alovaInstance.Get('/djapi/fundx/base/vip/valuation/show/detail', {
+    params: { source: 'lsd' },
+  })
 }
 
 /**

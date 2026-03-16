@@ -86,7 +86,7 @@ function handleSelectHotSearch(item: HotSearchFund) {
             v-for="badge in heroBadges"
             :key="badge"
           >
-            <wd-tag mark type="primary" plain>
+            <wd-tag mark type="warning" plain>
               {{ badge }}
             </wd-tag>
           </view>

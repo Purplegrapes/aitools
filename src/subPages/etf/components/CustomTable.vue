@@ -195,6 +195,41 @@ function getCellStyle(column: Column) {
   return style
 }
 
+function getHeaderCellStyle(column: Column) {
+  return {
+    ...getCellStyle(column),
+    ...(column.fixed
+      ? {
+          zIndex: '60',
+          backgroundColor: '#FFFFFF',
+        }
+      : {}),
+  }
+}
+
+function getFixedCellBackground(row: any): string {
+  const status = Number(row.valuation_status)
+  if (status === 1)
+    return '#EAF9F0'
+  if (status === 2)
+    return '#FFF7E6'
+  if (status === 3)
+    return '#FFF1F0'
+  return '#FFFFFF'
+}
+
+function getBodyCellStyle(row: any, column: Column) {
+  return {
+    ...getCellStyle(column),
+    ...(column.fixed
+      ? {
+          zIndex: '20',
+          backgroundColor: getFixedCellBackground(row),
+        }
+      : {}),
+  }
+}
+
 /**
  * 获取行背景样式 - 深色主题
  */
@@ -207,7 +242,7 @@ function getRowStyle(row: any): Record<string, string> | null {
  * 获取估值状态配置
  */
 function getValuationConfig(row: any) {
-  const status = row.valuation_status
+  const status = Number(row.valuation_status)
   if (status === 1)
     return valuationStatus.low
   if (status === 2)
@@ -254,16 +289,19 @@ function isLastFixedColumn(index: number): boolean {
     >
       <view class="flex flex-col" :style="{ width: `${tableWidth}rpx` }">
         <!-- 表头 -->
-        <view class="sticky top-0 z-10 flex border-b border-black/[0.08] bg-white/95 backdrop-blur-xl">
+        <view
+          class="sticky top-0 flex border-b border-black/[0.08] bg-white/95 backdrop-blur-xl"
+          :style="{ zIndex: 50 }"
+        >
           <view
             v-for="(column, colIndex) in visibleColumns"
             :key="column.props"
             class="box-border flex flex-shrink-0 items-center px-3 py-3 text-xs text-[#64748B] font-medium"
             :class="[
-              column.fixed ? 'sticky z-15 bg-white/95' : '',
+              column.fixed ? 'sticky' : '',
               column.fixed && currentScrollLeft > 0 && isLastFixedColumn(colIndex) ? 'fixed-column-shadow' : '',
             ]"
-            :style="getCellStyle(column)"
+            :style="getHeaderCellStyle(column)"
           >
             <text class="leading-tight">
               {{ column.label || '' }}
@@ -286,13 +324,10 @@ function isLastFixedColumn(index: number): boolean {
               :key="column.props"
               class="box-border flex flex-shrink-0 items-center px-3 py-3 text-sm"
               :class="[
-                column.fixed ? 'sticky z-5' : '',
+                column.fixed ? 'sticky' : '',
                 column.fixed && currentScrollLeft > 0 && isLastFixedColumn(colIndex) ? 'fixed-column-shadow' : '',
               ]"
-              :style="{
-                ...getCellStyle(column),
-                ...(column.fixed ? { backgroundColor: getRowStyle(row)?.backgroundColor || '#FFFFFF' } : {}),
-              }"
+              :style="getBodyCellStyle(row, column)"
             >
               <!-- 自选列 -->
               <template v-if="column.props === 'optional'">

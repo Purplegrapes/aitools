@@ -34,10 +34,7 @@ import {
   mergeAllColumns,
   navbar,
 } from './data'
-import {
-  isApiResponse,
-  isNestedValuationDetailResponse,
-} from './types'
+import { isApiResponse } from './types'
 
 definePage({
   name: 'etf',
@@ -156,7 +153,7 @@ function mergeEtfData(
   performanceData: PerformanceData,
   realtimeData: RealtimeData[],
 ): EtfInfo & Partial<RealtimeData> & Partial<ValuationData> & Partial<PerformanceData> {
-  const valuation = valuationData.find((it: ValuationData) => it.index_code === item.trackIndexCode)
+  const valuation = findValuation(item.trackIndexCode, valuationData)
   const performanceFields = extractPerformanceFields(item.code, performanceData)
   const realData = realtimeData.find((it: RealtimeData) => it?.code === item?.code) || {}
 
@@ -166,6 +163,58 @@ function mergeEtfData(
     ...valuation,
     ...performanceFields,
   }
+}
+
+function normalizeSecurityCode(code?: string): string {
+  return String(code || '').trim().toUpperCase()
+}
+
+function normalizeDigits(code?: string): string {
+  return normalizeSecurityCode(code).replace(/\D/g, '')
+}
+
+function findValuation(trackIndexCode: string, valuations: ValuationData[]): ValuationData | undefined {
+  const targetCode = normalizeSecurityCode(trackIndexCode)
+  const targetDigits = normalizeDigits(trackIndexCode)
+
+  return valuations.find((item) => {
+    const rawCode = item.index_code || item.indexCode || item.code
+    const currentCode = normalizeSecurityCode(rawCode)
+
+    if (currentCode === targetCode)
+      return true
+
+    return !!targetDigits && normalizeDigits(rawCode) === targetDigits
+  })
+}
+
+function extractValuationList(res: unknown): ValuationData[] {
+  if (!res || typeof res !== 'object')
+    return []
+
+  const apiData = (res as { data?: unknown }).data
+
+  if (Array.isArray(apiData))
+    return apiData as ValuationData[]
+
+  if (!apiData || typeof apiData !== 'object')
+    return []
+
+  const nestedData = (apiData as { data?: unknown }).data
+
+  if (Array.isArray((apiData as { valuations?: unknown }).valuations)) {
+    return (apiData as { valuations: ValuationData[] }).valuations
+  }
+
+  if (
+    nestedData
+    && typeof nestedData === 'object'
+    && Array.isArray((nestedData as { valuations?: unknown }).valuations)
+  ) {
+    return (nestedData as { valuations: ValuationData[] }).valuations
+  }
+
+  return []
 }
 
 /**
@@ -240,12 +289,7 @@ const { send: fetchValuationData } = useRequest(
     immediate: false,
   },
 ).onSuccess((res) => {
-  if (isNestedValuationDetailResponse(res)) {
-    valuationData.value = res?.data?.data?.valuations || []
-  }
-  else {
-    valuationData.value = []
-  }
+  valuationData.value = extractValuationList(res)
   // 获取完估值数据后，获取业绩数据
   fetchPerformanceData()
 })
@@ -394,6 +438,10 @@ const filteredList = computed(() => {
     return mergeEtfData(item, valuationData.value, performanceData.value, realtimeData.value)
   })
 })
+
+const lowValuationCount = computed(() => filteredList.value.filter(item => Number(item.valuation_status) === 1).length)
+
+const highValuationCount = computed(() => filteredList.value.filter(item => Number(item.valuation_status) === 3).length)
 
 /**
  * 可显示的分类Tab
@@ -572,7 +620,7 @@ function handleOptionalClick(row: EtfInfo) {
           低估
         </text>
         <text class="text-lg text-[#00C853] font-semibold">
-          {{ filteredList.filter(i => i.valuation_status === 1).length || '--' }}
+          {{ lowValuationCount }}
         </text>
       </view>
       <view class="border border-black/[0.08] rounded-xl bg-white p-3 text-center shadow-sm">
@@ -580,7 +628,7 @@ function handleOptionalClick(row: EtfInfo) {
           高估
         </text>
         <text class="text-lg text-[#FF4D4F] font-semibold">
-          {{ filteredList.filter(i => i.valuation_status === 3).length || '--' }}
+          {{ highValuationCount }}
         </text>
       </view>
     </view>
