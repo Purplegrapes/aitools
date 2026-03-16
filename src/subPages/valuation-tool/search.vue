@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { FundSearchItem, RequestDisplayState } from './types'
-import { searchFunds } from '../api/valuationTool'
+import { searchFunds } from './api/valuationTool'
 import ValuationSearchBar from './components/ValuationSearchBar.vue'
 import { findFallbackSearchResult } from './mock'
 import { createResultPath, createSearchPath, normalizeKeyword } from './utils'
 
 definePage({
-  name: 'etf-valuation-tool-search',
+  name: 'valuation-tool-search',
   layout: 'default',
   style: {
     navigationBarTitleText: '基金搜索',

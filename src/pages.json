@@ -162,9 +162,9 @@
           }
         },
         {
-          "path": "etf/valuation-tool/index",
+          "path": "valuation-tool/index",
           "type": "page",
-          "name": "etf-valuation-tool-home",
+          "name": "valuation-tool-home",
           "layout": "default",
           "style": {
             "navigationBarTitleText": "ETF估值工具",
@@ -173,9 +173,9 @@
           }
         },
         {
-          "path": "etf/valuation-tool/mine-scan",
+          "path": "valuation-tool/mine-scan",
           "type": "page",
-          "name": "etf-valuation-tool-mine-scan",
+          "name": "valuation-tool-mine-scan",
           "layout": "default",
           "style": {
             "navigationBarTitleText": "基金扫雷",
@@ -184,9 +184,9 @@
           }
         },
         {
-          "path": "etf/valuation-tool/result",
+          "path": "valuation-tool/result",
           "type": "page",
-          "name": "etf-valuation-tool-result",
+          "name": "valuation-tool-result",
           "layout": "default",
           "style": {
             "navigationBarTitleText": "基金详情",
@@ -195,9 +195,9 @@
           }
         },
         {
-          "path": "etf/valuation-tool/search",
+          "path": "valuation-tool/search",
           "type": "page",
-          "name": "etf-valuation-tool-search",
+          "name": "valuation-tool-search",
           "layout": "default",
           "style": {
             "navigationBarTitleText": "基金搜索",
@@ -206,9 +206,9 @@
           }
         },
         {
-          "path": "etf/valuation-tool/watchlist",
+          "path": "valuation-tool/watchlist",
           "type": "page",
-          "name": "etf-valuation-tool-watchlist",
+          "name": "valuation-tool-watchlist",
           "layout": "default",
           "style": {
             "navigationBarTitleText": "自选基金",

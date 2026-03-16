@@ -13,19 +13,19 @@ export function normalizeKeyword(value: unknown) {
 }
 
 export function createSearchPath(keyword: string) {
-  return `/subPages/etf/valuation-tool/search?q=${encodeURIComponent(keyword.trim())}`
+  return `/subPages/valuation-tool/search?q=${encodeURIComponent(keyword.trim())}`
 }
 
 export function createResultPath(code: string) {
-  return `/subPages/etf/valuation-tool/result?code=${encodeURIComponent(code)}`
+  return `/subPages/valuation-tool/result?code=${encodeURIComponent(code)}`
 }
 
 export function createWatchlistPath() {
-  return '/subPages/etf/valuation-tool/watchlist'
+  return '/subPages/valuation-tool/watchlist'
 }
 
 export function createMineScanPath(code: string) {
-  return `/subPages/etf/valuation-tool/mine-scan?code=${encodeURIComponent(code)}`
+  return `/subPages/valuation-tool/mine-scan?code=${encodeURIComponent(code)}`
 }
 
 export function isFundResultStatus(value: unknown): value is FundResultStatus {

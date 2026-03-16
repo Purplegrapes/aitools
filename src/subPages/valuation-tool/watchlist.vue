@@ -4,7 +4,7 @@ import { useValuationWatchlist } from './composables/useValuationWatchlist'
 import { createResultPath } from './utils'
 
 definePage({
-  name: 'etf-valuation-tool-watchlist',
+  name: 'valuation-tool-watchlist',
   layout: 'default',
   style: {
     navigationBarTitleText: '自选基金',
@@ -35,7 +35,7 @@ function handleRemove(code: string) {
 }
 
 function handleBackHome() {
-  router.replace('/subPages/etf/valuation-tool/index')
+  router.replace('/subPages/valuation-tool/index')
 }
 </script>
 

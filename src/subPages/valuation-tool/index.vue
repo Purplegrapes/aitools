@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HotSearchFund, MarketSentiment } from './types'
-import { getHotSearchFunds, getMarketSentiment } from '../api/valuationTool'
+import { getHotSearchFunds, getMarketSentiment } from './api/valuationTool'
 import HotSearchList from './components/HotSearchList.vue'
 import SentimentCard from './components/SentimentCard.vue'
 import ValuationSearchBar from './components/ValuationSearchBar.vue'
@@ -8,7 +8,7 @@ import { fallbackHotSearches, fallbackMarketSentiment } from './mock'
 import { createResultPath, createSearchPath } from './utils'
 
 definePage({
-  name: 'etf-valuation-tool-home',
+  name: 'valuation-tool-home',
   layout: 'default',
   style: {
     navigationBarTitleText: 'ETF估值工具',

@@ -2,7 +2,7 @@
 import { createResultPath, normalizeKeyword } from './utils'
 
 definePage({
-  name: 'etf-valuation-tool-mine-scan',
+  name: 'valuation-tool-mine-scan',
   layout: 'default',
   style: {
     navigationBarTitleText: '基金扫雷',
@@ -17,7 +17,7 @@ const fundCode = computed(() => normalizeKeyword(route.query.code))
 
 function handleBackToDetail() {
   if (!fundCode.value) {
-    router.replace('/subPages/etf/valuation-tool/index')
+    router.replace('/subPages/valuation-tool/index')
     return
   }
 

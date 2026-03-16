@@ -3,7 +3,7 @@
 ## 文档说明
 
 - 文档目的：基于当前静态页面，反向整理服务端需要提供给前端调用的接口
-- 适用范围：首页市场情绪、热搜榜单、基金搜索、基金结果详情、valuation-tool 专属自选能力
+- 适用范围：基金估值工具首页市场情绪、热搜榜单、基金搜索、基金详情、独立自选能力
 - 接口前缀建议：`/api/v1`
 - 返回格式建议：统一使用 `{ code, msg, data }`
 
@@ -213,7 +213,7 @@ GET /api/v1/funds/search?q=110020
 
 ### 用途
 
-用于结果页 `/result` 的主数据展示。
+用于基金估值工具详情页 `/subPages/valuation-tool/result` 的主数据展示。
 
 ### 路径参数
 
@@ -305,7 +305,7 @@ GET /api/v1/funds/110020/result
 
 ---
 
-## 5. 获取 valuation-tool 自选基金列表
+## 5. 获取基金估值工具自选基金列表
 
 ### 接口
 
@@ -313,7 +313,7 @@ GET /api/v1/funds/110020/result
 
 ### 用途
 
-用于 valuation-tool 独立“自选基金”列表页。
+用于基金估值工具独立“自选基金”列表页 `/subPages/valuation-tool/watchlist`。
 
 ### 请求参数
 
@@ -368,13 +368,13 @@ GET /api/v1/funds/110020/result
 
 ### 说明
 
-- 这是 valuation-tool 专属自选接口，不复用 ETF 主工具页既有 watchlist 接口
+- 这是基金估值工具专属自选接口，不复用 ETF 主工具页既有 watchlist 接口
 - `dailyChange` 为列表页核心展示字段，新接口需要直接支持
 - 当某只基金暂无当日涨幅时，建议返回 `null`，前端进入降级展示
 
 ---
 
-## 6. 新增 valuation-tool 自选基金
+## 6. 新增基金估值工具自选基金
 
 ### 接口
 
@@ -422,12 +422,12 @@ GET /api/v1/funds/110020/result
 
 ### 说明
 
-- 若该基金已在 valuation-tool 自选列表中，建议返回幂等成功
+- 若该基金已在基金估值工具自选列表中，建议返回幂等成功
 - 返回体中建议显式返回 `watchlisted=true`，方便前端立即切换按钮态
 
 ---
 
-## 7. 删除 valuation-tool 自选基金
+## 7. 删除基金估值工具自选基金
 
 ### 接口
 
@@ -549,13 +549,13 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 - `GET /api/v1/market/sentiment`
 - `GET /api/v1/funds/hot-searches`
 
-### 搜索结果页
+### 基金搜索页
 
 依赖接口：
 
 - `GET /api/v1/funds/search?q=`
 
-### 结果详情页
+### 基金详情页
 
 依赖接口：
 
@@ -585,7 +585,7 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 6. `POST /api/v1/valuation-tool/watchlist`
 7. `DELETE /api/v1/valuation-tool/watchlist/{code}`
 
-这 7 个接口足够驱动当前 valuation-tool 的首页、详情页、自选列表页和自选操作链路。
+这 7 个接口足够驱动当前基金估值工具的首页、详情页、自选列表页和自选操作链路。
 
 ---
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DiscoveryFundValuation, FundIntraday, FundResult } from './types'
 import { getFundValuation } from '@/api/discovery'
-import { getFundResult } from '../api/valuationTool'
+import { getFundResult } from './api/valuationTool'
 import DetailActionBar from './components/DetailActionBar.vue'
 import DetailStateCard from './components/DetailStateCard.vue'
 import DetailSummaryCards from './components/DetailSummaryCards.vue'
@@ -17,7 +17,7 @@ import {
 } from './utils'
 
 definePage({
-  name: 'etf-valuation-tool-result',
+  name: 'valuation-tool-result',
   layout: 'default',
   style: {
     navigationBarTitleText: '基金详情',
@@ -118,7 +118,7 @@ function handlePrimaryAction() {
   if (displayStatus.value === 'not_found')
     router.replace(createSearchPath('沪深300'))
   else
-    router.replace('/subPages/etf/valuation-tool/index')
+    router.replace('/subPages/valuation-tool/index')
 }
 
 function handleOpenWatchlist() {

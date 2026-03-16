@@ -3,7 +3,7 @@ import {
   addValuationWatchlist,
   getValuationWatchlist,
   removeValuationWatchlist,
-} from '../../api/valuationTool'
+} from '../api/valuationTool'
 import {
   getFallbackWatchlistFunds,
   removeFallbackWatchlistFund,
