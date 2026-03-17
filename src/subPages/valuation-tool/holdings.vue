@@ -1,42 +1,153 @@
 <script setup lang="ts">
+import BottomActionBar from './components/BottomActionBar.vue'
+import DataUnavailableCard from './components/DataUnavailableCard.vue'
+import EmptyPortfolioState from './components/EmptyPortfolioState.vue'
+import PortfolioSummaryCard from './components/PortfolioSummaryCard.vue'
+import PositionFundCard from './components/PositionFundCard.vue'
+import PositionInsightCard from './components/PositionInsightCard.vue'
+import SkeletonBlock from './components/SkeletonBlock.vue'
+import { usePortfolio } from './composables/usePortfolio'
+import {
+  createHoldingsAddPath,
+  createHoldingsEditPath,
+  createHoldingsUploadPath,
+  createResultPath,
+} from './utils'
+
 definePage({
   name: 'valuation-tool-holdings',
   layout: 'default',
   style: {
-    navigationBarTitleText: '持有基金',
+    navigationBarTitleText: '我的持仓',
     navigationBarBackgroundColor: '#F5F7FA',
     navigationBarTextStyle: 'black',
   },
 })
 
 const router = useRouter()
+const {
+  positions,
+  metrics,
+  summary,
+  insight,
+  previewState,
+  unavailableState,
+  ensureLoaded,
+} = usePortfolio()
 
-function handleBackHome() {
-  router.replace('/subPages/valuation-tool/index')
+onShow(() => {
+  ensureLoaded()
+})
+
+const isLoadingState = computed(() => previewState.value === 'loading')
+const isDataUnavailable = computed(() => previewState.value === 'data-unavailable')
+const hasPositions = computed(() => positions.value.length > 0)
+
+function handleAddPosition() {
+  router.push(createHoldingsAddPath())
+}
+
+function handleUploadPositions() {
+  router.push(createHoldingsUploadPath())
+}
+
+function handleEditPosition(id: string) {
+  router.push(createHoldingsEditPath(id))
+}
+
+function handleOpenFundDetail(code: string) {
+  router.push(createResultPath(code))
 }
 </script>
 
 <template>
-  <view class="min-h-screen bg-page px-4 pb-8 pt-4">
-    <view class="pointer-events-none absolute inset-x-0 top-0 h-[260rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.14),_transparent_62%)]" />
+  <view class="min-h-screen bg-surfaceSubtle px-[24rpx] pt-[24rpx]" :class="hasPositions ? 'pb-[180rpx]' : 'pb-[48rpx]'">
+    <view class="pointer-events-none absolute inset-x-0 top-0 h-[360rpx] bg-[linear-gradient(180deg,_rgba(232,241,255,0.96),_rgba(248,250,253,0.72)_58%,_transparent)]" />
+    <view class="pointer-events-none absolute inset-x-0 top-[120rpx] h-[220rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.08),_transparent_68%)]" />
 
-    <view class="relative mx-auto max-w-[680rpx]">
-      <view class="border border-line/70 rounded-[32rpx] bg-surface p-6 shadow-[0_20rpx_48rpx_rgba(17,37,62,0.06)]">
-        <view class="h-[72rpx] w-[72rpx] flex items-center justify-center rounded-[24rpx] bg-brand-muted text-brand">
-          <view class="i-carbon-wallet text-[34rpx]" />
-        </view>
-        <text class="mt-4 block text-lg text-primary font-600">
-          持有入口已预留
+    <view class="relative mx-auto max-w-[702rpx] flex flex-col gap-[20rpx]">
+      <view class="px-[4rpx] py-[6rpx]">
+        <text class="block text-[34rpx] text-primary font-700">
+          我的持仓
         </text>
-        <text class="mt-2 block text-sm text-regular leading-6">
-          后续会在这里展示你真正持有的基金、成本和盈亏情况。当前先保留为稳定入口，方便首页直达。
+        <text class="mt-[8rpx] block text-[22rpx] text-secondary">
+          先看整体赚亏，再看哪只基金更值得留意。
         </text>
-        <view class="mt-5">
-          <wd-button size="small" type="primary" @click="handleBackHome">
-            返回首页
-          </wd-button>
-        </view>
       </view>
+
+      <template v-if="isLoadingState">
+        <view class="border border-line/70 rounded-[20rpx] bg-surface px-[24rpx] py-[24rpx] shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
+          <SkeletonBlock height="32rpx" width="180rpx" rounded="14rpx" />
+          <SkeletonBlock class="mt-[14rpx]" height="36rpx" width="220rpx" rounded="16rpx" />
+          <view class="grid grid-cols-2 mt-[22rpx] gap-[16rpx]">
+            <SkeletonBlock height="140rpx" rounded="16rpx" />
+            <SkeletonBlock height="140rpx" rounded="16rpx" />
+          </view>
+        </view>
+
+        <view class="border border-line/70 rounded-[20rpx] bg-surface px-[24rpx] py-[22rpx] shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
+          <SkeletonBlock height="30rpx" width="220rpx" rounded="14rpx" />
+          <SkeletonBlock class="mt-[14rpx]" height="24rpx" rounded="14rpx" />
+          <SkeletonBlock class="mt-[10rpx]" height="24rpx" width="88%" rounded="14rpx" />
+        </view>
+
+        <view class="flex flex-col gap-[16rpx]">
+          <view
+            v-for="idx in 2"
+            :key="idx"
+            class="border border-line/70 rounded-[20rpx] bg-surface px-[22rpx] py-[22rpx] shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]"
+          >
+            <SkeletonBlock height="30rpx" width="240rpx" rounded="14rpx" />
+            <SkeletonBlock class="mt-[10rpx]" height="22rpx" width="160rpx" rounded="12rpx" />
+            <view class="grid grid-cols-2 mt-[18rpx] gap-[14rpx]">
+              <SkeletonBlock height="120rpx" rounded="16rpx" />
+              <SkeletonBlock height="120rpx" rounded="16rpx" />
+            </view>
+            <SkeletonBlock class="mt-[16rpx]" height="24rpx" rounded="12rpx" />
+          </view>
+        </view>
+      </template>
+
+      <EmptyPortfolioState
+        v-else-if="!hasPositions"
+        @add="handleAddPosition"
+        @upload="handleUploadPositions"
+      />
+
+      <template v-else>
+        <PortfolioSummaryCard
+          :summary="summary"
+          :today-unavailable="isDataUnavailable"
+        />
+
+        <DataUnavailableCard
+          v-if="isDataUnavailable"
+          :title="unavailableState.title"
+          :description="unavailableState.description"
+          :hint="unavailableState.hint"
+        />
+
+        <PositionInsightCard :insight="insight" />
+
+        <view class="flex flex-col gap-[16rpx]">
+          <PositionFundCard
+            v-for="item in metrics"
+            :key="item.id"
+            :item="item"
+            :today-unavailable="isDataUnavailable"
+            @edit="handleEditPosition"
+            @select="handleOpenFundDetail(item.code)"
+          />
+        </view>
+      </template>
     </view>
+
+    <BottomActionBar
+      v-if="hasPositions"
+      primary-text="添加持仓"
+      secondary-text="上传持仓"
+      @primary="handleAddPosition"
+      @secondary="handleUploadPositions"
+    />
   </view>
 </template>

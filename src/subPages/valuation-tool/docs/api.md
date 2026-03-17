@@ -1,9 +1,9 @@
-# ETF估值工具 接口说明文档
+# 基金估值与我的持仓 接口说明文档
 
 ## 文档说明
 
 - 文档目的：基于当前静态页面，反向整理服务端需要提供给前端调用的接口
-- 适用范围：基金估值工具首页市场情绪、热搜榜单、基金搜索、基金详情、独立自选能力
+- 适用范围：基金估值工具首页市场情绪、热搜榜单、基金搜索、基金详情、独立自选能力、我的持仓模块
 - 接口前缀建议：`/api/v1`
 - 返回格式建议：统一使用 `{ code, msg, data }`
 
@@ -243,7 +243,6 @@ GET /api/v1/funds/110020/result
 | `targetIndex` | string | 否 | 主要跟踪 |
 | `marketCoverage` | string | 否 | 覆盖方向 |
 | `riskDescription` | string | 否 | 风险说明 |
-| `targetAudience` | string | 否 | 适合人群 |
 | `disclaimer` | string | 否 | 风险提示 |
 
 ### intraday 字段
@@ -260,12 +259,12 @@ GET /api/v1/funds/110020/result
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `feeRate` | string | 是 | 费率 |
-| `feeExplanation` | string | 是 | 费率解释 |
-| `maxDrawdown` | string | 是 | 历史最大跌幅 |
-| `drawdownExplanation` | string | 是 | 最大跌幅解释 |
-| `oneYearReturn` | string | 是 | 近一年表现 |
-| `returnExplanation` | string | 是 | 近一年表现解释 |
+| `maxDrawdown` | string | 是 | 最大回撤 |
+| `drawdownExplanation` | string | 是 | 对“最大回撤”的白话评价，语义对应“收益稳定性” |
+| `sharpeRatio` | string | 否 | 夏普比率 |
+| `sharpeEvaluation` | string | 否 | 对“夏普比率”的白话评价，语义对应“投资性价比” |
+| `calmarRatio` | string | 否 | 卡玛比率 |
+| `calmarEvaluation` | string | 否 | 对“卡玛比率”的白话评价，语义对应“收益回撤比” |
 
 ### 正常返回示例
 
@@ -286,22 +285,26 @@ GET /api/v1/funds/110020/result
       "explanation": "大金融发力带领沪深300走强，本基金盘中紧跟上涨。"
     },
     "quickFacts": {
-      "feeRate": "0.60%",
-      "feeExplanation": "长期持有成本中等",
       "maxDrawdown": "-35.40%",
-      "drawdownExplanation": "最差时大概跌过 3 成",
-      "oneYearReturn": "+12.50%",
-      "returnExplanation": "过去一年整体表现较强"
+      "drawdownExplanation": "收益稳定性一般，净值回撤时波动体感会更明显。",
+      "sharpeRatio": "0.82",
+      "sharpeEvaluation": "投资性价比中等，承担一份波动换来的收益不算差。",
+      "calmarRatio": "0.35",
+      "calmarEvaluation": "收益回撤比偏一般，收益对回撤的覆盖能力不算强。"
     },
     "definition": "这是一只主要投资中国核心大盘股的宽基指数基金，它就像是A股的“体温计”，大盘涨它就涨。",
     "targetIndex": "沪深300指数",
     "marketCoverage": "A股核心资产",
     "riskDescription": "会随市场波动，适合重点长期持有。",
-    "targetAudience": "适合想配置A股、但不愿花精力挑该买哪个板块的懒人。",
     "disclaimer": "上述结果仅做参考，不作为官方依据构成投资建议"
   }
 }
 ```
+
+### 说明
+
+- `quickFacts` 当前页面按 3 行轻列表展示，展示顺序建议固定为：`maxDrawdown`、`sharpeRatio`、`calmarRatio`
+- `sharpeRatio`、`sharpeEvaluation`、`calmarRatio`、`calmarEvaluation` 可选返回；缺省时前端会降级显示为 `--` 和“暂无结论”
 
 ---
 
@@ -470,7 +473,273 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 
 ---
 
-## 8. 详情页状态约定
+## 8. 获取我的持仓列表
+
+### 接口
+
+`GET /api/v1/valuation-tool/holdings`
+
+### 用途
+
+用于“我的持仓”页获取当前持仓列表、组合总览和轻量提示。
+
+### 请求参数
+
+无
+
+### 返回字段
+
+#### data
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `summary` | object | 是 | 持仓总览 |
+| `insight` | object | 是 | 组合提示 |
+| `items` | array | 是 | 持仓基金列表 |
+
+#### summary
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `totalProfit` | number | 是 | 累计收益 |
+| `totalProfitRate` | number \| null | 是 | 累计收益率，单位 `%` |
+| `todayProfit` | number \| null | 是 | 今日盈亏（参考） |
+| `totalAmount` | number | 是 | 当前持有金额 |
+| `holdingCount` | number | 是 | 持仓基金数 |
+
+#### insight
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `title` | string | 是 | 提示标题 |
+| `description` | string | 是 | 一句话解释型结论 |
+
+#### items[]
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | string | 是 | 持仓记录 ID |
+| `code` | string | 是 | 基金代码 |
+| `name` | string | 是 | 基金名称 |
+| `currentAmount` | number | 是 | 当前持有金额 |
+| `cumulativeProfit` | number | 是 | 当前累计收益 |
+| `cumulativeProfitRate` | number \| null | 是 | 当前累计收益率，单位 `%` |
+| `todayProfit` | number \| null | 是 | 今日盈亏（参考） |
+| `dailyChangeRate` | number \| null | 是 | 今日涨跌幅，单位 `%` |
+| `currentNav` | number \| null | 是 | 当前估值 |
+| `updateTime` | string | 否 | 数据更新时间 |
+
+### 返回示例
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "summary": {
+      "totalProfit": 3800,
+      "totalProfitRate": 7.6,
+      "todayProfit": 420,
+      "totalAmount": 53800,
+      "holdingCount": 4
+    },
+    "insight": {
+      "title": "组合观察",
+      "description": "今天你的收益主要来自科技方向，组合整体偏强。"
+    },
+    "items": [
+      {
+        "id": "110020-1",
+        "code": "110020",
+        "name": "易方达沪深300ETF联接A",
+        "currentAmount": 13820.5,
+        "cumulativeProfit": 720.35,
+        "cumulativeProfitRate": 5.36,
+        "todayProfit": 96.2,
+        "dailyChangeRate": 1.26,
+        "currentNav": 1.1824,
+        "updateTime": "2026-03-17 14:05"
+      }
+    ]
+  }
+}
+```
+
+### 说明
+
+- 总览、提示和持仓列表建议由一个接口统一返回，减少前端拼装复杂度
+- `todayProfit`、`dailyChangeRate`、`currentNav` 允许返回 `null`，前端进入“估值暂不可用”降级展示
+
+---
+
+## 9. 新增持仓
+
+### 接口
+
+`POST /api/v1/valuation-tool/holdings`
+
+### 用途
+
+用于“添加持仓”页新增一条持仓记录。
+
+### 请求参数
+
+#### body
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `code` | string | 是 | 基金代码 |
+| `name` | string | 否 | 基金名称，便于校验和落库 |
+| `holdingAmount` | number | 是 | 当前持有金额 |
+| `holdingProfit` | number | 是 | 当前持有收益，亏损时允许负数 |
+
+### 请求示例
+
+```json
+{
+  "code": "110020",
+  "name": "易方达沪深300ETF联接A",
+  "holdingAmount": 13820.5,
+  "holdingProfit": 720.35
+}
+```
+
+### 返回示例
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "id": "110020-1",
+    "code": "110020",
+    "name": "易方达沪深300ETF联接A",
+    "holdingAmount": 13820.5,
+    "holdingProfit": 720.35
+  }
+}
+```
+
+### 说明
+
+- 前端输入模型已统一成 `holdingAmount + holdingProfit`
+- 服务端可根据基金当前估值换算底层份额和成本信息，也可以仅保存结果型字段
+
+---
+
+## 10. 修改持仓
+
+### 接口
+
+`PUT /api/v1/valuation-tool/holdings/{id}`
+
+### 用途
+
+用于“修改持仓”页更新当前基金的持有金额和持有收益。
+
+### 路径参数
+
+| 参数 | 位置 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | path | string | 是 | 持仓记录 ID |
+
+### 请求参数
+
+#### body
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `holdingAmount` | number | 是 | 当前持有金额 |
+| `holdingProfit` | number | 是 | 当前持有收益，亏损时允许负数 |
+
+### 请求示例
+
+```json
+{
+  "holdingAmount": 15200.0,
+  "holdingProfit": 860.0
+}
+```
+
+### 返回示例
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "success": true,
+    "id": "110020-1"
+  }
+}
+```
+
+### 说明
+
+- 修改页不允许切换基金本身，因此接口只更新金额和收益两个字段
+- 若当前估值暂不可用，建议返回明确错误信息，提示前端暂不可保存
+
+---
+
+## 11. 删除持仓
+
+### 接口
+
+`DELETE /api/v1/valuation-tool/holdings/{id}`
+
+### 用途
+
+用于“修改持仓”页删除当前持仓记录。
+
+### 路径参数
+
+| 参数 | 位置 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `id` | path | string | 是 | 持仓记录 ID |
+
+### 返回示例
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "success": true,
+    "id": "110020-1"
+  }
+}
+```
+
+### 说明
+
+- 建议删除接口保持幂等
+- 删除成功后前端会返回“我的持仓”页并刷新总览
+
+---
+
+## 12. 上传持仓预留接口
+
+### 接口建议
+
+首版可以只保留前端入口，不强制后端立即提供真实导入能力。若要提前预留，建议使用以下接口：
+
+- `POST /api/v1/valuation-tool/holdings/upload`
+- `GET /api/v1/valuation-tool/holdings/upload/template`
+
+### 建议用途
+
+- 上传 Excel / CSV 文件
+- 下载模板
+- 后续扩展导入预览与结果校验
+
+### 当前版本说明
+
+- 当前页面只需要“选择文件”入口和说明文案
+- 若后端暂未实现，前端可继续保留预留态，不阻塞主流程
+
+---
+
+## 13. 详情页状态约定
 
 当前静态原型中存在以下几种状态页：
 
@@ -481,7 +750,7 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 
 建议统一由 `GET /api/v1/funds/{code}/result` 返回 `status` 控制，而不是为每种状态再拆独立业务接口。
 
-### 8.1 正常结果
+### 13.1 正常结果
 
 ```json
 {
@@ -493,7 +762,7 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 }
 ```
 
-### 8.2 无结果
+### 13.2 无结果
 
 ```json
 {
@@ -508,7 +777,7 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 前端处理建议：
 - 进入“抱歉，系统里还没这只基金”页面
 
-### 8.3 缺值
+### 13.3 缺值
 
 ```json
 {
@@ -523,7 +792,7 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 前端处理建议：
 - 展示“该基金部分关键数据暂缺”状态页
 
-### 8.4 加载中
+### 13.4 加载中
 
 ```json
 {
@@ -540,7 +809,7 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 
 ---
 
-## 9. 前端页面与接口映射关系
+## 14. 前端页面与接口映射关系
 
 ### 首页
 
@@ -571,11 +840,39 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 - `GET /api/v1/valuation-tool/watchlist`
 - `DELETE /api/v1/valuation-tool/watchlist/{code}`
 
+### 我的持仓页
+
+依赖接口：
+
+- `GET /api/v1/valuation-tool/holdings`
+
+### 添加持仓页
+
+依赖接口：
+
+- `GET /api/v1/funds/search?q=`
+- `POST /api/v1/valuation-tool/holdings`
+
+### 修改持仓页
+
+依赖接口：
+
+- `GET /api/v1/valuation-tool/holdings`
+- `PUT /api/v1/valuation-tool/holdings/{id}`
+- `DELETE /api/v1/valuation-tool/holdings/{id}`
+
+### 上传持仓页（预留）
+
+依赖接口：
+
+- `POST /api/v1/valuation-tool/holdings/upload`（可选）
+- `GET /api/v1/valuation-tool/holdings/upload/template`（可选）
+
 ---
 
-## 10. 最小可用接口集合
+## 15. 最小可用接口集合
 
-如果先做 MVP，只需要以下 7 个接口：
+如果先做当前 MVP，建议至少提供以下 11 个接口：
 
 1. `GET /api/v1/market/sentiment`
 2. `GET /api/v1/funds/hot-searches`
@@ -584,12 +881,16 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 5. `GET /api/v1/valuation-tool/watchlist`
 6. `POST /api/v1/valuation-tool/watchlist`
 7. `DELETE /api/v1/valuation-tool/watchlist/{code}`
+8. `GET /api/v1/valuation-tool/holdings`
+9. `POST /api/v1/valuation-tool/holdings`
+10. `PUT /api/v1/valuation-tool/holdings/{id}`
+11. `DELETE /api/v1/valuation-tool/holdings/{id}`
 
-这 7 个接口足够驱动当前基金估值工具的首页、详情页、自选列表页和自选操作链路。
+这 11 个接口足够驱动当前基金估值工具的首页、详情页、自选列表页、我的持仓页以及添加/修改持仓链路。
 
 ---
 
-## 11. 备注
+## 16. 备注
 
 - 当前静态页面未体现真实后端 API 调用，本文件为基于页面功能反向设计的服务端接口说明
 - 建议后续结合真实数据源再补充：

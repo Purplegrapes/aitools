@@ -41,12 +41,12 @@ export interface DiscoveryFundValuation {
 }
 
 export interface FundQuickFacts {
-  feeRate: string
-  feeExplanation: string
   maxDrawdown: string
   drawdownExplanation: string
-  oneYearReturn: string
-  returnExplanation: string
+  sharpeRatio?: string
+  sharpeEvaluation?: string
+  calmarRatio?: string
+  calmarEvaluation?: string
 }
 
 export interface FundResult {
@@ -94,4 +94,62 @@ export interface ValuationWatchlistMutationInput {
   name?: string
   dailyChange?: number | null
   updateTime?: string
+}
+
+export type PortfolioPreviewState = 'default' | 'loading' | 'data-unavailable'
+
+export interface PortfolioFundOption {
+  code: string
+  name: string
+  category: string
+  tag: string
+  estimatedNav: number
+  dailyChangeRate: number | null
+  statusLabel: '偏强' | '震荡' | '偏弱'
+}
+
+export interface PortfolioPosition {
+  id: string
+  code: string
+  name: string
+  shares: number
+  costNav: number
+}
+
+export interface PortfolioPositionMetrics {
+  id: string
+  code: string
+  name: string
+  shares: number
+  costNav: number
+  currentNav: number | null
+  currentAmount: number
+  costAmount: number
+  cumulativeProfit: number
+  cumulativeProfitRate: number | null
+  todayProfit: number | null
+  dailyChangeRate: number | null
+  statusLabel: '偏强' | '震荡' | '偏弱'
+  note: string
+  updateTime: string
+}
+
+export interface PortfolioSummary {
+  totalProfit: number
+  totalProfitRate: number | null
+  todayProfit: number | null
+  totalAmount: number
+  holdingCount: number
+}
+
+export interface PortfolioInsight {
+  title: string
+  description: string
+  focusFundName?: string
+}
+
+export interface PortfolioUnavailableState {
+  title: string
+  description: string
+  hint: string
 }

@@ -162,12 +162,45 @@
           }
         },
         {
+          "path": "valuation-tool/holdings-add",
+          "type": "page",
+          "name": "valuation-tool-holdings-add",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "添加持仓",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
+          "path": "valuation-tool/holdings-edit",
+          "type": "page",
+          "name": "valuation-tool-holdings-edit",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "修改持仓",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
+          "path": "valuation-tool/holdings-upload",
+          "type": "page",
+          "name": "valuation-tool-holdings-upload",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "上传持仓",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
           "path": "valuation-tool/holdings",
           "type": "page",
           "name": "valuation-tool-holdings",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "持有基金",
+            "navigationBarTitleText": "我的持仓",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
           }

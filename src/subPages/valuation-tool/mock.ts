@@ -5,10 +5,20 @@ import type {
   FundSearchItem,
   HotSearchFund,
   MarketSentiment,
+  PortfolioFundOption,
+  PortfolioInsight,
+  PortfolioPosition,
+  PortfolioPositionMetrics,
+  PortfolioUnavailableState,
   SearchResultViewModel,
   ValuationWatchlistFund,
   ValuationWatchlistMutationInput,
 } from './types'
+import {
+  buildPortfolioSummary,
+  createPositionId,
+  getPortfolioUnavailableState,
+} from './utils'
 
 export const fallbackMarketSentiment: MarketSentiment = {
   updateTime: '14:05',
@@ -66,12 +76,12 @@ export const fallbackFundResult: FundResult = {
     explanation: '大金融发力带领沪深300走强，所以这只基金今天看起来也更偏强一些。',
   },
   quickFacts: {
-    feeRate: '0.60%',
-    feeExplanation: '长期拿着的成本属于中等水平。',
     maxDrawdown: '-35.40%',
-    drawdownExplanation: '历史上最难受的时候，大概跌过三成多。',
-    oneYearReturn: '+12.50%',
-    returnExplanation: '过去一年整体表现偏强，但不代表之后会一直这样。',
+    drawdownExplanation: '收益稳定性一般，净值回撤时波动体感会更明显。',
+    sharpeRatio: '0.82',
+    sharpeEvaluation: '投资性价比中等，承担一份波动换来的收益不算差。',
+    calmarRatio: '0.35',
+    calmarEvaluation: '收益回撤比偏一般，收益对回撤的覆盖能力不算强。',
   },
   definition: '它主要跟着沪深300指数走。你可以把它理解成：一次买入一篮子中国核心大盘公司。',
   targetIndex: '沪深300指数',
@@ -259,3 +269,218 @@ function readStoredWatchlist() {
 function writeStoredWatchlist(items: ValuationWatchlistFund[]) {
   uni.setStorageSync(VALUATION_WATCHLIST_STORAGE_KEY, items)
 }
+
+const PORTFOLIO_STORAGE_KEY = 'valuationToolPortfolioPositions'
+
+export const fallbackPortfolioFundCatalog: PortfolioFundOption[] = [
+  {
+    code: '110020',
+    name: '易方达沪深300ETF联接A',
+    category: '宽基指数',
+    tag: '稳健底仓',
+    estimatedNav: 1.1824,
+    dailyChangeRate: 1.26,
+    statusLabel: '偏强',
+  },
+  {
+    code: '270042',
+    name: '广发纳斯达克100ETF联接',
+    category: '海外科技',
+    tag: '高波动',
+    estimatedNav: 1.468,
+    dailyChangeRate: -0.84,
+    statusLabel: '震荡',
+  },
+  {
+    code: '009051',
+    name: '易方达中证红利',
+    category: '红利防守',
+    tag: '分红偏稳',
+    estimatedNav: 1.0631,
+    dailyChangeRate: 0.36,
+    statusLabel: '偏强',
+  },
+  {
+    code: '000218',
+    name: '华安黄金ETF联接',
+    category: '黄金资产',
+    tag: '避险关注',
+    estimatedNav: 1.2982,
+    dailyChangeRate: -0.22,
+    statusLabel: '偏弱',
+  },
+]
+
+const fallbackPortfolioSeed: PortfolioPosition[] = [
+  {
+    id: createPositionId({ code: '110020', shares: 6800, costNav: 1.12 }),
+    code: '110020',
+    name: '易方达沪深300ETF联接A',
+    shares: 6800,
+    costNav: 1.12,
+  },
+  {
+    id: createPositionId({ code: '270042', shares: 2200, costNav: 1.38 }),
+    code: '270042',
+    name: '广发纳斯达克100ETF联接',
+    shares: 2200,
+    costNav: 1.38,
+  },
+  {
+    id: createPositionId({ code: '009051', shares: 3600, costNav: 1.01 }),
+    code: '009051',
+    name: '易方达中证红利',
+    shares: 3600,
+    costNav: 1.01,
+  },
+]
+
+export function searchFallbackPortfolioFunds(keyword: string) {
+  const normalizedKeyword = keyword.trim().toLowerCase()
+  if (!normalizedKeyword)
+    return [] as PortfolioFundOption[]
+
+  return fallbackPortfolioFundCatalog.filter((item) => {
+    return item.code.includes(normalizedKeyword)
+      || item.name.toLowerCase().includes(normalizedKeyword)
+      || item.category.toLowerCase().includes(normalizedKeyword)
+  })
+}
+
+export function getFallbackPortfolioPositions() {
+  const storedPositions = readStoredPortfolio()
+  if (storedPositions)
+    return storedPositions
+  return []
+}
+
+export function saveFallbackPortfolioPosition(position: PortfolioPosition) {
+  const nextPositions = [
+    ...getFallbackPortfolioPositions().filter(item => item.id !== position.id),
+    position,
+  ]
+  writeStoredPortfolio(nextPositions)
+  return position
+}
+
+export function updateFallbackPortfolioPosition(position: PortfolioPosition) {
+  const nextPositions = getFallbackPortfolioPositions().map((item) => {
+    return item.id === position.id ? position : item
+  })
+  writeStoredPortfolio(nextPositions)
+  return position
+}
+
+export function removeFallbackPortfolioPosition(id: string) {
+  const nextPositions = getFallbackPortfolioPositions().filter(item => item.id !== id)
+  writeStoredPortfolio(nextPositions)
+  return nextPositions
+}
+
+export function getFallbackPortfolioMetrics(positions: PortfolioPosition[]): PortfolioPositionMetrics[] {
+  return positions.map((position) => {
+    const catalog = fallbackPortfolioFundCatalog.find(item => item.code === position.code)
+    const currentNav = catalog?.estimatedNav ?? null
+    const currentAmount = currentNav ? position.shares * currentNav : 0
+    const costAmount = position.shares * position.costNav
+    const cumulativeProfit = currentAmount - costAmount
+    const cumulativeProfitRate = costAmount > 0 ? (cumulativeProfit / costAmount) * 100 : null
+    const dailyChangeRate = catalog?.dailyChangeRate ?? null
+    const previousNav = currentNav && dailyChangeRate !== null
+      ? currentNav / (1 + dailyChangeRate / 100)
+      : null
+    const todayProfit = previousNav !== null && currentNav !== null
+      ? position.shares * (currentNav - previousNav)
+      : null
+
+    return {
+      id: position.id,
+      code: position.code,
+      name: position.name,
+      shares: position.shares,
+      costNav: position.costNav,
+      currentNav,
+      currentAmount,
+      costAmount,
+      cumulativeProfit,
+      cumulativeProfitRate,
+      todayProfit,
+      dailyChangeRate,
+      statusLabel: catalog?.statusLabel || '震荡',
+      note: buildPortfolioNote(position.costNav, currentNav, catalog?.tag),
+      updateTime: '14:05',
+    } satisfies PortfolioPositionMetrics
+  })
+}
+
+export function getFallbackPortfolioInsight(metrics: PortfolioPositionMetrics[]): PortfolioInsight {
+  if (!metrics.length) {
+    return {
+      title: '先添加几只基金',
+      description: '添加持仓后，你就能在这里快速看到整体赚亏和今天的大概变化。',
+    }
+  }
+
+  const strongest = [...metrics].sort((a, b) => b.cumulativeProfit - a.cumulativeProfit)[0]
+  const weakest = [...metrics].sort((a, b) => a.cumulativeProfit - b.cumulativeProfit)[0]
+  const focus = [...metrics].sort((a, b) => Math.abs(b.todayProfit ?? 0) - Math.abs(a.todayProfit ?? 0))[0]
+
+  if (focus?.todayProfit && focus.todayProfit > 0) {
+    return {
+      title: '今天你的组合有明显抬升',
+      description: `当前组合里，${focus.name} 对今日盈亏贡献更明显；${strongest?.name || focus.name} 仍是累计收益靠前的基金，值得继续关注节奏变化。`,
+      focusFundName: focus.name,
+    }
+  }
+
+  return {
+    title: '今天更适合看组合结构',
+    description: `${weakest?.name || focus?.name || '部分基金'} 暂时拖累了组合表现，当前更值得先看它的波动来源，再结合 ${strongest?.name || '表现较稳的基金'} 一起判断整体节奏。`,
+    focusFundName: weakest?.name,
+  }
+}
+
+export function getFallbackPortfolioUnavailableState(): PortfolioUnavailableState {
+  return getPortfolioUnavailableState()
+}
+
+function buildPortfolioNote(costNav: number, currentNav: number | null, tag?: string) {
+  if (currentNav === null)
+    return '当前暂无实时估值，可继续关注累计收益表现。'
+
+  const delta = currentNav - costNav
+  if (delta > 0.03)
+    return `${tag || '当前表现偏强'}，已经明显高于持仓成本。`
+  if (delta < -0.03)
+    return `${tag || '波动偏弱'}，当前仍在成本线下方，可继续观察。`
+  return `${tag || '当前节奏平稳'}，离持仓成本不远。`
+}
+
+function readStoredPortfolio() {
+  try {
+    const storedValue = uni.getStorageSync(PORTFOLIO_STORAGE_KEY)
+    if (storedValue === '' || storedValue === undefined || storedValue === null)
+      return null
+    if (!Array.isArray(storedValue))
+      return null
+
+    return storedValue.map((item) => {
+      return {
+        id: item.id,
+        code: item.code,
+        name: item.name,
+        shares: Number(item.shares),
+        costNav: Number(item.costNav),
+      } satisfies PortfolioPosition
+    }).filter(item => item.id && item.code && item.name && item.shares > 0 && item.costNav > 0)
+  }
+  catch {
+    return null
+  }
+}
+
+function writeStoredPortfolio(items: PortfolioPosition[]) {
+  uni.setStorageSync(PORTFOLIO_STORAGE_KEY, items)
+}
+
+export const fallbackPortfolioSummary = buildPortfolioSummary(getFallbackPortfolioMetrics(fallbackPortfolioSeed))
