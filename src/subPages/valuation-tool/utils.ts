@@ -1,6 +1,10 @@
 import type {
   DiscoveryFundValuation,
+  ExchangeFundQuotePayload,
+  FundExchangeQuote,
   FundIntraday,
+  FundMarketType,
+  FundResult,
   FundResultStatus,
   PortfolioPosition,
   PortfolioPositionMetrics,
@@ -91,6 +95,27 @@ export function mapValuationToIntraday(valuation?: DiscoveryFundValuation | null
   }
 }
 
+export function mapExchangeQuote(quote?: ExchangeFundQuotePayload | null): FundExchangeQuote | undefined {
+  if (!quote)
+    return undefined
+
+  const currentPrice = toFiniteNumber(quote.currentPrice)
+  const priceChangeRatio = toFiniteNumber(quote.priceChangeRatio)
+  const premiumRate = toFiniteNumber(quote.premiumRate)
+
+  if (currentPrice === null && priceChangeRatio === null && premiumRate === null)
+    return undefined
+
+  return {
+    currentPrice,
+    priceChangeRatio,
+    premiumRate,
+    updateTime: formatCurrentTime(),
+    source: 'realtime',
+    explanation: `当前场内价格 ${formatMetricNumber(currentPrice, 3)}，场内涨幅 ${formatPercent(priceChangeRatio)}，折溢价率 ${formatPercent(premiumRate)}。场内基金波动更贴近盘中成交，适合结合溢价率一起看。`,
+  }
+}
+
 function formatCurrentTime() {
   const currentDate = new Date()
   const hours = `${currentDate.getHours()}`.padStart(2, '0')
@@ -110,6 +135,13 @@ export function formatDailyChange(value?: number | null) {
   const numericValue = Number(value)
   const sign = numericValue > 0 ? '+' : ''
   return `${sign}${numericValue.toFixed(2)}%`
+}
+
+export function formatMetricNumber(value?: number | null, fractionDigits = 2) {
+  if (value === null || value === undefined || Number.isNaN(Number(value)))
+    return '--'
+
+  return Number(value).toFixed(fractionDigits)
 }
 
 export function getDailyChangeTone(value?: number | null) {
@@ -134,6 +166,18 @@ export function formatPercent(value?: number | null) {
   const numericValue = Number(value)
   const sign = numericValue > 0 ? '+' : ''
   return `${sign}${numericValue.toFixed(2)}%`
+}
+
+export function inferFundMarketType(result?: Pick<FundResult, 'name' | 'tags' | 'code'> | null): FundMarketType {
+  const tagText = `${result?.name || ''} ${(result?.tags || []).join(' ')} ${(result?.code || '')}`
+
+  if (/联接|场外/.test(tagText))
+    return 'otc'
+
+  if (/ETF|LOF|场内/.test(tagText))
+    return 'exchange'
+
+  return 'otc'
 }
 
 export function getPortfolioValueTone(value?: number | null) {
@@ -172,4 +216,9 @@ export function getPortfolioUnavailableState(): PortfolioUnavailableState {
     description: '今日盈亏和实时估值暂时不可用，但你仍可以查看持仓和累计收益信息。',
     hint: '可稍后再查看盘中参考，最终以基金净值披露为准。',
   }
+}
+
+function toFiniteNumber(value: unknown) {
+  const numericValue = Number(value)
+  return Number.isFinite(numericValue) ? numericValue : null
 }

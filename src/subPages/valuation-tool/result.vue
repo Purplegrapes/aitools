@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { DiscoveryFundValuation, FundIntraday, FundResult } from './types'
+import type { DiscoveryFundValuation, ExchangeFundQuotePayload, FundIntraday, FundResult } from './types'
 import { getFundValuation } from '@/api/discovery'
-import { getFundResult } from './api/valuationTool'
+import { getExchangeFundQuote, getFundResult } from './api/valuationTool'
 import DetailActionBar from './components/DetailActionBar.vue'
 import DetailStateCard from './components/DetailStateCard.vue'
 import DetailSummaryCards from './components/DetailSummaryCards.vue'
@@ -11,7 +11,9 @@ import {
   createMineScanPath,
   createSearchPath,
   createWatchlistPath,
+  inferFundMarketType,
   isFundResultStatus,
+  mapExchangeQuote,
   mapValuationToIntraday,
   normalizeKeyword,
 } from './utils'
@@ -64,6 +66,20 @@ const {
   },
 )
 
+const exchangeQuoteError = shallowRef(false)
+const {
+  data: exchangeQuoteResponse,
+  send: fetchExchangeQuote,
+} = useRequest(
+  () => getExchangeFundQuote(fundCode.value),
+  {
+    immediate: false,
+    onError: () => {
+      exchangeQuoteError.value = true
+    },
+  },
+)
+
 const result = computed<FundResult>(() => {
   const payload = (resultResponse.value as { data?: FundResult } | undefined)?.data
   if (payload && isFundResultStatus(payload.status))
@@ -84,8 +100,14 @@ const realtimeIntraday = computed<FundIntraday | undefined>(() => {
   return mapValuationToIntraday(payload)
 })
 
+const marketType = computed(() => inferFundMarketType(result.value))
+const exchangeQuote = computed(() => {
+  const payload = exchangeQuoteResponse.value as ExchangeFundQuotePayload[] | undefined
+  return mapExchangeQuote(payload?.[0])
+})
+
 const displayResult = computed<FundResult>(() => {
-  if (!realtimeIntraday.value || valuationError.value)
+  if (marketType.value !== 'otc' || !realtimeIntraday.value || valuationError.value)
     return result.value
 
   return {
@@ -107,8 +129,10 @@ watch(
     }
     requestError.value = false
     valuationError.value = false
+    exchangeQuoteError.value = false
     fetchResult()
     fetchValuation()
+    fetchExchangeQuote()
     refreshWatchlist()
   },
   { immediate: true },
@@ -139,8 +163,12 @@ function handleToggleWatchlist() {
   toggleWatchlist({
     code: fundCode.value,
     name: displayResult.value.name,
-    dailyChange: displayResult.value.intraday?.value ?? null,
-    updateTime: displayResult.value.intraday?.updateTime,
+    dailyChange: marketType.value === 'exchange'
+      ? exchangeQuote.value?.priceChangeRatio ?? null
+      : displayResult.value.intraday?.value ?? null,
+    updateTime: marketType.value === 'exchange'
+      ? exchangeQuote.value?.updateTime
+      : displayResult.value.intraday?.updateTime,
   })
 }
 </script>
@@ -164,7 +192,12 @@ function handleToggleWatchlist() {
       />
 
       <template v-else>
-        <DetailSummaryCards :result="displayResult" />
+        <DetailSummaryCards
+          :exchange-quote="exchangeQuoteError ? undefined : exchangeQuote"
+          :market-type="marketType"
+          :result="displayResult"
+          :valuation="marketType === 'otc' && !valuationError ? (valuationResponse as DiscoveryFundValuation | undefined) : undefined"
+        />
         <view class="p-4 text-center">
           <text class="text-xs text-secondary leading-6">
             {{ displayResult.disclaimer }}

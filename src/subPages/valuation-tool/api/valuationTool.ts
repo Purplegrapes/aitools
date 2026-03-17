@@ -1,4 +1,5 @@
 import { alovaInstance } from '@/api/core/instance'
+import { realtime } from '@/subPages/etf/api'
 
 export function getMarketSentiment() {
   return alovaInstance.Get('/api/v1/market/sentiment')
@@ -16,6 +17,13 @@ export function searchFunds(params: { q: string }) {
 
 export function getFundResult(code: string) {
   return alovaInstance.Get(`/api/v1/funds/${code}/result`)
+}
+
+export function getExchangeFundQuote(code: string) {
+  return realtime({
+    securityCodes: [code],
+    assetType: 'ETF',
+  })
 }
 
 export function getValuationWatchlist() {

@@ -32,12 +32,29 @@ export interface FundIntraday {
   explanation: string
 }
 
+export type FundMarketType = 'exchange' | 'otc'
+
 export interface DiscoveryFundValuation {
   code: string
   name: string
   offChangeNetValue: number
   valuation: number
   ratio: number
+}
+
+export interface ExchangeFundQuotePayload {
+  currentPrice?: number
+  priceChangeRatio?: number
+  premiumRate?: number
+}
+
+export interface FundExchangeQuote {
+  currentPrice: number | null
+  priceChangeRatio: number | null
+  premiumRate: number | null
+  updateTime: string
+  source: 'realtime' | 'mock'
+  explanation: string
 }
 
 export interface FundQuickFacts {

@@ -46,11 +46,6 @@ const hotSearches = computed<HotSearchFund[]>(() => {
 })
 
 const isLoading = computed(() => sentimentLoading.value || hotSearchLoading.value)
-const heroBadges = [
-  '移动端基金翻译器',
-  '轻量读懂今日状态',
-  '不构成投资建议',
-]
 
 function handleSearch() {
   const keyword = searchKeyword.value.trim()
@@ -75,43 +70,35 @@ function handleOpenHoldings() {
 
 <template>
   <view class="relative min-h-screen overflow-x-hidden bg-page">
-    <view class="pointer-events-none absolute inset-x-0 top-0 h-[420rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.18),_transparent_60%)]" />
-    <view class="pointer-events-none absolute left-[-120rpx] top-[120rpx] h-[280rpx] w-[280rpx] rounded-full bg-[rgba(24,144,255,0.08)] blur-[40rpx]" />
-    <view class="pointer-events-none absolute right-[-80rpx] top-[260rpx] h-[220rpx] w-[220rpx] rounded-full bg-[rgba(29,33,41,0.05)] blur-[44rpx]" />
+    <view class="pointer-events-none absolute inset-x-0 top-0 h-[540rpx] bg-[linear-gradient(180deg,_#D8E8FF_0%,_#EAF2FF_52%,_rgba(245,247,250,0)_100%)]" />
+    <view class="pointer-events-none absolute right-[-44rpx] top-[66rpx] h-[228rpx] w-[220rpx] rotate-[8deg] rounded-[46rpx] bg-[linear-gradient(180deg,_rgba(67,191,255,0.3),_rgba(22,120,255,0.08))] shadow-[0_24rpx_50rpx_rgba(38,115,255,0.16)]" />
+    <view class="pointer-events-none absolute right-[30rpx] top-[92rpx] h-[198rpx] w-[152rpx] border border-white/60 rounded-[32rpx] border-solid bg-[linear-gradient(180deg,_rgba(255,255,255,0.84),_rgba(230,240,255,0.42))]" />
+    <view class="pointer-events-none absolute right-[76rpx] top-[130rpx] h-[92rpx] w-[92rpx] border-[10rpx] border-[#63B8FF]/55 rounded-full border-solid" />
+    <view class="pointer-events-none absolute right-[58rpx] top-[194rpx] h-[16rpx] w-[112rpx] rotate-[44deg] rounded-full bg-[#2A69FF]/75" />
+    <view class="pointer-events-none absolute right-[118rpx] top-[118rpx] h-[92rpx] w-[4rpx] rounded-full bg-white/55 shadow-[24rpx_0_0_rgba(255,255,255,0.42),_48rpx_0_0_rgba(255,255,255,0.28)]" />
 
-    <view class="relative mx-auto box-border max-w-[680rpx] w-full pb-[180rpx] pt-4">
-      <view>
-        <view>
-          <text class="mt-[18rpx] block text-[48rpx] text-primary font-700 leading-[1.08] tracking-[1rpx]">
+    <view class="relative mx-auto box-border max-w-[680rpx] w-full pb-[180rpx] pt-[28rpx]">
+      <view class="min-h-[288rpx] px-[4rpx] pt-[96rpx]">
+        <view class="max-w-[430rpx]">
+          <text class="block text-[56rpx] text-primary font-700 leading-[1.08] tracking-[1rpx]">
             ETF估值工具
           </text>
-          <text class="mt-[14rpx] block max-w-[520rpx] text-[24rpx] text-regular leading-[38rpx]">
-            一键查估值，快速看懂你的基。先看它投什么，再看它今天大概怎么样。
+          <text class="mt-[18rpx] block text-[26rpx] text-secondary leading-[40rpx]">
+            一键查估值，快速看懂你的基
           </text>
         </view>
 
-        <view class="mt-[24rpx] flex flex-wrap gap-[12rpx]">
-          <view
-            v-for="badge in heroBadges"
-            :key="badge"
-          >
-            <wd-tag mark type="warning" plain>
-              {{ badge }}
-            </wd-tag>
-          </view>
-        </view>
-
-        <view class="mt-[26rpx]">
+        <view class="mt-[34rpx]">
           <ValuationSearchBar
             v-model="searchKeyword"
-            placeholder="输入基金全称或代码"
+            placeholder="请输入基金全称或代码"
             button-text="查询"
             @submit="handleSearch"
           />
         </view>
       </view>
 
-      <view class="mt-[24rpx] flex flex-col gap-[18rpx]">
+      <view class="mt-[6rpx] flex flex-col gap-[18rpx]">
         <view v-if="isLoading" class="border border-line/70 rounded-[36rpx] bg-surface p-6 text-center shadow-[0_20rpx_60rpx_rgba(17,37,62,0.08)]">
           <wd-loading />
           <text class="mt-3 block text-[22rpx] text-secondary">
@@ -123,45 +110,6 @@ function handleOpenHoldings() {
           <SentimentCard :sentiment="sentiment" />
           <HotSearchList :items="hotSearches" @select="handleSelectHotSearch" />
         </template>
-
-        <view class="border border-line/70 rounded-[36rpx] bg-surface px-[28rpx] py-[28rpx] shadow-[0_20rpx_60rpx_rgba(17,37,62,0.08)]">
-          <view class="flex items-center justify-between gap-[16rpx]">
-            <text class="text-[28rpx] text-primary font-600">
-              新手阅读顺序
-            </text>
-            <text class="text-[20rpx] text-secondary tracking-[2rpx]">
-              阅读指引
-            </text>
-          </view>
-          <view class="mt-[20rpx] flex flex-col gap-[14rpx]">
-            <view class="flex items-start gap-[14rpx] rounded-[24rpx] bg-page px-[20rpx] py-[18rpx]">
-              <view class="h-[44rpx] w-[44rpx] flex shrink-0 items-center justify-center rounded-full bg-brand text-[22rpx] text-inverse font-700">
-                1
-              </view>
-              <view>
-                <text class="block text-[24rpx] text-primary font-600">
-                  先看它投什么
-                </text>
-                <text class="mt-[6rpx] block text-[22rpx] text-regular leading-[36rpx]">
-                  先判断这只基金跟的是大盘、红利、黄金还是海外科技，不急着盯当天涨跌。
-                </text>
-              </view>
-            </view>
-            <view class="flex items-start gap-[14rpx] rounded-[24rpx] bg-page px-[20rpx] py-[18rpx]">
-              <view class="h-[44rpx] w-[44rpx] flex shrink-0 items-center justify-center rounded-full bg-primary text-[22rpx] text-inverse font-700">
-                2
-              </view>
-              <view>
-                <text class="block text-[24rpx] text-primary font-600">
-                  再看今天大概怎么样
-                </text>
-                <text class="mt-[6rpx] block text-[22rpx] text-regular leading-[36rpx]">
-                  把今天的状态当成理解市场的小线索，而不是立刻下结论的理由。
-                </text>
-              </view>
-            </view>
-          </view>
-        </view>
 
         <view>
           <view class="flex items-center gap-[12rpx]">
