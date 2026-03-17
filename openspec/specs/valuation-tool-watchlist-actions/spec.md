@@ -1,12 +1,12 @@
 ## ADDED Requirements
 
 ### Requirement: Valuation Tool Detail Page SHALL Provide Bottom Actions
-The valuation-tool 基金详情页 SHALL 在页面底部提供固定操作栏，包含加入自选、自选列表、基金扫雷三个可点击操作，并在存在安全区时保持正文内容不被遮挡。
+The valuation-tool 基金详情页 SHALL 在页面底部提供固定操作栏，包含加入自选、自选列表、基金诊断三个可点击操作，并在存在安全区时保持正文内容不被遮挡。
 
 #### Scenario: Detail page renders action bar
 - **WHEN** 用户进入任一基金详情页且详情数据可展示
 - **THEN** 页面底部 SHALL 展示固定操作栏
-- **AND** 操作栏 SHALL 包含“加入自选/取消自选”“自选列表”“基金扫雷”三个按钮
+- **AND** 操作栏 SHALL 包含“加入自选/取消自选”“自选列表”“基金诊断”三个按钮
 
 #### Scenario: Action bar respects current watchlist state
 - **WHEN** 当前基金已在用户自选列表中
@@ -64,9 +64,9 @@ The valuation-tool 基金详情页 SHALL 在页面底部提供固定操作栏，
 - **THEN** 返回数据 SHALL 至少包含基金代码、基金名称、当前自选状态和当日涨幅字段
 
 ### Requirement: Mine Scan Action SHALL Open a Stable Entry
-详情页中的“基金扫雷”按钮 SHALL 打开 valuation-tool 内定义好的扫雷入口，并携带当前基金代码供后续页面继续使用。
+详情页中的“基金诊断”按钮 SHALL 打开 valuation-tool 内定义好的扫雷入口，并携带当前基金代码供后续页面继续使用。
 
 #### Scenario: Navigate to mine scan entry
-- **WHEN** 用户在详情页点击“基金扫雷”
+- **WHEN** 用户在详情页点击“基金诊断”
 - **THEN** 系统 SHALL 跳转到 valuation-tool 的扫雷入口页
 - **AND** 当前基金代码 SHALL 作为路由参数或等价上下文一并传递

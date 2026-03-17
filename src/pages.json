@@ -222,7 +222,7 @@
           "name": "valuation-tool-mine-scan",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "基金扫雷",
+            "navigationBarTitleText": "基金诊断",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
           }

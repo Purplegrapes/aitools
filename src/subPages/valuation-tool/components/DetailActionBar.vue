@@ -30,7 +30,7 @@ const emit = defineEmits<{
         >
           <view class="i-carbon-warning-hex-filled text-[34rpx]" />
           <text class="text-xs font-600">
-            基金扫雷
+            基金诊断
           </text>
         </view>
 

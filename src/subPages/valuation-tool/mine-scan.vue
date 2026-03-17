@@ -5,7 +5,7 @@ definePage({
   name: 'valuation-tool-mine-scan',
   layout: 'default',
   style: {
-    navigationBarTitleText: '基金扫雷',
+    navigationBarTitleText: '基金诊断',
     navigationBarBackgroundColor: '#F5F7FA',
     navigationBarTextStyle: 'black',
   },
@@ -32,7 +32,7 @@ function handleBackToDetail() {
         <view class="i-carbon-warning-alt-filled text-[44rpx]" />
       </view>
       <text class="mt-4 block text-lg text-primary font-600">
-        基金扫雷入口已打开
+        基金诊断入口已打开
       </text>
       <text class="mt-2 block text-sm text-regular leading-6">
         当前基金代码：{{ fundCode || '未提供' }}。后续扫雷能力会基于这个基金继续展开，这一页先作为稳定入口保留。
