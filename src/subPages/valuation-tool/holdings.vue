@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import BottomActionBar from './components/BottomActionBar.vue'
 import DataUnavailableCard from './components/DataUnavailableCard.vue'
 import EmptyPortfolioState from './components/EmptyPortfolioState.vue'
 import PortfolioSummaryCard from './components/PortfolioSummaryCard.vue'
@@ -8,9 +7,8 @@ import PositionInsightCard from './components/PositionInsightCard.vue'
 import SkeletonBlock from './components/SkeletonBlock.vue'
 import { usePortfolio } from './composables/usePortfolio'
 import {
-  createHoldingsAddPath,
   createHoldingsEditPath,
-  createHoldingsUploadPath,
+  createHoldingsSyncPath,
   createResultPath,
 } from './utils'
 
@@ -43,12 +41,8 @@ const isLoadingState = computed(() => previewState.value === 'loading')
 const isDataUnavailable = computed(() => previewState.value === 'data-unavailable')
 const hasPositions = computed(() => positions.value.length > 0)
 
-function handleAddPosition() {
-  router.push(createHoldingsAddPath())
-}
-
-function handleUploadPositions() {
-  router.push(createHoldingsUploadPath())
+function handleOpenSync() {
+  router.push(createHoldingsSyncPath())
 }
 
 function handleEditPosition(id: string) {
@@ -61,18 +55,22 @@ function handleOpenFundDetail(code: string) {
 </script>
 
 <template>
-  <view class="min-h-screen bg-surfaceSubtle px-[24rpx] pt-[24rpx]" :class="hasPositions ? 'pb-[180rpx]' : 'pb-[48rpx]'">
+  <view class="min-h-screen bg-surfaceSubtle px-[24rpx] pb-[48rpx] pt-[24rpx]">
     <view class="pointer-events-none absolute inset-x-0 top-0 h-[360rpx] bg-[linear-gradient(180deg,_rgba(232,241,255,0.96),_rgba(248,250,253,0.72)_58%,_transparent)]" />
     <view class="pointer-events-none absolute inset-x-0 top-[120rpx] h-[220rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.08),_transparent_68%)]" />
 
     <view class="relative mx-auto max-w-[702rpx] flex flex-col gap-[20rpx]">
-      <view class="px-[4rpx] py-[6rpx]">
+      <view class="flex items-center justify-between gap-[20rpx] px-[4rpx] py-[6rpx]">
         <text class="block text-[34rpx] text-primary font-700">
           我的持仓
         </text>
-        <text class="mt-[8rpx] block text-[22rpx] text-secondary">
-          先看整体赚亏，再看哪只基金更值得留意。
-        </text>
+        <view
+          v-if="!isLoadingState && hasPositions"
+          class="shrink-0 rounded-full bg-brand px-[22rpx] py-[14rpx] text-[24rpx] text-white font-600 shadow-[0_12rpx_24rpx_rgba(22,120,255,0.22)]"
+          @click="handleOpenSync"
+        >
+          同步持仓
+        </view>
       </view>
 
       <template v-if="isLoadingState">
@@ -110,8 +108,7 @@ function handleOpenFundDetail(code: string) {
 
       <EmptyPortfolioState
         v-else-if="!hasPositions"
-        @add="handleAddPosition"
-        @upload="handleUploadPositions"
+        @sync="handleOpenSync"
       />
 
       <template v-else>
@@ -141,13 +138,5 @@ function handleOpenFundDetail(code: string) {
         </view>
       </template>
     </view>
-
-    <BottomActionBar
-      v-if="hasPositions"
-      primary-text="添加持仓"
-      secondary-text="上传持仓"
-      @primary="handleAddPosition"
-      @secondary="handleUploadPositions"
-    />
   </view>
 </template>

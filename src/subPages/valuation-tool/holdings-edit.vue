@@ -102,16 +102,7 @@ function toEditableNumber(value: number) {
     />
 
     <view class="relative mx-auto max-w-[702rpx] px-[24rpx]">
-      <view class="px-[4rpx] py-[8rpx]">
-        <text class="block text-[34rpx] text-primary font-700">
-          修改持仓
-        </text>
-        <text class="mt-[10rpx] block text-[24rpx] text-secondary leading-[36rpx]">
-          修改这只基金的持有份额和成本净值，保存后会重新计算当前收益表现。
-        </text>
-      </view>
-
-      <view class="mt-[18rpx]">
+      <view>
         <EditPositionSheet
           v-if="currentPosition"
           :code="currentPosition.code"

@@ -6,9 +6,11 @@ import type {
   FundMarketType,
   FundResult,
   FundResultStatus,
+  PortfolioFundOption,
   PortfolioPosition,
   PortfolioPositionMetrics,
   PortfolioPreviewState,
+  PortfolioRecognitionDraft,
   PortfolioSummary,
   PortfolioUnavailableState,
 } from './types'
@@ -41,6 +43,10 @@ export function createHoldingsPath() {
   return '/subPages/valuation-tool/holdings'
 }
 
+export function createHoldingsSyncPath() {
+  return '/subPages/valuation-tool/holdings-sync'
+}
+
 export function createHoldingsAddPath() {
   return '/subPages/valuation-tool/holdings-add'
 }
@@ -51,6 +57,73 @@ export function createHoldingsEditPath(id: string) {
 
 export function createHoldingsUploadPath() {
   return '/subPages/valuation-tool/holdings-upload'
+}
+
+export function buildPortfolioPositionFromSnapshot(
+  fund: Pick<PortfolioFundOption, 'code' | 'name' | 'estimatedNav'>,
+  holdingAmount: string | number,
+  holdingProfit: string | number,
+) {
+  const currentNav = Number(fund.estimatedNav)
+  const holdingAmountValue = Number(holdingAmount)
+  const holdingProfitValue = Number(holdingProfit)
+
+  if (!currentNav || Number.isNaN(currentNav))
+    return { error: '当前估值暂不可用，暂时无法保存持仓' as const }
+
+  if (!holdingAmountValue || Number.isNaN(holdingAmountValue))
+    return { error: '请填写当前持有金额' as const }
+
+  if (Number.isNaN(holdingProfitValue))
+    return { error: '请填写当前持有收益' as const }
+
+  const sharesValue = holdingAmountValue / currentNav
+  const costAmountValue = holdingAmountValue - holdingProfitValue
+  const costNavValue = costAmountValue / sharesValue
+
+  if (!sharesValue || !costNavValue || costAmountValue <= 0) {
+    return { error: '输入的持有金额和持有收益不合理，请检查后再试' as const }
+  }
+
+  return {
+    position: {
+      code: fund.code,
+      name: fund.name,
+      shares: sharesValue,
+      costNav: costNavValue,
+    } satisfies Omit<PortfolioPosition, 'id'>,
+  }
+}
+
+export function getRecognitionDraftStatusMeta(draft: Pick<PortfolioRecognitionDraft, 'code' | 'holdingAmount' | 'holdingProfit' | 'status' | 'issue'>) {
+  if (draft.status === 'failed') {
+    return {
+      status: 'failed' as const,
+      issue: draft.issue || '识别失败，请重新上传或改为手动录入。',
+    }
+  }
+
+  const holdingAmountValue = Number(draft.holdingAmount)
+  const holdingProfitValue = Number(draft.holdingProfit)
+
+  if (!draft.code) {
+    return {
+      status: 'needs_fund_match' as const,
+      issue: draft.issue || '未能唯一匹配基金，请重新确认基金。',
+    }
+  }
+
+  if (!draft.holdingAmount || Number.isNaN(holdingAmountValue) || Number.isNaN(holdingProfitValue)) {
+    return {
+      status: 'needs_review' as const,
+      issue: draft.issue || '金额或收益识别不完整，请补充后再导入。',
+    }
+  }
+
+  return {
+    status: 'ready' as const,
+    issue: '',
+  }
 }
 
 export function createMineScanPath(code: string) {

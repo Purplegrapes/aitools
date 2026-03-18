@@ -18,6 +18,7 @@ type _LocationUrl =
   "/subPages/tools/entry" |
   "/subPages/valuation-tool/holdings-add" |
   "/subPages/valuation-tool/holdings-edit" |
+  "/subPages/valuation-tool/holdings-sync" |
   "/subPages/valuation-tool/holdings-upload" |
   "/subPages/valuation-tool/holdings" |
   "/subPages/valuation-tool/index" |

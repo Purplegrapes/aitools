@@ -3,7 +3,7 @@ import type { PortfolioFundOption } from './types'
 import AddPositionForm from './components/AddPositionForm.vue'
 import BottomActionBar from './components/BottomActionBar.vue'
 import { usePortfolio } from './composables/usePortfolio'
-import { createHoldingsPath, createHoldingsUploadPath } from './utils'
+import { buildPortfolioPositionFromSnapshot, createHoldingsPath, createHoldingsUploadPath } from './utils'
 
 definePage({
   name: 'valuation-tool-holdings-add',
@@ -47,40 +47,18 @@ function handleSave(resetAfterSave = false) {
     return
   }
 
-  const currentNav = Number(selectedFund.value.estimatedNav)
-  const holdingAmountValue = Number(holdingAmount.value)
-  const holdingProfitValue = Number(holdingProfit.value)
+  const result = buildPortfolioPositionFromSnapshot(
+    selectedFund.value,
+    holdingAmount.value,
+    holdingProfit.value,
+  )
 
-  if (!currentNav || Number.isNaN(currentNav)) {
-    globalToast.error('当前估值暂不可用，暂时无法保存持仓')
+  if ('error' in result) {
+    globalToast.error(result.error)
     return
   }
 
-  if (!holdingAmountValue || Number.isNaN(holdingAmountValue)) {
-    globalToast.error('请填写当前持有金额')
-    return
-  }
-
-  if (Number.isNaN(holdingProfitValue)) {
-    globalToast.error('请填写当前持有收益')
-    return
-  }
-
-  const sharesValue = holdingAmountValue / currentNav
-  const costAmountValue = holdingAmountValue - holdingProfitValue
-  const costNavValue = costAmountValue / sharesValue
-
-  if (!sharesValue || !costNavValue || costAmountValue <= 0) {
-    globalToast.error('输入的持有金额和持有收益不合理，请检查后再试')
-    return
-  }
-
-  addPosition({
-    code: selectedFund.value.code,
-    name: selectedFund.value.name,
-    shares: sharesValue,
-    costNav: costNavValue,
-  })
+  addPosition(result.position)
   globalToast.success('持仓已保存')
 
   if (resetAfterSave) {
@@ -93,10 +71,14 @@ function handleSave(resetAfterSave = false) {
 
   router.replace(createHoldingsPath())
 }
+
+function handleOpenScreenshotFlow() {
+  router.push(createHoldingsUploadPath())
+}
 </script>
 
 <template>
-  <view class="min-h-screen overflow-x-hidden bg-surfaceSubtle pb-[220rpx] pt-[24rpx]">
+  <view class="relative min-h-screen overflow-hidden bg-surfaceSubtle pb-[220rpx] pt-[24rpx]">
     <view
       class="pointer-events-none absolute inset-x-0 top-0 h-[320rpx]"
       style="background: linear-gradient(180deg, rgba(232,241,255,0.96), rgba(248,250,253,0.72) 58%, transparent);"
@@ -106,29 +88,20 @@ function handleSave(resetAfterSave = false) {
       style="background: radial-gradient(circle, rgba(120,161,255,0.18), transparent 68%);"
     />
 
-    <view class="relative mx-auto max-w-[702rpx] px-[24rpx]">
-      <view class="px-[4rpx] py-[8rpx]">
-        <text class="block text-[34rpx] text-primary font-700">
-          添加持仓
-        </text>
-        <text class="mt-[10rpx] block text-[24rpx] text-secondary leading-[36rpx]">
-          先选基金，再填持有金额和持有收益，保存后就能回到持仓页看整体收益。
-        </text>
-      </view>
-
-      <view class="mt-[18rpx] border border-line/65 rounded-[20rpx] bg-surface/96 px-[24rpx] py-[24rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)] backdrop-blur-[12rpx]">
+    <view class="relative mx-auto box-border max-w-[750rpx] w-full px-[24rpx]">
+      <view class="border border-line/65 rounded-[20rpx] bg-surface/96 px-[24rpx] py-[24rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)] backdrop-blur-[12rpx]">
         <view class="mb-[20rpx] flex items-start justify-between gap-[16rpx]">
           <view>
             <text class="block text-[30rpx] text-primary font-600">
-              录入一只基金
+              手动录入一只基金
             </text>
             <text class="mt-[8rpx] block text-[22rpx] text-secondary leading-[34rpx]">
-              搜索基金后，只需要补两个关键数字。
+              适合少量持仓，输入当前金额和累计收益即可。
             </text>
           </view>
           <view class="rounded-full bg-brand-muted px-[16rpx] py-[8rpx]">
             <text class="text-[22rpx] text-brand font-600">
-              轻量录入
+              快速录入
             </text>
           </view>
         </view>
@@ -148,17 +121,26 @@ function handleSave(resetAfterSave = false) {
             填写提示
           </text>
           <text class="mt-[8rpx] block text-[24rpx] text-primary leading-[36rpx]">
-            持有金额填你现在这只基金的金额，持有收益填当前累计收益，系统会自动换算底层持仓信息。
+            持有金额填你现在这只基金值多少钱，持有收益填当前累计赚了或亏了多少钱，系统会自动换算底层持仓信息。
+          </text>
+        </view>
+
+        <view class="mt-[18rpx] rounded-[16rpx] bg-surfaceSubtle px-[18rpx] py-[18rpx]">
+          <text class="block text-[22rpx] text-secondary">
+            还有批量录入需求？
+          </text>
+          <text class="mt-[8rpx] block text-[24rpx] text-primary leading-[36rpx]">
+            如果你有多只基金要补录，可以直接去上传持仓截图，系统会先识别，再让你确认后保存。
           </text>
         </view>
       </view>
     </view>
 
     <BottomActionBar
-      secondary-text="上传持仓"
+      secondary-text="上传截图"
       primary-text="保存持仓"
       @primary="handleSave(false)"
-      @secondary="router.push(createHoldingsUploadPath())"
+      @secondary="handleOpenScreenshotFlow"
     />
   </view>
 </template>

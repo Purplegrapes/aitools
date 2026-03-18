@@ -9,6 +9,8 @@ import type {
   PortfolioInsight,
   PortfolioPosition,
   PortfolioPositionMetrics,
+  PortfolioRecognitionDraft,
+  PortfolioRecognitionResult,
   PortfolioUnavailableState,
   SearchResultViewModel,
   ValuationWatchlistFund,
@@ -439,6 +441,43 @@ export function getFallbackPortfolioInsight(metrics: PortfolioPositionMetrics[])
 
 export function getFallbackPortfolioUnavailableState(): PortfolioUnavailableState {
   return getPortfolioUnavailableState()
+}
+
+export function getFallbackPortfolioRecognitionResult(fileNames: string[]): PortfolioRecognitionResult {
+  const normalizedFileNames = fileNames.length ? fileNames : ['持仓截图-1.png']
+
+  return {
+    items: [
+      {
+        id: `ocr-${normalizedFileNames[0]}-1`,
+        sourceImage: normalizedFileNames[0],
+        name: '易方达沪深300ETF联接A',
+        code: '110020',
+        holdingAmount: '8056.32',
+        holdingProfit: '440.18',
+        status: 'ready',
+      },
+      {
+        id: `ocr-${normalizedFileNames[0]}-2`,
+        sourceImage: normalizedFileNames[0],
+        name: '广发纳斯达克100联接',
+        holdingAmount: '3280.50',
+        holdingProfit: '-128.44',
+        status: 'needs_fund_match',
+        issue: '基金名称识别到了，但还没匹配到唯一基金代码。',
+      },
+      {
+        id: `ocr-${normalizedFileNames[Math.min(1, normalizedFileNames.length - 1)]}-3`,
+        sourceImage: normalizedFileNames[Math.min(1, normalizedFileNames.length - 1)],
+        name: '易方达中证红利',
+        code: '009051',
+        holdingAmount: '',
+        holdingProfit: '86.20',
+        status: 'needs_review',
+        issue: '持有金额识别不完整，请补充后再导入。',
+      },
+    ] satisfies PortfolioRecognitionDraft[],
+  }
 }
 
 function buildPortfolioNote(costNav: number, currentNav: number | null, tag?: string) {

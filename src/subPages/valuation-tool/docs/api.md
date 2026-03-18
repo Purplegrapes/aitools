@@ -712,25 +712,126 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 
 ---
 
-## 12. 上传持仓预留接口
+## 12. 持仓截图识别与确认导入接口
 
-### 接口建议
+### 12.1 识别持仓截图
 
-首版可以只保留前端入口，不强制后端立即提供真实导入能力。若要提前预留，建议使用以下接口：
+#### 接口
 
-- `POST /api/v1/valuation-tool/holdings/upload`
-- `GET /api/v1/valuation-tool/holdings/upload/template`
+`POST /api/v1/valuation-tool/holdings/recognize`
 
-### 建议用途
+#### 用途
 
-- 上传 Excel / CSV 文件
-- 下载模板
-- 后续扩展导入预览与结果校验
+用于“同步持仓 -> 上传截图”流程。用户选择一张或多张截图后，服务端识别基金、持有金额和持有收益，返回前端确认草稿。
+
+#### 请求参数
+
+建议使用 `multipart/form-data`。
+
+| 参数 | 位置 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- | --- |
+| `files` | form-data | file[] | 是 | 持仓截图文件，建议最多 6 张 |
+
+#### 返回字段
+
+##### data
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `items` | array | 是 | 识别结果草稿列表 |
+
+##### items[]
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | string | 是 | 草稿 ID |
+| `sourceImage` | string | 是 | 来源截图名称 |
+| `name` | string | 是 | 识别出的基金名称 |
+| `code` | string | 否 | 识别或匹配出的基金代码 |
+| `holdingAmount` | string | 是 | 当前持有金额 |
+| `holdingProfit` | string | 是 | 当前累计收益 |
+| `status` | string | 是 | 草稿状态，当前前端仅将 `ready` 项带入确认页 |
+| `issue` | string | 否 | 当前草稿的问题说明，用于失败提示或日志记录 |
+
+#### 返回示例
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "items": [
+      {
+        "id": "ocr-1",
+        "sourceImage": "holding-1.png",
+        "name": "易方达沪深300ETF联接A",
+        "code": "110020",
+        "holdingAmount": "18234.56",
+        "holdingProfit": "1268.90",
+        "status": "ready",
+        "issue": ""
+      },
+      {
+        "id": "ocr-2",
+        "sourceImage": "holding-2.png",
+        "name": "华安黄金ETF联接A",
+        "code": "000216",
+        "holdingAmount": "9480.00",
+        "holdingProfit": "523.20",
+        "status": "ready",
+        "issue": ""
+      }
+    ]
+  }
+}
+```
+
+### 12.2 确认导入识别结果
+
+#### 接口
+
+`POST /api/v1/valuation-tool/holdings/recognize/confirm`
+
+#### 用途
+
+用于用户在确认页调整金额、收益或删除记录后，将可导入的截图草稿批量转成正式持仓记录。
+
+#### 请求参数
+
+##### body
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `items` | array | 是 | 用户确认后的可导入项 |
+
+##### items[]
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `id` | string | 是 | 草稿 ID |
+| `code` | string | 是 | 确认后的基金代码 |
+| `name` | string | 是 | 确认后的基金名称 |
+| `holdingAmount` | string | 是 | 当前持有金额 |
+| `holdingProfit` | string | 是 | 当前累计收益 |
+
+#### 返回示例
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "importedCount": 2
+  }
+}
+```
 
 ### 当前版本说明
 
-- 当前页面只需要“选择文件”入口和说明文案
-- 若后端暂未实现，前端可继续保留预留态，不阻塞主流程
+- 截图识别结果不会直接入库，前端必须进入确认导入步骤
+- 当前前端会先过滤非 `ready` 项，只将识别成功的基金带入确认页
+- 确认页仅允许编辑持有金额、持有收益和删除记录，基金名称与代码只读
+- 如果后端 OCR 能力尚未接入，前端可先通过 mock/stub 打通识别与确认链路
 
 ---
 
@@ -841,7 +942,13 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 
 - `GET /api/v1/valuation-tool/holdings`
 
-### 添加持仓页
+### 同步持仓页
+
+依赖接口：
+
+- `POST /api/v1/valuation-tool/holdings/recognize`
+
+### 手动录入页
 
 依赖接口：
 
@@ -856,18 +963,18 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 - `PUT /api/v1/valuation-tool/holdings/{id}`
 - `DELETE /api/v1/valuation-tool/holdings/{id}`
 
-### 上传持仓页（预留）
+### 持仓确认页
 
 依赖接口：
 
-- `POST /api/v1/valuation-tool/holdings/upload`（可选）
-- `GET /api/v1/valuation-tool/holdings/upload/template`（可选）
+- `POST /api/v1/valuation-tool/holdings/recognize`
+- `POST /api/v1/valuation-tool/holdings/recognize/confirm`
 
 ---
 
 ## 15. 最小可用接口集合
 
-如果先做当前 MVP，建议至少提供以下 11 个接口：
+如果先做当前 MVP，建议至少提供以下 13 个接口：
 
 1. `GET /api/v1/market/sentiment`
 2. `GET /api/v1/funds/hot-searches`
@@ -880,8 +987,10 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 9. `POST /api/v1/valuation-tool/holdings`
 10. `PUT /api/v1/valuation-tool/holdings/{id}`
 11. `DELETE /api/v1/valuation-tool/holdings/{id}`
+12. `POST /api/v1/valuation-tool/holdings/recognize`
+13. `POST /api/v1/valuation-tool/holdings/recognize/confirm`
 
-这 11 个接口足够驱动当前基金估值工具的首页、详情页、自选列表页、我的持仓页以及添加/修改持仓链路。
+这 13 个接口足够驱动当前基金估值工具的首页、详情页、自选列表页、我的持仓页、同步持仓、手动录入、修改持仓，以及上传截图后的识别确认流程。
 
 ---
 

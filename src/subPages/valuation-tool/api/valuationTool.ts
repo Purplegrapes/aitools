@@ -1,5 +1,7 @@
+import type { PortfolioRecognitionDraft, PortfolioRecognitionResult } from '../types'
 import { alovaInstance } from '@/api/core/instance'
 import { realtime } from '@/subPages/etf/api'
+import { getFallbackPortfolioRecognitionResult } from '../mock'
 
 export function getMarketSentiment() {
   return alovaInstance.Get('/api/v1/market/sentiment')
@@ -41,4 +43,31 @@ export function addValuationWatchlist(params: {
 
 export function removeValuationWatchlist(code: string) {
   return alovaInstance.Delete(`/api/v1/valuation-tool/watchlist/${code}`)
+}
+
+export async function recognizePortfolioScreenshots(params: {
+  fileNames: string[]
+}) {
+  const data = getFallbackPortfolioRecognitionResult(params.fileNames)
+  return {
+    code: 200,
+    msg: 'success',
+    data,
+  } satisfies {
+    code: number
+    msg: string
+    data: PortfolioRecognitionResult
+  }
+}
+
+export async function confirmRecognizedPortfolioPositions(params: {
+  items: PortfolioRecognitionDraft[]
+}) {
+  return {
+    code: 200,
+    msg: 'success',
+    data: {
+      importedCount: params.items.length,
+    },
+  }
 }

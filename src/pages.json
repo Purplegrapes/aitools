@@ -184,12 +184,23 @@
           }
         },
         {
+          "path": "valuation-tool/holdings-sync",
+          "type": "page",
+          "name": "valuation-tool-holdings-sync",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "同步持仓",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
           "path": "valuation-tool/holdings-upload",
           "type": "page",
           "name": "valuation-tool-holdings-upload",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "上传持仓",
+            "navigationBarTitleText": "上传持仓截图",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
           }

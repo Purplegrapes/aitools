@@ -86,6 +86,25 @@ export function usePortfolio() {
     return fallbackPortfolioFundCatalog.filter(item => item.code.includes(keyword.trim()))
   }
 
+  function getFundOptionByCode(code: string) {
+    return fallbackPortfolioFundCatalog.find(item => item.code === code) || null
+  }
+
+  function resolveFundOption(keyword: string) {
+    if (!keyword.trim())
+      return null
+
+    const exactCode = getFundOptionByCode(keyword.trim())
+    if (exactCode)
+      return exactCode
+
+    const exactName = fallbackPortfolioFundCatalog.find(item => item.name === keyword.trim())
+    if (exactName)
+      return exactName
+
+    return searchFunds(keyword.trim())[0] || null
+  }
+
   function getStrongestHolding() {
     return [...metrics.value].sort((a, b) => b.cumulativeProfit - a.cumulativeProfit)[0] || null
   }
@@ -112,6 +131,8 @@ export function usePortfolio() {
     updatePosition,
     removePosition,
     searchFunds,
+    getFundOptionByCode,
+    resolveFundOption,
     getStrongestHolding,
     getWeakestHolding,
     getFocusHolding,

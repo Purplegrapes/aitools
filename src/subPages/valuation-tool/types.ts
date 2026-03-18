@@ -130,6 +130,24 @@ export interface PortfolioPosition {
   costNav: number
 }
 
+export type PortfolioRecognitionState = 'idle' | 'recognizing' | 'ready' | 'empty' | 'error'
+export type PortfolioRecognitionDraftStatus = 'ready' | 'needs_review' | 'needs_fund_match' | 'failed'
+
+export interface PortfolioRecognitionDraft {
+  id: string
+  sourceImage: string
+  name: string
+  code?: string
+  holdingAmount: string
+  holdingProfit: string
+  status: PortfolioRecognitionDraftStatus
+  issue?: string
+}
+
+export interface PortfolioRecognitionResult {
+  items: PortfolioRecognitionDraft[]
+}
+
 export interface PortfolioPositionMetrics {
   id: string
   code: string
