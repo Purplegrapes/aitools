@@ -58,12 +58,9 @@ export interface FundExchangeQuote {
 }
 
 export interface FundQuickFacts {
-  maxDrawdown: string
-  drawdownExplanation: string
-  sharpeRatio?: string
-  sharpeEvaluation?: string
-  calmarRatio?: string
-  calmarEvaluation?: string
+  oneYearPerformance?: string
+  maxDrawdown?: string
+  feeRate?: string
 }
 
 export interface FundResult {

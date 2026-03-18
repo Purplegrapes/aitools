@@ -259,12 +259,9 @@ GET /api/v1/funds/110020/result
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `maxDrawdown` | string | 是 | 最大回撤 |
-| `drawdownExplanation` | string | 是 | 对“最大回撤”的白话评价，语义对应“收益稳定性” |
-| `sharpeRatio` | string | 否 | 夏普比率 |
-| `sharpeEvaluation` | string | 否 | 对“夏普比率”的白话评价，语义对应“投资性价比” |
-| `calmarRatio` | string | 否 | 卡玛比率 |
-| `calmarEvaluation` | string | 否 | 对“卡玛比率”的白话评价，语义对应“收益回撤比” |
+| `oneYearPerformance` | string | 否 | 近一年表现 |
+| `maxDrawdown` | string | 否 | 历史最大跌幅 |
+| `feeRate` | string | 否 | 费率 |
 
 ### 正常返回示例
 
@@ -285,12 +282,9 @@ GET /api/v1/funds/110020/result
       "explanation": "大金融发力带领沪深300走强，本基金盘中紧跟上涨。"
     },
     "quickFacts": {
+      "oneYearPerformance": "12.80%",
       "maxDrawdown": "-35.40%",
-      "drawdownExplanation": "收益稳定性一般，净值回撤时波动体感会更明显。",
-      "sharpeRatio": "0.82",
-      "sharpeEvaluation": "投资性价比中等，承担一份波动换来的收益不算差。",
-      "calmarRatio": "0.35",
-      "calmarEvaluation": "收益回撤比偏一般，收益对回撤的覆盖能力不算强。"
+      "feeRate": "0.60%"
     },
     "definition": "这是一只主要投资中国核心大盘股的宽基指数基金，它就像是A股的“体温计”，大盘涨它就涨。",
     "targetIndex": "沪深300指数",
@@ -303,8 +297,9 @@ GET /api/v1/funds/110020/result
 
 ### 说明
 
-- `quickFacts` 当前页面按 3 行轻列表展示，展示顺序建议固定为：`maxDrawdown`、`sharpeRatio`、`calmarRatio`
-- `sharpeRatio`、`sharpeEvaluation`、`calmarRatio`、`calmarEvaluation` 可选返回；缺省时前端会降级显示为 `--` 和“暂无结论”
+- `quickFacts` 当前页面按 3 行轻列表展示，展示顺序建议固定为：`oneYearPerformance`、`maxDrawdown`、`feeRate`
+- `quickFacts` 的“评价结论”由前端按 [factor.md](./factor.md) 中的区间规则自动计算，接口只需要提供原始值字段
+- `quickFacts` 各字段均可选返回；缺省时前端会降级显示为 `--` 和“暂无结论”
 
 ---
 

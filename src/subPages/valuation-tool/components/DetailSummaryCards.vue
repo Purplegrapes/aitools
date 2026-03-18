@@ -14,46 +14,200 @@ const activeMetricTip = shallowRef<{
   label: string
   description: string
 } | null>(null)
-function getEvaluationTextClass(evaluation: string) {
-  if (evaluation.includes('暂无'))
-    return 'text-secondary'
-  if (evaluation.includes('优秀'))
-    return 'text-success'
-  if (evaluation.includes('良好') || evaluation.includes('中等'))
-    return 'text-brand'
-  if (evaluation.includes('一般'))
-    return 'text-warning'
-  if (evaluation.includes('较弱'))
-    return 'text-danger'
-  return 'text-regular'
+
+function formatSignedMetricNumber(value?: number | null, fractionDigits = 4) {
+  if (value === null || value === undefined || Number.isNaN(Number(value)))
+    return '--'
+
+  const numericValue = Number(value)
+  const sign = numericValue > 0 ? '+' : ''
+  return `${sign}${numericValue.toFixed(fractionDigits)}`
 }
 
-const quickFactRows = computed(() => [
-  {
-    label: '最大回撤',
-    value: props.result.quickFacts?.maxDrawdown || '--',
-    evaluation: props.result.quickFacts?.maxDrawdown ? '稳定性一般' : '暂无结论',
-    tip: '看这只基金历史上最深跌过多少，通常回撤越小，持有体验越稳。',
-    valueClass: 'text-success',
-    evaluationTextClass: getEvaluationTextClass(props.result.quickFacts?.maxDrawdown ? '稳定性一般' : '暂无结论'),
-  },
-  {
-    label: '夏普比率',
-    value: props.result.quickFacts?.sharpeRatio || '--',
-    evaluation: props.result.quickFacts?.sharpeRatio ? '性价比中等' : '暂无结论',
-    tip: '看承担一份波动能换来多少收益，通常数值越高，收益效率越好。',
-    valueClass: 'text-primary',
-    evaluationTextClass: getEvaluationTextClass(props.result.quickFacts?.sharpeRatio ? '性价比中等' : '暂无结论'),
-  },
-  {
-    label: '卡玛比率',
-    value: props.result.quickFacts?.calmarRatio || '--',
-    evaluation: props.result.quickFacts?.calmarRatio ? '回撤比一般' : '暂无结论',
-    tip: '看每承受一份最大回撤能换来多少收益，通常数值越高越划算。',
-    valueClass: 'text-danger',
-    evaluationTextClass: getEvaluationTextClass(props.result.quickFacts?.calmarRatio ? '回撤比一般' : '暂无结论'),
-  },
-])
+function parseMetricNumber(value?: string | null) {
+  if (!value)
+    return null
+
+  const matched = value.match(/-?\d+(\.\d+)?/)
+  if (!matched)
+    return null
+
+  const parsed = Number(matched[0])
+  return Number.isNaN(parsed) ? null : parsed
+}
+
+function formatFeeRateDisplay(value?: string | null) {
+  if (!value)
+    return '--'
+
+  return value.includes('年') ? value : `${value} / 年`
+}
+
+function getOneYearPerformanceMeta(value?: string | null) {
+  const numericValue = parseMetricNumber(value)
+  if (numericValue === null) {
+    return {
+      evaluation: '暂无结论',
+      evaluationTextClass: 'text-secondary',
+      tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
+    }
+  }
+
+  if (numericValue >= 20) {
+    return {
+      evaluation: '过去一年整体表现较强',
+      evaluationTextClass: 'text-success',
+      tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
+    }
+  }
+  if (numericValue >= 10) {
+    return {
+      evaluation: '过去一年表现不错',
+      evaluationTextClass: 'text-brand',
+      tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
+    }
+  }
+  if (numericValue >= 0) {
+    return {
+      evaluation: '过去一年表现一般',
+      evaluationTextClass: 'text-warning',
+      tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
+    }
+  }
+  if (numericValue >= -10) {
+    return {
+      evaluation: '过去一年表现偏弱',
+      evaluationTextClass: 'text-warning',
+      tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
+    }
+  }
+
+  return {
+    evaluation: '过去一年整体偏弱',
+    evaluationTextClass: 'text-danger',
+    tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
+  }
+}
+
+function getMaxDrawdownMeta(value?: string | null) {
+  const numericValue = parseMetricNumber(value)
+  if (numericValue === null) {
+    return {
+      evaluation: '暂无结论',
+      evaluationTextClass: 'text-secondary',
+      tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
+    }
+  }
+
+  if (numericValue >= -10) {
+    return {
+      evaluation: '最差时跌幅不大',
+      evaluationTextClass: 'text-success',
+      tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
+    }
+  }
+  if (numericValue >= -20) {
+    return {
+      evaluation: '最差时跌幅还算可控',
+      evaluationTextClass: 'text-brand',
+      tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
+    }
+  }
+  if (numericValue >= -30) {
+    return {
+      evaluation: '最差时大概跌过 2 成',
+      evaluationTextClass: 'text-brand',
+      tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
+    }
+  }
+  if (numericValue >= -40) {
+    return {
+      evaluation: '最差时大概跌过 3 成',
+      evaluationTextClass: 'text-warning',
+      tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
+    }
+  }
+
+  return {
+    evaluation: '最差时跌得比较深',
+    evaluationTextClass: 'text-danger',
+    tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
+  }
+}
+
+function getFeeRateMeta(value?: string | null) {
+  const numericValue = parseMetricNumber(value)
+  if (numericValue === null) {
+    return {
+      evaluation: '暂无结论',
+      evaluationTextClass: 'text-secondary',
+      tip: '费率是持有基金时需要承担的年度费用比例。费率越低，长期持有时越有利；费率越高，长期收益越容易被成本侵蚀。在同类基金中，费率通常是一个很重要的比较指标。',
+    }
+  }
+
+  if (numericValue <= 0.3) {
+    return {
+      evaluation: '长期持有成本较低',
+      evaluationTextClass: 'text-success',
+      tip: '费率是持有基金时需要承担的年度费用比例。费率越低，长期持有时越有利；费率越高，长期收益越容易被成本侵蚀。在同类基金中，费率通常是一个很重要的比较指标。',
+    }
+  }
+  if (numericValue <= 0.6) {
+    return {
+      evaluation: '长期持有成本中等',
+      evaluationTextClass: 'text-brand',
+      tip: '费率是持有基金时需要承担的年度费用比例。费率越低，长期持有时越有利；费率越高，长期收益越容易被成本侵蚀。在同类基金中，费率通常是一个很重要的比较指标。',
+    }
+  }
+  if (numericValue <= 1) {
+    return {
+      evaluation: '长期持有成本偏高',
+      evaluationTextClass: 'text-warning',
+      tip: '费率是持有基金时需要承担的年度费用比例。费率越低，长期持有时越有利；费率越高，长期收益越容易被成本侵蚀。在同类基金中，费率通常是一个很重要的比较指标。',
+    }
+  }
+
+  return {
+    evaluation: '长期持有成本较高',
+    evaluationTextClass: 'text-danger',
+    tip: '费率是持有基金时需要承担的年度费用比例。费率越低，长期持有时越有利；费率越高，长期收益越容易被成本侵蚀。在同类基金中，费率通常是一个很重要的比较指标。',
+  }
+}
+
+const quickFactRows = computed(() => {
+  const oneYearPerformanceMeta = getOneYearPerformanceMeta(props.result.quickFacts?.oneYearPerformance)
+  const maxDrawdownMeta = getMaxDrawdownMeta(props.result.quickFacts?.maxDrawdown)
+  const feeRateMeta = getFeeRateMeta(props.result.quickFacts?.feeRate)
+
+  return [
+    {
+      label: '近一年表现',
+      value: props.result.quickFacts?.oneYearPerformance || '--',
+      evaluation: oneYearPerformanceMeta.evaluation,
+      tip: oneYearPerformanceMeta.tip,
+      valueClass: parseMetricNumber(props.result.quickFacts?.oneYearPerformance) === null
+        ? 'text-primary'
+        : parseMetricNumber(props.result.quickFacts?.oneYearPerformance)! >= 0 ? 'text-danger' : 'text-success',
+      evaluationTextClass: oneYearPerformanceMeta.evaluationTextClass,
+    },
+    {
+      label: '历史最大跌幅',
+      value: props.result.quickFacts?.maxDrawdown || '--',
+      evaluation: maxDrawdownMeta.evaluation,
+      tip: maxDrawdownMeta.tip,
+      valueClass: 'text-danger',
+      evaluationTextClass: maxDrawdownMeta.evaluationTextClass,
+    },
+    {
+      label: '费率',
+      value: formatFeeRateDisplay(props.result.quickFacts?.feeRate),
+      evaluation: feeRateMeta.evaluation,
+      tip: feeRateMeta.tip,
+      valueClass: 'text-primary',
+      evaluationTextClass: feeRateMeta.evaluationTextClass,
+    },
+  ]
+})
 
 const todayMetrics = computed(() => {
   if (props.marketType === 'exchange') {
@@ -90,11 +244,28 @@ const todayMetrics = computed(() => {
   ]
 })
 
+const isOtcMetricLayout = computed(() => props.marketType !== 'exchange')
+const otcPrimaryMetric = computed(() => todayMetrics.value[1])
+const otcSecondaryMetric = computed(() => todayMetrics.value[0])
+
 const todayExplanation = computed(() => {
   if (props.marketType === 'exchange')
     return props.exchangeQuote?.explanation || '当前暂无可用的场内行情数据，可稍后再看。'
 
   return props.result.intraday?.explanation || '当前暂无可用的估值数据，可稍后再看。'
+})
+
+const otcExplanationMetrics = computed(() => {
+  if (props.marketType === 'exchange' || !props.valuation || !props.result.intraday)
+    return null
+
+  return {
+    valuation: formatMetricNumber(props.valuation.valuation, 4),
+    offChangeNetValue: formatSignedMetricNumber(props.valuation.offChangeNetValue, 4),
+    offChangeNetValueToneClass: getDailyChangeTone(props.valuation.offChangeNetValue),
+    intradayValue: formatIntradayValue(props.result.intraday),
+    intradayToneClass: getIntradayTone(props.result.intraday),
+  }
 })
 
 const updateTimeText = computed(() => {
@@ -177,7 +348,42 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
         </text>
       </view>
 
-      <view class="grid mt-4 gap-3" :class="marketType === 'exchange' ? 'grid-cols-3' : 'grid-cols-2'">
+      <view
+        v-if="isOtcMetricLayout"
+        class="mt-[24rpx] rounded-panel bg-brandMuted px-[24rpx] py-[24rpx]"
+      >
+        <view class="flex items-start justify-between gap-[24rpx]">
+          <view class="min-w-0 flex-1">
+            <text class="block text-[22rpx] text-secondary leading-[32rpx]">
+              {{ otcPrimaryMetric?.label }}
+            </text>
+            <text
+              class="mt-[10rpx] block text-[56rpx] font-700 leading-[1.08]"
+              :class="otcPrimaryMetric?.toneClass"
+            >
+              {{ otcPrimaryMetric?.value }}
+            </text>
+          </view>
+
+          <view class="min-w-0 flex shrink-0 flex-col items-end text-right">
+            <text class="text-[22rpx] text-secondary leading-[32rpx]">
+              {{ otcSecondaryMetric?.label }}
+            </text>
+            <text
+              class="mt-[8rpx] text-[34rpx] text-primary font-600 leading-[1.15]"
+              :class="otcSecondaryMetric?.toneClass"
+            >
+              {{ otcSecondaryMetric?.value }}
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <view
+        v-else
+        class="grid mt-4 gap-3"
+        :class="marketType === 'exchange' ? 'grid-cols-3' : 'grid-cols-2'"
+      >
         <view
           v-for="item in todayMetrics"
           :key="item.label"
@@ -193,7 +399,22 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
       </view>
 
       <view class="mt-4 rounded-panel bg-page px-3 py-3">
-        <text class="text-sm text-regular leading-6">
+        <text v-if="otcExplanationMetrics" class="text-sm text-regular leading-6">
+          当前估算净值约为
+          <text class="text-primary font-600">
+            {{ otcExplanationMetrics.valuation }}
+          </text>
+          ，较上一交易日净值变动
+          <text :class="otcExplanationMetrics.offChangeNetValueToneClass" class="font-600">
+            {{ otcExplanationMetrics.offChangeNetValue }}
+          </text>
+          ，对应今日估算涨跌
+          <text :class="otcExplanationMetrics.intradayToneClass" class="font-600">
+            {{ otcExplanationMetrics.intradayValue }}
+          </text>
+          。
+        </text>
+        <text v-else class="text-sm text-regular leading-6">
           {{ todayExplanation }}
         </text>
       </view>
@@ -210,9 +431,9 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
           :key="item.label"
           class="rounded-panel vt-panel bg-surfaceSubtle"
         >
-          <view class="flex items-start justify-between gap-[24rpx]">
-            <view class="min-w-0 flex items-center gap-[8rpx] pt-[4rpx]">
-              <text class="text-[30rpx] text-regular leading-[40rpx]">
+          <view class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.5fr)] items-center gap-[20rpx]">
+            <view class="min-w-0 flex items-center gap-[8rpx]">
+              <text class="truncate text-[28rpx] text-regular leading-[40rpx]">
                 {{ item.label }}
               </text>
               <wd-icon
@@ -222,15 +443,18 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
               />
             </view>
 
-            <view class="min-w-0 flex flex-col items-end text-right">
+            <view class="min-w-0 text-center">
               <text
-                class="text-[30rpx] font-600 leading-[42rpx]"
+                class="block truncate text-[28rpx] font-600 leading-[40rpx]"
                 :class="item.valueClass"
               >
                 {{ item.value }}
               </text>
+            </view>
+
+            <view class="min-w-0 text-right">
               <text
-                class="mt-[6rpx] text-[22rpx] leading-[32rpx]"
+                class="block text-[22rpx] leading-[32rpx]"
                 :class="item.evaluationTextClass"
               >
                 {{ item.evaluation }}
