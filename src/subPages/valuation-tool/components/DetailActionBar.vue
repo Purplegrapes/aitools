@@ -11,7 +11,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <view class="fixed inset-x-0 bottom-0 z-20 bg-surface/96 px-4 pb-[calc(env(safe-area-inset-bottom)+20rpx)] pt-4 shadow-[0_-8rpx_30rpx_rgba(17,37,62,0.06)] backdrop-blur-[20rpx]">
+  <view class="fixed inset-x-0 bottom-0 z-20 bg-surface/96 vt-page-x pb-[calc(env(safe-area-inset-bottom)+20rpx)] pt-4 shadow-[0_-8rpx_30rpx_rgba(17,37,62,0.06)] backdrop-blur-[20rpx]">
     <view class="w-full">
       <view class="flex items-center gap-[16rpx]">
         <view

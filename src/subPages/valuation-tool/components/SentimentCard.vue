@@ -15,7 +15,7 @@ const thumbStyle = computed(() => {
 </script>
 
 <template>
-  <view class="overflow-hidden rounded-[32rpx] bg-surface px-[28rpx] py-[28rpx] shadow-[0_18rpx_54rpx_rgba(17,37,62,0.08)]">
+  <view class="overflow-hidden vt-card bg-surface">
     <view class="flex items-center justify-between gap-[20rpx]">
       <view class="flex items-center gap-[12rpx]">
         <view class="i-carbon-temperature text-[30rpx] text-brand" />
@@ -54,7 +54,7 @@ const thumbStyle = computed(() => {
       <text>狂热</text>
     </view>
 
-    <view class="mt-[28rpx] border border-[#CFE0FF] rounded-[20rpx] border-solid bg-[#F4F8FF] px-[22rpx] py-[22rpx]">
+    <view class="mt-[28rpx] border border-[#CFE0FF] rounded-panel vt-panel-tight border-solid bg-[#F4F8FF]">
       <view class="flex items-start gap-[12rpx]">
         <view class="i-carbon-information text-[28rpx] text-brand" />
         <text class="min-w-0 flex-1 text-[24rpx] text-brand leading-[40rpx]">

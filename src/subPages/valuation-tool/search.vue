@@ -82,7 +82,7 @@ function handleSubmit() {
 </script>
 
 <template>
-  <view class="min-h-screen bg-page px-4 pb-8 pt-4">
+  <view class="min-h-screen bg-page vt-page-shell pb-8">
     <view class="mx-auto max-w-[680rpx] flex flex-col gap-4">
       <ValuationSearchBar
         v-model="searchKeyword"
@@ -91,14 +91,14 @@ function handleSubmit() {
         @submit="handleSubmit"
       />
 
-      <view v-if="requestState === 'loading'" class="rounded-4 bg-surface p-6 text-center shadow-sm">
+      <view v-if="requestState === 'loading'" class="rounded-card bg-surface p-6 text-center shadow-sm">
         <wd-loading />
         <text class="mt-3 block text-sm text-secondary">
           正在精确匹配基金信息...
         </text>
       </view>
 
-      <view v-else-if="requestState === 'empty'" class="rounded-4 bg-surface p-6 shadow-sm">
+      <view v-else-if="requestState === 'empty'" class="rounded-card bg-surface p-6 shadow-sm">
         <text class="block text-base text-primary font-600">
           没找到精确匹配的基金
         </text>
@@ -107,7 +107,7 @@ function handleSubmit() {
         </text>
       </view>
 
-      <view v-else-if="requestState === 'error'" class="rounded-4 bg-surface p-6 shadow-sm">
+      <view v-else-if="requestState === 'error'" class="rounded-card bg-surface p-6 shadow-sm">
         <text class="block text-base text-primary font-600">
           搜索暂时有点忙
         </text>

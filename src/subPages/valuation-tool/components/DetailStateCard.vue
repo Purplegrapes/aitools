@@ -11,7 +11,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <view class="rounded-4 bg-surface p-5 shadow-sm">
+  <view class="rounded-card bg-surface p-5 shadow-sm">
     <view class="h-12 w-12 flex items-center justify-center rounded-full bg-brand-muted text-brand">
       <view class="i-carbon-information text-xl" />
     </view>

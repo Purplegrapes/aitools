@@ -165,7 +165,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
       </view>
     </view>
 
-    <view class="rounded-4 bg-surface p-4 shadow-sm">
+    <view class="rounded-card bg-surface p-4 shadow-sm">
       <view class="flex items-start justify-between gap-4">
         <view>
           <text class="block text-sm text-secondary">
@@ -181,7 +181,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
         <view
           v-for="item in todayMetrics"
           :key="item.label"
-          class="rounded-3 bg-page px-3 py-3"
+          class="rounded-panel bg-page px-3 py-3"
         >
           <text class="block text-xs text-secondary">
             {{ item.label }}
@@ -192,14 +192,14 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
         </view>
       </view>
 
-      <view class="mt-4 rounded-3 bg-page px-3 py-3">
+      <view class="mt-4 rounded-panel bg-page px-3 py-3">
         <text class="text-sm text-regular leading-6">
           {{ todayExplanation }}
         </text>
       </view>
     </view>
 
-    <view class="rounded-4 bg-surface px-4 py-[28rpx] shadow-sm">
+    <view class="vt-card bg-surface shadow-sm">
       <text class="block text-lg text-primary font-600 leading-tight">
         快速看懂这只基金
       </text>
@@ -208,7 +208,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
         <view
           v-for="item in quickFactRows"
           :key="item.label"
-          class="rounded-[20rpx] bg-surfaceSubtle px-[24rpx] py-[24rpx]"
+          class="rounded-panel vt-panel bg-surfaceSubtle"
         >
           <view class="flex items-start justify-between gap-[24rpx]">
             <view class="min-w-0 flex items-center gap-[8rpx] pt-[4rpx]">
@@ -250,7 +250,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
         <view
           v-for="item in detailInfoCards"
           :key="item.label"
-          class="border border-white rounded-[20rpx] border-solid px-[18rpx] py-[18rpx]"
+          class="border border-white rounded-panel border-solid px-[18rpx] py-[18rpx]"
           :style="item.panelStyle"
         >
           <view :class="item.iconToneClass" class="h-[40rpx] w-[40rpx] flex items-center justify-center rounded-full">
@@ -295,7 +295,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
           </text>
         </view>
 
-        <view class="rounded-3 bg-page px-4 py-4">
+        <view class="rounded-panel bg-page px-4 py-4">
           <text class="block text-sm text-regular leading-6">
             {{ activeMetricTip?.description }}
           </text>

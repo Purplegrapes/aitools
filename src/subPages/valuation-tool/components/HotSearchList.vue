@@ -15,7 +15,7 @@ function getRankClass(rank: number) {
 </script>
 
 <template>
-  <view class="rounded-[36rpx] bg-surface px-[28rpx] py-[30rpx] shadow-[0_20rpx_60rpx_rgba(17,37,62,0.08)]">
+  <view class="vt-card bg-surface">
     <view class="flex items-center gap-[14rpx]">
       <view class="i-carbon-fire text-[32rpx] text-danger" />
       <text class="text-[34rpx] text-primary font-600 leading-[48rpx]">

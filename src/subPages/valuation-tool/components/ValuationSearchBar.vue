@@ -21,7 +21,7 @@ function handleSubmit() {
 </script>
 
 <template>
-  <view class="rounded-[28rpx] bg-surface px-[22rpx] py-[16rpx] shadow-[0_18rpx_44rpx_rgba(17,37,62,0.08)]">
+  <view class="vt-card bg-surface">
     <view class="flex items-center gap-[18rpx]">
       <view class="h-[56rpx] w-[56rpx] flex items-center justify-center text-tertiary">
         <view class="i-carbon-search text-[34rpx]" />

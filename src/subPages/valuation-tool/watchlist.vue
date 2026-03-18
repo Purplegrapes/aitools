@@ -52,11 +52,11 @@ function handleBackHome() {
 </script>
 
 <template>
-  <view class="min-h-screen bg-page px-4 pb-8 pt-4">
+  <view class="min-h-screen bg-page vt-page-shell pb-8">
     <view class="pointer-events-none absolute inset-x-0 top-0 h-[280rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.14),_transparent_62%)]" />
 
-    <view class="relative mx-auto max-w-[680rpx] flex flex-col gap-4">
-      <view class="border border-line/70 rounded-[32rpx] bg-surface px-5 py-5 shadow-[0_20rpx_48rpx_rgba(17,37,62,0.06)]">
+    <view class="relative mx-auto flex flex-col gap-4">
+      <view class="border border-line/70 vt-card bg-surface shadow-[0_20rpx_48rpx_rgba(17,37,62,0.06)]">
         <view class="flex items-start justify-between gap-4">
           <view class="min-w-0 flex-1">
             <text class="block text-lg text-primary font-600">
@@ -99,14 +99,14 @@ function handleBackHome() {
         </view>
       </view>
 
-      <view v-if="watchlistLoading" class="border border-line/70 rounded-[32rpx] bg-surface p-6 text-center shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
+      <view v-if="watchlistLoading" class="border border-line/70 rounded-card bg-surface p-6 text-center shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
         <wd-loading />
         <text class="mt-3 block text-sm text-secondary">
           正在加载自选基金...
         </text>
       </view>
 
-      <view v-else-if="watchlistError" class="border border-line/70 rounded-[32rpx] bg-surface p-6 shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
+      <view v-else-if="watchlistError" class="border border-line/70 rounded-card bg-surface p-6 shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
         <view class="h-[72rpx] w-[72rpx] flex items-center justify-center rounded-[24rpx] bg-surfaceSubtle text-secondary">
           <view class="i-carbon-warning-alt-filled text-[32rpx]" />
         </view>
@@ -123,7 +123,7 @@ function handleBackHome() {
         </view>
       </view>
 
-      <view v-else-if="!watchlistItems.length" class="border border-line/70 rounded-[32rpx] bg-surface p-6 shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
+      <view v-else-if="!watchlistItems.length" class="border border-line/70 rounded-card bg-surface p-6 shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
         <view class="h-[72rpx] w-[72rpx] flex items-center justify-center rounded-[24rpx] bg-brand-muted text-brand">
           <view class="i-carbon-search text-[32rpx]" />
         </view>
@@ -141,7 +141,7 @@ function handleBackHome() {
       </view>
 
       <template v-else>
-        <view class="overflow-hidden border border-line/70 rounded-[32rpx] bg-surface shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
+        <view class="overflow-hidden border border-line/70 rounded-card bg-surface shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
           <view class="grid grid-cols-[minmax(0,1.4fr)_120rpx_110rpx_120rpx] items-center gap-[12rpx] bg-surfaceSubtle px-4 py-3">
             <text class="text-xs text-secondary font-600">
               基金

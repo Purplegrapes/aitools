@@ -174,9 +174,9 @@ function handleToggleWatchlist() {
 </script>
 
 <template>
-  <view class="min-h-screen bg-page px-4 pt-4" :class="showDetail ? 'pb-[220rpx]' : 'pb-8'">
-    <view class="mx-auto max-w-[680rpx] flex flex-col gap-4">
-      <view v-if="loading && !showDetail" class="rounded-4 bg-surface p-6 text-center shadow-sm">
+  <view class="min-h-screen bg-page vt-page-shell" :class="showDetail ? 'pb-[220rpx]' : 'pb-8'">
+    <view class="mx-auto flex flex-col gap-4">
+      <view v-if="loading && !showDetail" class="rounded-card bg-surface p-6 text-center shadow-sm">
         <wd-loading />
         <text class="mt-3 block text-sm text-secondary">
           正在生成基金说明...
@@ -198,7 +198,7 @@ function handleToggleWatchlist() {
           :result="displayResult"
           :valuation="marketType === 'otc' && !valuationError ? (valuationResponse as DiscoveryFundValuation | undefined) : undefined"
         />
-        <view class="p-4 text-center">
+        <view class="py-[24rpx] vt-page-x text-center">
           <text class="text-xs text-secondary leading-6">
             {{ displayResult.disclaimer }}
           </text>

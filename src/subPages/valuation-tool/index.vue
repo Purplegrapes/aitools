@@ -77,7 +77,7 @@ function handleOpenHoldings() {
     <view class="pointer-events-none absolute right-[58rpx] top-[194rpx] h-[16rpx] w-[112rpx] rotate-[44deg] rounded-full bg-[#2A69FF]/75" />
     <view class="pointer-events-none absolute right-[118rpx] top-[118rpx] h-[92rpx] w-[4rpx] rounded-full bg-white/55 shadow-[24rpx_0_0_rgba(255,255,255,0.42),_48rpx_0_0_rgba(255,255,255,0.28)]" />
 
-    <view class="relative mx-auto box-border max-w-[680rpx] w-full pb-[180rpx] pt-[28rpx]">
+    <view class="relative mx-auto box-border vt-page-x pb-[180rpx] pt-[28rpx]">
       <view class="min-h-[288rpx] px-[4rpx] pt-[96rpx]">
         <view class="max-w-[430rpx]">
           <text class="block text-[56rpx] text-primary font-700 leading-[1.08] tracking-[1rpx]">
@@ -99,7 +99,7 @@ function handleOpenHoldings() {
       </view>
 
       <view class="mt-[6rpx] flex flex-col gap-[18rpx]">
-        <view v-if="isLoading" class="border border-line/70 rounded-[36rpx] bg-surface p-6 text-center shadow-[0_20rpx_60rpx_rgba(17,37,62,0.08)]">
+        <view v-if="isLoading" class="border border-line/70 rounded-card bg-surface p-6 text-center shadow-[0_20rpx_60rpx_rgba(17,37,62,0.08)]">
           <wd-loading />
           <text class="mt-3 block text-[22rpx] text-secondary">
             正在准备首页内容...

@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <view class="border border-line/70 rounded-[20rpx] bg-surface px-[24rpx] py-[24rpx]">
+  <view class="border border-line/70 vt-panel bg-surface">
     <view class="h-[64rpx] w-[64rpx] flex items-center justify-center rounded-[20rpx] bg-surfaceSubtle text-secondary">
       <view class="i-carbon-warning-alt-filled text-[30rpx]" />
     </view>
