@@ -30,7 +30,7 @@
         识别说明
       </text>
       <text class="mt-[8rpx] block text-[24rpx] text-primary leading-[36rpx]">
-        如果有基金名称、金额或收益识别不准，你可以逐条修改、删除，或者改成手动录入。
+        当前只会保留识别成功的基金进入确认页。你可以修改金额和收益，或删除不需要导入的记录。
       </text>
     </view>
   </view>

@@ -200,7 +200,7 @@
           "name": "valuation-tool-holdings-upload",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "上传持仓截图",
+            "navigationBarTitleText": "确认持仓信息",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
           }

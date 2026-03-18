@@ -3,7 +3,7 @@ import type { PortfolioFundOption } from './types'
 import AddPositionForm from './components/AddPositionForm.vue'
 import BottomActionBar from './components/BottomActionBar.vue'
 import { usePortfolio } from './composables/usePortfolio'
-import { buildPortfolioPositionFromSnapshot, createHoldingsPath, createHoldingsUploadPath } from './utils'
+import { buildPortfolioPositionFromSnapshot, createHoldingsPath, createHoldingsSyncPath } from './utils'
 
 definePage({
   name: 'valuation-tool-holdings-add',
@@ -73,7 +73,7 @@ function handleSave(resetAfterSave = false) {
 }
 
 function handleOpenScreenshotFlow() {
-  router.push(createHoldingsUploadPath())
+  router.push(createHoldingsSyncPath())
 }
 </script>
 
@@ -137,7 +137,7 @@ function handleOpenScreenshotFlow() {
     </view>
 
     <BottomActionBar
-      secondary-text="上传截图"
+      secondary-text="同步持仓"
       primary-text="保存持仓"
       @primary="handleSave(false)"
       @secondary="handleOpenScreenshotFlow"

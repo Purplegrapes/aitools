@@ -7,8 +7,8 @@ import { usePortfolio } from './composables/usePortfolio'
 import { consumePortfolioRecognitionSession } from './composables/usePortfolioRecognitionSession'
 import {
   buildPortfolioPositionFromSnapshot,
-  createHoldingsAddPath,
   createHoldingsPath,
+  createHoldingsSyncPath,
   getRecognitionDraftStatusMeta,
 } from './utils'
 
@@ -16,7 +16,7 @@ definePage({
   name: 'valuation-tool-holdings-upload',
   layout: 'default',
   style: {
-    navigationBarTitleText: '上传持仓截图',
+    navigationBarTitleText: '确认持仓信息',
     navigationBarBackgroundColor: '#F5F7FA',
     navigationBarTextStyle: 'black',
   },
@@ -34,8 +34,6 @@ const recognitionState = shallowRef<PortfolioRecognitionState>('idle')
 const recognitionError = shallowRef('')
 const selectedImageNames = shallowRef<string[]>([])
 const drafts = shallowRef<PortfolioRecognitionDraft[]>([])
-
-const hasDrafts = computed(() => drafts.value.length > 0)
 
 onShow(() => {
   ensureLoaded()
@@ -109,8 +107,6 @@ async function handleChooseImages() {
 async function runRecognition(fileNames: string[]) {
   recognitionState.value = 'recognizing'
   recognitionError.value = ''
-  matchingDraftId.value = ''
-  matchingKeyword.value = ''
 
   try {
     const response = await recognizePortfolioScreenshots({
@@ -141,7 +137,7 @@ function handleRemoveDraft(id: string) {
 async function handleConfirmImport() {
   const readyDrafts = drafts.value.filter(item => item.status === 'ready')
   if (!readyDrafts.length) {
-    globalToast.error('请先处理识别异常项，再确认导入')
+    globalToast.error('当前没有可导入的持仓记录')
     return
   }
 
@@ -203,7 +199,7 @@ function handleSecondaryAction() {
     return
   }
 
-  router.replace(createHoldingsAddPath())
+  router.replace(createHoldingsSyncPath())
 }
 </script>
 
@@ -244,7 +240,7 @@ function handleSecondaryAction() {
           {{ recognitionState === 'empty' ? '暂未识别到持仓信息' : '截图识别失败' }}
         </text>
         <text class="mt-[10rpx] block text-[24rpx] text-secondary leading-[36rpx]">
-          {{ recognitionError || '建议上传基金持仓列表页截图，或者改为手动录入。当前只会保留识别成功的基金。' }}
+          {{ recognitionError || '建议上传基金持仓列表页截图，或者返回同步持仓页改为手动录入。当前只会保留识别成功的基金。' }}
         </text>
       </view>
 
