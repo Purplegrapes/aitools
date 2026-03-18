@@ -21,9 +21,9 @@ function handleSubmit() {
 </script>
 
 <template>
-  <view class="vt-card bg-surface">
-    <view class="flex items-center gap-[18rpx]">
-      <view class="h-[56rpx] w-[56rpx] flex items-center justify-center text-tertiary">
+  <view class="border border-line/70 rounded-card border-solid bg-surface px-[20rpx] py-[18rpx] shadow-[0_12rpx_28rpx_rgba(17,37,62,0.05)]">
+    <view class="flex items-center gap-[14rpx]">
+      <view class="h-[48rpx] w-[48rpx] flex items-center justify-center text-tertiary">
         <view class="i-carbon-search text-[34rpx]" />
       </view>
       <input
@@ -36,7 +36,7 @@ function handleSubmit() {
         @confirm="handleSubmit"
       >
       <wd-button
-        custom-class="!h-[70rpx] !rounded-[20rpx] !border-none !bg-brand !px-[34rpx] !text-[26rpx] !font-500"
+        custom-class="!h-[64rpx] !rounded-[18rpx] !border-none !bg-brand !px-[28rpx] !text-[24rpx] !font-500"
         size="small"
         type="primary"
         @click="handleSubmit"

@@ -13,7 +13,7 @@ definePage({
   name: 'valuation-tool-home',
   layout: 'default',
   style: {
-    navigationBarTitleText: 'ETF估值工具',
+    navigationBarTitleText: '宝倍估值',
     navigationBarBackgroundColor: '#F5F7FA',
     navigationBarTextStyle: 'black',
   },
@@ -71,25 +71,22 @@ function handleOpenHoldings() {
 
 <template>
   <view class="relative min-h-screen overflow-x-hidden bg-page">
-    <view class="pointer-events-none absolute inset-x-0 top-0 h-[540rpx] bg-[linear-gradient(180deg,_#D8E8FF_0%,_#EAF2FF_52%,_rgba(245,247,250,0)_100%)]" />
-    <view class="pointer-events-none absolute right-[-44rpx] top-[66rpx] h-[228rpx] w-[220rpx] rotate-[8deg] rounded-[46rpx] bg-[linear-gradient(180deg,_rgba(67,191,255,0.3),_rgba(22,120,255,0.08))] shadow-[0_24rpx_50rpx_rgba(38,115,255,0.16)]" />
-    <view class="pointer-events-none absolute right-[30rpx] top-[92rpx] h-[198rpx] w-[152rpx] border border-white/60 rounded-[32rpx] border-solid bg-[linear-gradient(180deg,_rgba(255,255,255,0.84),_rgba(230,240,255,0.42))]" />
-    <view class="pointer-events-none absolute right-[76rpx] top-[130rpx] h-[92rpx] w-[92rpx] border-[10rpx] border-[#63B8FF]/55 rounded-full border-solid" />
-    <view class="pointer-events-none absolute right-[58rpx] top-[194rpx] h-[16rpx] w-[112rpx] rotate-[44deg] rounded-full bg-[#2A69FF]/75" />
-    <view class="pointer-events-none absolute right-[118rpx] top-[118rpx] h-[92rpx] w-[4rpx] rounded-full bg-white/55 shadow-[24rpx_0_0_rgba(255,255,255,0.42),_48rpx_0_0_rgba(255,255,255,0.28)]" />
+    <view class="pointer-events-none absolute inset-x-0 top-0 h-[360rpx] bg-[linear-gradient(180deg,_#E4EEFF_0%,_#EFF5FF_58%,_rgba(245,247,250,0)_100%)]" />
+    <view class="pointer-events-none absolute right-[-30rpx] top-[78rpx] h-[164rpx] w-[164rpx] rounded-full bg-[radial-gradient(circle,_rgba(22,120,255,0.16)_0%,_rgba(22,120,255,0.03)_58%,_rgba(22,120,255,0)_100%)]" />
+    <view class="pointer-events-none absolute left-[-36rpx] top-[126rpx] h-[120rpx] w-[120rpx] rounded-full bg-[radial-gradient(circle,_rgba(24,144,255,0.08)_0%,_rgba(24,144,255,0)_72%)]" />
 
     <view class="relative mx-auto box-border vt-page-x pb-[180rpx] pt-[28rpx]">
-      <view class="min-h-[288rpx] px-[4rpx] pt-[96rpx]">
-        <view class="max-w-[430rpx]">
+      <view class="px-[4rpx] pt-[72rpx]">
+        <view class="max-w-[460rpx]">
           <text class="block text-[56rpx] text-primary font-700 leading-[1.08] tracking-[1rpx]">
-            ETF估值工具
+            宝倍估值
           </text>
-          <text class="mt-[18rpx] block text-[26rpx] text-secondary leading-[40rpx]">
+          <text class="mt-[14rpx] block text-[26rpx] text-secondary leading-[38rpx]">
             一键查估值，快速看懂你的基
           </text>
         </view>
 
-        <view class="mt-[34rpx]">
+        <view class="mt-[24rpx]">
           <ValuationSearchBar
             v-model="searchKeyword"
             placeholder="请输入基金全称或代码"
@@ -99,7 +96,7 @@ function handleOpenHoldings() {
         </view>
       </view>
 
-      <view class="mt-[6rpx] flex flex-col gap-[18rpx]">
+      <view class="mt-[18rpx] flex flex-col gap-[18rpx]">
         <view v-if="isLoading" class="border border-line/70 rounded-card bg-surface p-6 text-center shadow-[0_20rpx_60rpx_rgba(17,37,62,0.08)]">
           <wd-loading />
           <text class="mt-3 block text-[22rpx] text-secondary">
