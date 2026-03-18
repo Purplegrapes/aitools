@@ -6,24 +6,24 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <view class="fixed inset-x-0 bottom-0 z-20 bg-surface/96 vt-page-x pb-[calc(env(safe-area-inset-bottom)+20rpx)] pt-4 shadow-[0_-8rpx_30rpx_rgba(17,37,62,0.06)] backdrop-blur-[20rpx]">
+  <view class="vt-action-bar">
     <view class="flex items-center gap-[16rpx]">
       <view
-        class="h-[96rpx] flex flex-1 flex-col items-center justify-center gap-[6rpx] rounded-[24rpx] bg-surfaceSubtle text-primary"
+        class="min-w-0 vt-action-secondary flex flex-1"
         @click="emit('openWatchlist')"
       >
-        <view class="i-carbon-star text-[26rpx] text-brand" />
-        <text class="text-xs font-600">
+        <view class="i-carbon-star text-[28rpx] text-brand" />
+        <text>
           自选
         </text>
       </view>
 
       <view
-        class="h-[96rpx] flex flex-1 flex-col items-center justify-center gap-[6rpx] rounded-[24rpx] bg-brand-muted text-brand"
+        class="min-w-0 vt-action-primary flex flex-1"
         @click="emit('openHoldings')"
       >
-        <view class="i-carbon-wallet text-[26rpx]" />
-        <text class="text-xs font-600">
+        <view class="i-carbon-wallet text-[28rpx]" />
+        <text>
           持有
         </text>
       </view>
