@@ -58,6 +58,8 @@ export default defineConfig({
     'vt-action-primary': 'h-[88rpx] flex items-center justify-center gap-[12rpx] rounded-[20rpx] bg-brand px-[24rpx] text-[26rpx] text-inverse font-600 shadow-[0_16rpx_34rpx_rgba(22,120,255,0.24)]',
     'vt-action-secondary': 'h-[88rpx] flex items-center justify-center gap-[10rpx] rounded-[20rpx] bg-surfaceSubtle px-[22rpx] text-[24rpx] text-primary font-600',
     'vt-action-secondary-weak': 'h-[88rpx] flex flex-col items-center justify-center gap-[6rpx] rounded-[20rpx] bg-surfaceSubtle/78 px-[12rpx] text-[20rpx] text-secondary font-500 leading-[1.2]',
+    'vt-risk-note': 'px-[8rpx] py-[8rpx] text-center',
+    'vt-risk-note-text': 'block text-[22rpx] text-secondary leading-[36rpx] text-center',
     'vt-page-shell': 'px-[24rpx] pt-[24rpx]',
     'vt-page-x': 'px-[30rpx]',
     'vt-card': 'rounded-card px-[24rpx] py-[24rpx]',

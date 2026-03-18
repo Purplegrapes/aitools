@@ -3,6 +3,7 @@ import type { HotSearchFund, MarketSentiment } from './types'
 import { getHotSearchFunds, getMarketSentiment } from './api/valuationTool'
 import HomeActionBar from './components/HomeActionBar.vue'
 import HotSearchList from './components/HotSearchList.vue'
+import RiskNoteCard from './components/RiskNoteCard.vue'
 import SentimentCard from './components/SentimentCard.vue'
 import ValuationSearchBar from './components/ValuationSearchBar.vue'
 import { fallbackHotSearches, fallbackMarketSentiment } from './mock'
@@ -111,14 +112,7 @@ function handleOpenHoldings() {
           <HotSearchList :items="hotSearches" @select="handleSelectHotSearch" />
         </template>
 
-        <view>
-          <view class="flex items-center gap-[12rpx]">
-            <view class="i-carbon-information text-[24rpx] text-secondary" />
-            <text class="min-w-0 flex-1 text-[22rpx] text-secondary leading-[36rpx]">
-              以上内容用于帮助你快速理解基金，不构成投资建议。短期涨跌只是一种参考，先判断它适不适合自己更重要。
-            </text>
-          </view>
-        </view>
+        <RiskNoteCard text="以上内容用于帮助你快速理解基金，不构成投资建议。短期涨跌只是一种参考，先判断它适不适合自己更重要。" />
       </view>
     </view>
 

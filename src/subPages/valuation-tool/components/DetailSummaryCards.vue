@@ -165,7 +165,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
       </view>
     </view>
 
-    <view class="rounded-card bg-surface p-4 shadow-sm">
+    <view class="rounded-card bg-surface p-4">
       <view class="flex items-start justify-between gap-4">
         <view>
           <text class="block text-sm text-secondary">
@@ -199,7 +199,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
       </view>
     </view>
 
-    <view class="vt-card bg-surface shadow-sm">
+    <view class="vt-card bg-surface">
       <text class="block text-lg text-primary font-600 leading-tight">
         快速看懂这只基金
       </text>
