@@ -11,8 +11,10 @@ const emit = defineEmits<{
 }>()
 
 function handleInput(event: Event) {
-  const target = event.target as HTMLInputElement | null
-  emit('update:modelValue', target?.value || '')
+  const nextValue = (event as InputEvent).detail?.value
+    ?? (event.target as HTMLInputElement | null)?.value
+    ?? ''
+  emit('update:modelValue', nextValue)
 }
 
 function handleSubmit() {
@@ -36,7 +38,6 @@ function handleSubmit() {
         @confirm="handleSubmit"
       >
       <wd-button
-        custom-class="!h-[64rpx] !rounded-[18rpx] !border-none !bg-brand !px-[28rpx] !text-[24rpx] !font-500"
         size="small"
         type="primary"
         @click="handleSubmit"

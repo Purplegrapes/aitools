@@ -62,13 +62,15 @@ const emit = defineEmits<{
     </view>
 
     <view v-if="!hideActions" class="mt-[4rpx] flex flex-col gap-[14rpx]">
-      <wd-button type="primary" custom-class="!h-[76rpx] !rounded-[18rpx] !text-[26rpx]" @click="emit('save')">
+      <wd-button block size="large" type="primary" @click="emit('save')">
         {{ saveText || '保存持仓' }}
       </wd-button>
       <wd-button
         v-if="showContinue"
-        plain
-        custom-class="!h-[76rpx] !rounded-[18rpx] !border-line !text-[26rpx] !text-primary"
+
+        plain block
+        size="large"
+        type="info"
         @click="emit('saveAndContinue')"
       >
         保存并继续添加

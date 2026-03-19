@@ -28,7 +28,6 @@ const emit = defineEmits<{
 
     <view class="justify-self-end">
       <wd-button
-        custom-class="!h-[56rpx] !rounded-[16rpx] !px-[20rpx] !text-[22rpx]"
         :plain="watchlisted"
         size="small"
         :type="watchlisted ? 'info' : 'primary'"

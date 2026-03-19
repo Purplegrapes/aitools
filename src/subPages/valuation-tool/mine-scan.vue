@@ -27,7 +27,7 @@ function handleBackToDetail() {
 
 <template>
   <view class="min-h-screen bg-page vt-page-shell pb-8">
-    <view class="mx-auto max-w-[680rpx] rounded-card bg-surface p-6 shadow-sm">
+    <view class="mx-auto max-w-[680rpx] vt-top-card p-6">
       <view class="h-[96rpx] w-[96rpx] flex items-center justify-center rounded-full bg-brand-muted text-brand">
         <view class="i-carbon-warning-alt-filled text-[44rpx]" />
       </view>
@@ -38,7 +38,7 @@ function handleBackToDetail() {
         当前基金代码：{{ fundCode || '未提供' }}。后续扫雷能力会基于这个基金继续展开，这一页先作为稳定入口保留。
       </text>
       <view class="mt-5">
-        <wd-button type="primary" size="small" @click="handleBackToDetail">
+        <wd-button block size="large" type="primary" @click="handleBackToDetail">
           返回基金详情
         </wd-button>
       </view>

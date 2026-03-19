@@ -72,7 +72,7 @@ async function handleOpenScreenshotEntry() {
 </script>
 
 <template>
-  <view class="min-h-screen overflow-x-hidden bg-surfaceSubtle pb-[48rpx] pt-[24rpx]">
+  <view class="min-h-screen overflow-x-hidden bg-page pb-[48rpx] pt-[24rpx]">
     <view
       class="pointer-events-none absolute inset-x-0 top-0 h-[320rpx]"
       style="background: linear-gradient(180deg, rgba(232,241,255,0.96), rgba(248,250,253,0.72) 58%, transparent);"
@@ -85,7 +85,7 @@ async function handleOpenScreenshotEntry() {
     <view class="relative mx-auto max-w-[702rpx] px-[24rpx]">
       <view class="flex flex-col gap-[18rpx]">
         <view
-          class="border border-line/65 rounded-[20rpx] bg-surface/96 px-[24rpx] py-[24rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)] backdrop-blur-[12rpx]"
+          class="vt-top-card px-[24rpx] py-[24rpx]"
           @click="handleOpenManualEntry"
         >
           <view class="h-[72rpx] w-[72rpx] flex items-center justify-center rounded-[24rpx] bg-brand-muted text-brand">
@@ -100,7 +100,7 @@ async function handleOpenScreenshotEntry() {
         </view>
 
         <view
-          class="border border-line/65 rounded-[20rpx] bg-surface/96 px-[24rpx] py-[24rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)] backdrop-blur-[12rpx]"
+          class="vt-top-card px-[24rpx] py-[24rpx]"
           @click="handleOpenScreenshotEntry"
         >
           <view class="h-[72rpx] w-[72rpx] flex items-center justify-center rounded-[24rpx] bg-brand-muted text-brand">

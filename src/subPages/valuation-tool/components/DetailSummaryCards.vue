@@ -225,29 +225,31 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
 
 <template>
   <view class="flex flex-col gap-4">
-    <view class="">
-      <text class="block text-lg text-primary font-600">
-        {{ result.name }}
-      </text>
-      <text class="mt-1 block text-sm text-secondary">
-        {{ result.code }}
-      </text>
+    <view class="px-[4rpx] pt-[68rpx]">
+      <view class="max-w-[620rpx]">
+        <text class="block text-[52rpx] text-primary font-700 leading-[1.08] tracking-[1rpx]">
+          {{ result.name }}
+        </text>
+        <text class="mt-[12rpx] block text-[24rpx] text-secondary leading-[36rpx]">
+          {{ result.code }}
+        </text>
 
-      <view class="mt-3 flex flex-wrap gap-2">
-        <wd-tag
-          v-for="tag in result.tags || []"
-          :key="tag"
-          bg-color="rgba(22,120,255,0.12)"
-          custom-class="!rounded-full !border-none !px-2"
-        >
-          <text class="text-xs text-brand">
-            {{ tag }}
-          </text>
-        </wd-tag>
+        <view v-if="result.tags?.length" class="mt-[20rpx] flex flex-wrap gap-[12rpx]">
+          <wd-tag
+            v-for="tag in result.tags || []"
+            :key="tag"
+            round
+            type="primary"
+          >
+            <text class="text-[22rpx] leading-[32rpx]">
+              {{ tag }}
+            </text>
+          </wd-tag>
+        </view>
       </view>
     </view>
 
-    <view class="rounded-card bg-surface p-4">
+    <view class="vt-top-card p-4">
       <view class="flex items-start justify-between gap-4">
         <view>
           <text class="block text-sm text-secondary">

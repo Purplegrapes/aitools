@@ -176,7 +176,7 @@ function stringifyNullableField(value: unknown) {
         @submit="handleSubmit"
       />
 
-      <view v-if="isIdle" class="rounded-card bg-surface p-6 shadow-sm">
+      <view v-if="isIdle" class="vt-top-card p-6">
         <text class="block text-base text-primary font-600">
           搜索基金
         </text>
@@ -185,14 +185,14 @@ function stringifyNullableField(value: unknown) {
         </text>
       </view>
 
-      <view v-else-if="loading" class="rounded-card bg-surface p-6 text-center shadow-sm">
+      <view v-else-if="loading" class="vt-top-card p-6 text-center">
         <wd-loading />
         <text class="mt-3 block text-sm text-secondary">
           正在搜索相关基金...
         </text>
       </view>
 
-      <view v-else-if="isEmpty" class="rounded-card bg-surface p-6 shadow-sm">
+      <view v-else-if="isEmpty" class="vt-top-card p-6">
         <text class="block text-base text-primary font-600">
           没找到相关基金
         </text>
@@ -201,7 +201,7 @@ function stringifyNullableField(value: unknown) {
         </text>
       </view>
 
-      <view v-else-if="isError" class="rounded-card bg-surface p-6 shadow-sm">
+      <view v-else-if="isError" class="vt-top-card p-6">
         <text class="block text-base text-primary font-600">
           搜索暂时有点忙
         </text>

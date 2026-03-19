@@ -56,7 +56,7 @@ function handleBackHome() {
     <view class="pointer-events-none absolute inset-x-0 top-0 h-[280rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.14),_transparent_62%)]" />
 
     <view class="relative mx-auto flex flex-col gap-4">
-      <view class="border border-line/70 vt-card bg-surface shadow-[0_20rpx_48rpx_rgba(17,37,62,0.06)]">
+      <view class="vt-top-card vt-card">
         <view class="flex items-start justify-between gap-4">
           <view class="min-w-0 flex-1">
             <text class="block text-lg text-primary font-600">
@@ -117,7 +117,7 @@ function handleBackHome() {
           你可以稍后重试，或者先回首页继续搜索基金。
         </text>
         <view class="mt-4">
-          <wd-button size="small" type="primary" @click="refreshWatchlist(true)">
+          <wd-button block size="large" type="primary" @click="refreshWatchlist(true)">
             重新加载
           </wd-button>
         </view>
@@ -134,7 +134,7 @@ function handleBackHome() {
           去基金详情页点一下“加入自选”，之后就能在这里快速比较当日表现。
         </text>
         <view class="mt-4">
-          <wd-button size="small" type="primary" @click="handleBackHome">
+          <wd-button block size="large" type="primary" @click="handleBackHome">
             去找基金
           </wd-button>
         </view>

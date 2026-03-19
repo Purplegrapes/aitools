@@ -198,8 +198,21 @@ function handleToggleWatchlist() {
 </script>
 
 <template>
-  <view class="min-h-screen bg-page vt-page-shell" :class="showDetail ? 'pb-[160rpx]' : 'pb-8'">
-    <view class="mx-auto flex flex-col gap-4">
+  <view class="relative min-h-screen overflow-x-hidden bg-page vt-page-shell" :class="showDetail ? 'pb-[160rpx]' : 'pb-8'">
+    <view
+      v-if="showDetail"
+      class="pointer-events-none absolute inset-x-0 top-0 h-[380rpx] bg-[linear-gradient(180deg,_#E7F0FF_0%,_#F0F5FF_54%,_rgba(245,247,250,0)_100%)]"
+    />
+    <view
+      v-if="showDetail"
+      class="pointer-events-none absolute right-[-36rpx] top-[74rpx] h-[180rpx] w-[180rpx] rounded-full bg-[radial-gradient(circle,_rgba(22,120,255,0.15)_0%,_rgba(22,120,255,0.04)_56%,_rgba(22,120,255,0)_100%)]"
+    />
+    <view
+      v-if="showDetail"
+      class="pointer-events-none absolute left-[-42rpx] top-[132rpx] h-[132rpx] w-[132rpx] rounded-full bg-[radial-gradient(circle,_rgba(24,144,255,0.09)_0%,_rgba(24,144,255,0)_72%)]"
+    />
+
+    <view class="relative mx-auto flex flex-col gap-4">
       <view v-if="loading && !showDetail" class="rounded-card bg-surface p-6 text-center">
         <wd-loading />
         <text class="mt-3 block text-sm text-secondary">
@@ -217,6 +230,7 @@ function handleToggleWatchlist() {
 
       <template v-else>
         <DetailSummaryCards
+          class="pt-[18rpx]"
           :exchange-quote="realtimeDataError ? undefined : exchangeQuote"
           :market-type="marketType"
           :result="result"

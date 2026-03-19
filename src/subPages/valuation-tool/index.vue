@@ -84,7 +84,7 @@ function handleOpenSearch() {
         </view>
 
         <view
-          class="mt-[24rpx] border border-line/70 rounded-card bg-surface px-[22rpx] py-[20rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.06)]"
+          class="mt-[24rpx] vt-top-card px-[22rpx] py-[20rpx]"
           hover-class="opacity-92"
           @click="handleOpenSearch"
         >

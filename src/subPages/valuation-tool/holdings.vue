@@ -55,7 +55,7 @@ function handleOpenFundDetail(code: string) {
 </script>
 
 <template>
-  <view class="min-h-screen bg-surfaceSubtle px-[24rpx] pb-[120rpx] pt-[24rpx]">
+  <view class="min-h-screen bg-page px-[24rpx] pb-[120rpx] pt-[24rpx]">
     <view class="pointer-events-none absolute inset-x-0 top-0 h-[360rpx] bg-[linear-gradient(180deg,_rgba(232,241,255,0.96),_rgba(248,250,253,0.72)_58%,_transparent)]" />
     <view class="pointer-events-none absolute inset-x-0 top-[120rpx] h-[220rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.08),_transparent_68%)]" />
 

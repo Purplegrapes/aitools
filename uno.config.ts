@@ -62,6 +62,7 @@ export default defineConfig({
     'vt-risk-note-text': 'block text-[22rpx] text-secondary leading-[36rpx] text-center',
     'vt-page-shell': 'px-[24rpx] pt-[24rpx]',
     'vt-page-x': 'px-[30rpx]',
+    'vt-top-card': 'border border-line/70 rounded-[20rpx] bg-surface shadow-[0_20rpx_48rpx_rgba(17,37,62,0.06)]',
     'vt-card': 'rounded-card px-[24rpx] py-[24rpx]',
     'vt-card-tight': 'rounded-card px-[24rpx] py-[20rpx]',
     'vt-panel': 'rounded-panel px-[24rpx] py-[24rpx]',

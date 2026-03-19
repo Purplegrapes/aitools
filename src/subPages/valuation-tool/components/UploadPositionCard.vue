@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <view class="border border-line/65 rounded-[20rpx] bg-surface/96 px-[24rpx] py-[24rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)] backdrop-blur-[12rpx]">
+  <view class="vt-top-card px-[24rpx] py-[24rpx]">
     <view class="h-[72rpx] w-[72rpx] flex items-center justify-center rounded-[24rpx] bg-brand-muted text-brand">
       <view class="i-carbon-image-search text-[30rpx]" />
     </view>

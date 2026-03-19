@@ -16,7 +16,7 @@ const emit = defineEmits<{
       添加几只基金，看看当前收益和今天的变化。
     </text>
     <view class="mt-[24rpx]">
-      <wd-button type="primary" custom-class="!h-[76rpx] !rounded-[18rpx] !px-[28rpx] !text-[26rpx]" @click="emit('sync')">
+      <wd-button block size="large" type="primary" @click="emit('sync')">
         同步持仓
       </wd-button>
     </view>

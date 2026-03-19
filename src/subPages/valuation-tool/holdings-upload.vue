@@ -203,7 +203,7 @@ function handleSecondaryAction() {
 </script>
 
 <template>
-  <view class="min-h-screen overflow-x-hidden bg-surfaceSubtle pb-[220rpx] pt-[24rpx]">
+  <view class="min-h-screen overflow-x-hidden bg-page pb-[220rpx] pt-[24rpx]">
     <view
       class="pointer-events-none absolute inset-x-0 top-0 h-[320rpx]"
       style="background: linear-gradient(180deg, rgba(232,241,255,0.96), rgba(248,250,253,0.74) 58%, transparent);"
@@ -220,7 +220,7 @@ function handleSecondaryAction() {
 
       <view
         v-else-if="recognitionState === 'recognizing'"
-        class="border border-line/65 rounded-[20rpx] bg-surface/96 px-[24rpx] py-[36rpx] text-center shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)]"
+        class="vt-top-card px-[24rpx] py-[36rpx] text-center"
       >
         <wd-loading />
         <text class="mt-[18rpx] block text-[28rpx] text-primary font-600">
@@ -233,7 +233,7 @@ function handleSecondaryAction() {
 
       <view
         v-else-if="recognitionState === 'empty' || recognitionState === 'error'"
-        class="border border-line/65 rounded-[20rpx] bg-surface/96 px-[24rpx] py-[24rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)]"
+        class="vt-top-card px-[24rpx] py-[24rpx]"
       >
         <text class="block text-[30rpx] text-primary font-600">
           {{ recognitionState === 'empty' ? '暂未识别到持仓信息' : '截图识别失败' }}
@@ -244,7 +244,7 @@ function handleSecondaryAction() {
       </view>
 
       <view v-else class="flex flex-col gap-[18rpx]">
-        <view class="rounded-[20rpx] bg-surface px-[24rpx] py-[22rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)]">
+        <view class="vt-top-card px-[24rpx] py-[22rpx]">
           <text class="block text-[30rpx] text-primary font-600">
             确认持仓信息
           </text>

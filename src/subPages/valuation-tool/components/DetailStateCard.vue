@@ -11,7 +11,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <view class="rounded-card bg-surface p-5 shadow-sm">
+  <view class="vt-top-card p-5">
     <view class="h-12 w-12 flex items-center justify-center rounded-full bg-brand-muted text-brand">
       <view class="i-carbon-information text-xl" />
     </view>
@@ -22,7 +22,7 @@ const emit = defineEmits<{
       {{ description }}
     </text>
     <view class="mt-5">
-      <wd-button type="primary" size="small" @click="emit('action')">
+      <wd-button block size="large" type="primary" @click="emit('action')">
         {{ actionText }}
       </wd-button>
     </view>

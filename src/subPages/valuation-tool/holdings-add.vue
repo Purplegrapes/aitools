@@ -78,7 +78,7 @@ function handleOpenScreenshotFlow() {
 </script>
 
 <template>
-  <view class="relative min-h-screen overflow-hidden bg-surfaceSubtle pb-[220rpx] pt-[24rpx]">
+  <view class="relative min-h-screen overflow-hidden bg-page pb-[220rpx] pt-[24rpx]">
     <view
       class="pointer-events-none absolute inset-x-0 top-0 h-[320rpx]"
       style="background: linear-gradient(180deg, rgba(232,241,255,0.96), rgba(248,250,253,0.72) 58%, transparent);"
@@ -89,7 +89,7 @@ function handleOpenScreenshotFlow() {
     />
 
     <view class="relative mx-auto box-border max-w-[750rpx] w-full px-[24rpx]">
-      <view class="border border-line/65 rounded-[20rpx] bg-surface/96 px-[24rpx] py-[24rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)] backdrop-blur-[12rpx]">
+      <view class="vt-top-card px-[24rpx] py-[24rpx]">
         <view class="mb-[20rpx] flex items-start justify-between gap-[16rpx]">
           <view>
             <text class="block text-[30rpx] text-primary font-600">

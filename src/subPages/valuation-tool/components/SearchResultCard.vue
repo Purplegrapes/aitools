@@ -21,8 +21,8 @@ const emit = defineEmits<{
           {{ item.code }}
         </text>
       </view>
-      <wd-tag bg-color="rgba(22,120,255,0.12)" custom-class="!rounded-full !border-none !px-2">
-        <text class="text-xs text-brand">
+      <wd-tag round type="primary">
+        <text class="text-xs">
           {{ item.todayTag }}
         </text>
       </wd-tag>
@@ -32,10 +32,10 @@ const emit = defineEmits<{
       <wd-tag
         v-for="tag in item.tags"
         :key="tag"
-        bg-color="rgba(29,33,41,0.06)"
-        custom-class="!rounded-full !border-none !px-2"
+        round
+        type="default"
       >
-        <text class="text-xs text-regular">
+        <text class="text-xs">
           {{ tag }}
         </text>
       </wd-tag>

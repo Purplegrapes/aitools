@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <view class="border border-line/70 rounded-[20rpx] bg-surface px-[24rpx] py-[24rpx] shadow-[0_20rpx_48rpx_rgba(17,37,62,0.06)]">
+  <view class="vt-top-card px-[24rpx] py-[24rpx]">
     <view class="flex items-end justify-between gap-[16rpx]">
       <view class="min-w-0 flex-1">
         <text class="block text-[22rpx] text-secondary">
