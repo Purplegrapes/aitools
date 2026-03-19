@@ -25,6 +25,8 @@ definePage({
 
 const route = useRoute()
 const globalToast = useGlobalToast()
+const YUEBAO_COMPARISON_CODE = '000198_OF'
+const TEN_YEAR_TREASURY_CODE = '_10nqcxgz'
 
 const TIME_RANGE_OPTIONS: Array<{ value: TimeRange, label: string, days: number }> = [
   { value: '1w', label: '近一周', days: 7 },
@@ -218,9 +220,10 @@ function buildFixedRateHistory(
 
 const dividendHistory = computed(() => {
   const data = factorHistoryData.value as ApiFactorHistoryResponse
-  if (data?.data?.[0]?.factors?.length) {
+  const currentAssetHistory = data?.data?.find(item => item.code === assetCode.value)
+  if (currentAssetHistory?.factors?.length) {
     return fillDividendHistorySparse(
-      data.data[0].factors,
+      currentAssetHistory.factors,
       factorParams.value?.start_date,
       factorParams.value?.end_date,
     )
@@ -236,20 +239,37 @@ const dividendHistory = computed(() => {
 })
 
 const yuEBaoHistory = computed<YuEBaoPoint[]>(() => {
-  if (dividendHistory.value.length === 0)
+  const data = factorHistoryData.value as ApiFactorHistoryResponse
+  const yuEBaoFactorHistory = data?.data?.find(item => item.code === YUEBAO_COMPARISON_CODE)
+  if (!yuEBaoFactorHistory?.factors?.length)
     return []
 
-  const baseRate = 0.02
-
-  return dividendHistory.value.map((item: DividendRatePoint) => {
-    const hash = item.date.split('-').join('').slice(-6)
-    const hashNum = Number.parseInt(hash) || 0
-    const fluctuation = ((hashNum % 1000) / 1000 - 0.5) * 0.001
-    const rate = Math.max(0.015, Math.min(0.025, baseRate + fluctuation))
-
+  return fillDividendHistorySparse(
+    yuEBaoFactorHistory.factors,
+    factorParams.value?.start_date,
+    factorParams.value?.end_date,
+  ).filter(item => item.dividend_rate != null).map((item) => {
     return {
       date: item.date,
-      rate: Number.parseFloat(rate.toFixed(6)),
+      rate: Number(item.dividend_rate),
+    }
+  })
+})
+
+const treasuryYieldHistory = computed<YuEBaoPoint[]>(() => {
+  const data = factorHistoryData.value as ApiFactorHistoryResponse
+  const treasuryFactorHistory = data?.data?.find(item => item.code === TEN_YEAR_TREASURY_CODE)
+  if (!treasuryFactorHistory?.factors?.length)
+    return []
+
+  return fillDividendHistorySparse(
+    treasuryFactorHistory.factors,
+    factorParams.value?.start_date,
+    factorParams.value?.end_date,
+  ).filter(item => item.dividend_rate != null).map((item) => {
+    return {
+      date: item.date,
+      rate: Number(item.dividend_rate),
     }
   })
 })
@@ -275,6 +295,16 @@ const yuEBaoChartData = computed(() => {
   })
 })
 
+const treasuryYieldChartData = computed(() => {
+  return treasuryYieldHistory.value.map((item) => {
+    const rate = Number.parseFloat((item.rate * 100).toFixed(2))
+    return {
+      name: item.date,
+      value: [item.date, rate],
+    }
+  })
+})
+
 const latestLegendDate = computed(() => chartData.value[chartData.value.length - 1]?.name || '--')
 const latestDividendValue = computed(() => {
   const rate = chartData.value[chartData.value.length - 1]?.dividend_rate
@@ -282,6 +312,10 @@ const latestDividendValue = computed(() => {
 })
 const latestYuEBaoValue = computed(() => {
   const raw = yuEBaoChartData.value[yuEBaoChartData.value.length - 1]?.value?.[1]
+  return typeof raw === 'number' ? `${raw.toFixed(2)}%` : '--'
+})
+const latestTreasuryYieldValue = computed(() => {
+  const raw = treasuryYieldChartData.value[treasuryYieldChartData.value.length - 1]?.value?.[1]
   return typeof raw === 'number' ? `${raw.toFixed(2)}%` : '--'
 })
 
@@ -370,6 +404,14 @@ const chartOption = computed<EChartsOption>(() => ({
       data: yuEBaoChartData.value,
       lineStyle: { width: 2, color: '#ff7a1a' },
     },
+    {
+      name: '10年期国债收益率',
+      type: 'line',
+      showSymbol: false,
+      smooth: true,
+      data: treasuryYieldChartData.value,
+      lineStyle: { width: 2, color: '#16a34a' },
+    },
   ],
 }))
 
@@ -380,7 +422,7 @@ function buildFactorParams(code: string, days: number) {
   return {
     start_date: start.toISOString().split('T')[0],
     end_date: end,
-    codes: code,
+    codes: `${code},${YUEBAO_COMPARISON_CODE},${TEN_YEAR_TREASURY_CODE}`,
     factors: 'dividend_rate',
   }
 }
@@ -499,8 +541,8 @@ onMounted(async () => {
           <text class="text-sm text-tertiary">
             {{ latestLegendDate }}
           </text>
-          <view class="mt-2 flex items-center justify-between gap-3">
-            <view class="flex flex-1 items-center gap-1.5">
+          <view class="mt-2 flex flex-col gap-2">
+            <view class="flex items-center gap-1.5">
               <view class="h-0.75 w-4 rounded-full bg-blue" />
               <text class="text-xs text-secondary">
                 食息率
@@ -509,13 +551,22 @@ onMounted(async () => {
                 {{ latestDividendValue }}
               </text>
             </view>
-            <view class="flex flex-1 items-center justify-end gap-1.5">
+            <view class="flex items-center gap-1.5">
               <view class="h-0.75 w-4 rounded-full bg-#ff7a1a" />
               <text class="shrink-0 whitespace-nowrap text-xs text-secondary">
                 余额宝7日年化
               </text>
               <text class="text-xs text-primary">
                 {{ latestYuEBaoValue }}
+              </text>
+            </view>
+            <view class="flex items-center gap-1.5">
+              <view class="h-0.75 w-4 rounded-full bg-green" />
+              <text class="shrink-0 whitespace-nowrap text-xs text-secondary">
+                10年期国债收益率
+              </text>
+              <text class="text-xs text-primary">
+                {{ latestTreasuryYieldValue }}
               </text>
             </view>
           </view>
