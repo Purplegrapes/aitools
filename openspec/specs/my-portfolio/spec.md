@@ -1,27 +1,46 @@
 ## ADDED Requirements
 
 ### Requirement: My Portfolio SHALL Provide Guided Empty State
-系统 SHALL 在用户尚未录入任何持仓时展示“我的持仓”空状态页，并明确引导用户通过手动添加或上传持仓建立第一条持仓记录。
+系统 SHALL 在用户尚未录入任何持仓时展示“我的持仓”空状态页，并明确引导用户通过统一的“同步持仓”入口建立第一条持仓记录。
 
 #### Scenario: User opens portfolio without holdings
 - **WHEN** 用户进入“我的持仓”且当前没有任何持仓记录
 - **THEN** 系统 SHALL 展示页面标题、空状态主文案、副文案和至少一个明确的建仓入口
-- **AND** 页面 SHALL 提供“手动添加”按钮
-- **AND** 页面 MAY 提供“上传持仓”按钮或等价预留入口
+- **AND** 页面 SHALL 提供“同步持仓”按钮
+- **AND** 页面 SHALL 不再同时展示多个新增持仓入口作为主要操作
 
 ### Requirement: My Portfolio SHALL Support Lightweight Position Entry
-系统 SHALL 提供轻量的添加持仓页，允许用户通过搜索基金、填写持有份额和成本净值快速录入一条持仓。
+系统 SHALL 提供统一的“同步持仓”入口，并允许用户在同一产品路径下选择手动录入或上传持仓截图自动识别两种方式完成持仓新增。
+
+#### Scenario: User opens my-portfolio entry
+- **WHEN** 用户进入“我的持仓”页面
+- **THEN** 页面 SHALL 提供单一的“同步持仓”入口
+- **AND** 页面 SHALL 不再同时展示多个新增持仓入口作为主要操作
+
+#### Scenario: User opens sync-method page
+- **WHEN** 用户点击“同步持仓”
+- **THEN** 系统 SHALL 进入独立的方式选择页
+- **AND** 页面 SHALL 提供“手动录入”和“上传截图”两种同步方式
 
 #### Scenario: User adds a holding manually
-- **WHEN** 用户进入添加持仓页
+- **WHEN** 用户选择手动录入方式
 - **THEN** 页面 SHALL 提供基金名称或代码搜索输入
-- **AND** 页面 SHALL 提供持有份额和成本净值两个必填输入项
-- **AND** 页面 SHALL 提供保存操作
+- **AND** 页面 SHALL 提供“持有金额”和“持有收益”两个必填输入项
+- **AND** 页面 SHALL 基于当前净值自动换算底层持仓数据并保存
 
 #### Scenario: User searches a fund while entering position
 - **WHEN** 用户在基金输入框中输入基金名称或代码
 - **THEN** 系统 SHALL 展示搜索联想结果或等价的候选基金列表
 - **AND** 用户选择结果后 SHALL 回填对应基金信息
+
+### Requirement: My Portfolio SHALL Support Direct Screenshot Selection
+系统 SHALL 在用户选择“上传截图”方式后直接唤起系统图片选择能力，并在识别完成后进入确认页。
+
+#### Scenario: User chooses screenshot sync
+- **WHEN** 用户在同步方式页点击“上传截图”
+- **THEN** 系统 SHALL 直接唤起图片选择或拍照入口
+- **AND** 系统 SHALL 在识别完成后进入识别结果确认页
+- **AND** 系统 SHALL 不要求用户先进入一个空的上传页再选图
 
 ### Requirement: My Portfolio SHALL Summarize Portfolio Performance
 系统 SHALL 提供持仓总览页，并在页面首屏展示用户组合的累计收益、累计收益率、今日盈亏（盘中参考）、当前持仓金额和持仓基金数。
@@ -73,13 +92,37 @@
 - **WHEN** 用户在编辑页或编辑弹层中选择删除持仓
 - **THEN** 系统 SHALL 将删除操作以危险动作样式与常规保存操作区分开
 
-### Requirement: My Portfolio SHALL Reserve Upload Flow
-系统 SHALL 提供上传持仓入口页或入口卡，说明支持的文件类型和导入价值；若首版未实现完整上传能力，页面 SHALL 以预留态稳定展示。
+### Requirement: My Portfolio SHALL Confirm Only Successfully Recognized Holdings
+系统 SHALL 在截图识别完成后，仅将识别成功且可直接导入的基金展示在确认页中。
 
-#### Scenario: User opens upload page
-- **WHEN** 用户点击“上传持仓”
-- **THEN** 页面 SHALL 展示 Excel / CSV 支持说明
-- **AND** 页面 SHALL 展示文件选择入口或预留态说明
+#### Scenario: Recognition returns mixed results
+- **WHEN** 系统返回一批截图识别结果，且其中仅部分基金识别成功
+- **THEN** 前端 SHALL 过滤掉识别失败、待匹配或待确认的结果
+- **AND** 确认页 SHALL 只展示识别成功的基金
+
+#### Scenario: Recognition returns no successful holdings
+- **WHEN** 系统未识别出任何可导入的持仓记录
+- **THEN** 页面 SHALL 进入空结果或失败状态
+- **AND** 页面 SHALL 提供“重新上传”和“转手动录入”的下一步入口
+
+### Requirement: My Portfolio SHALL Present Confirmation As A Simple Table
+系统 SHALL 将截图识别确认页设计为简单直观的表格式清单，而不是多张卡片堆叠。
+
+#### Scenario: User reviews recognized holdings
+- **WHEN** 用户进入截图识别确认页
+- **THEN** 页面 SHALL 以表格式清单展示识别成功的基金
+- **AND** 每条记录 SHALL 至少包含基金、持有金额、持有收益和操作
+- **AND** 基金名称 SHALL 只读展示
+- **AND** 用户 SHALL 能编辑持有金额和持有收益
+- **AND** 用户 SHALL 能通过删除操作移除某条记录
+
+### Requirement: My Portfolio SHALL Normalize Manual And OCR Entry To A Shared Save Model
+系统 SHALL 将手动录入和截图识别导入统一到相同的最终持仓入库口径，以保证后续持仓展示、收益计算和编辑逻辑复用。
+
+#### Scenario: User confirms OCR import
+- **WHEN** 用户确认截图识别结果并执行导入
+- **THEN** 系统 SHALL 将确认后的识别结果转换为与手动录入一致的最终持仓保存模型
+- **AND** 导入结果 SHALL 与手动录入新增的持仓在后续展示与编辑上保持一致
 
 ### Requirement: My Portfolio SHALL Provide Loading and Data Unavailable States
 系统 SHALL 为持仓模块提供与正式页面结构对应的骨架屏，并在估值暂不可用时展示局部缺失态，而不是让用户误以为整页异常。

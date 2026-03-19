@@ -7,7 +7,7 @@
     "navBgColor": "#FFF",
     "navTxtStyle": "black",
     "tabBgColor": "#ffffff",
-    "tabBorderStyle": "black",
+    "tabBorderStyle": "#fff",
     "tabColor": "#bfbfbf",
     "tabSelectedColor": "#0165FF"
   },

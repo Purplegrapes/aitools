@@ -4,8 +4,8 @@
 
 - 文档目的：基于当前静态页面，反向整理服务端需要提供给前端调用的接口
 - 适用范围：基金估值工具首页市场情绪、热搜榜单、基金搜索、基金详情、独立自选能力、我的持仓模块
-- 接口前缀建议：`/api/v1`
-- 返回格式建议：统一使用 `{ code, msg, data }`
+- 当前估值服务地址：`https://etf-insight.betalpha.com`
+- 返回格式建议：估值服务当前使用 `{ code, data, message }`，前端如需统一可在接口层做适配
 
 ---
 
@@ -16,7 +16,7 @@
 ```json
 {
   "code": 200,
-  "msg": "success",
+  "message": "success",
   "data": {}
 }
 ```
@@ -26,7 +26,7 @@
 ```json
 {
   "code": 400,
-  "msg": "invalid request",
+  "message": "invalid request",
   "data": null
 }
 ```
@@ -37,7 +37,7 @@
 
 ### 接口
 
-`GET /api/v1/market/sentiment`
+`GET /api/market-pulse/sentiment`
 
 ### 用途
 
@@ -51,27 +51,26 @@
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `updateTime` | string | 是 | 更新时间 |
-| `temperature` | number | 是 | 情绪温度值，建议范围 `0-100` |
-| `label` | string | 是 | 前端展示标签，如“偏冷” |
-| `level` | string | 是 | 情绪等级，建议值：`freezing / cool / neutral / hot` |
-| `description` | string | 是 | 白话解释文案 |
+| `score` | number | 是 | 市场情绪分值，建议范围 `0-100` |
+| `updatedAt` | string | 是 | 更新时间 |
 
 ### 返回示例
 
 ```json
 {
   "code": 200,
-  "msg": "success",
+  "message": "success",
   "data": {
-    "updateTime": "2026-03-13 14:05",
-    "temperature": 32,
-    "label": "偏冷",
-    "level": "cool",
-    "description": "当前市场情绪整体降温，大部分板块处于回调震荡期，更适合按低吸定投纪律慢慢沉淀筹码。"
+    "score": 32,
+    "updatedAt": "2026-03-13T14:05:00"
   }
 }
 ```
+
+### 前端展示说明
+
+- 首页当前展示的 `temperature / label / level / description` 为前端根据 `score` 映射生成
+- 当前服务端并未直接返回“偏冷 / 偏热”这类展示文案
 
 ---
 
@@ -79,7 +78,7 @@
 
 ### 接口
 
-`GET /api/v1/funds/hot-searches`
+`GET /api/market-pulse/hot-funds`
 
 ### 用途
 
@@ -95,6 +94,7 @@
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
+| `dataDate` | string | 是 | 榜单日期 |
 | `items` | array | 是 | 热搜基金列表 |
 
 #### items[]
@@ -103,39 +103,45 @@
 | --- | --- | --- | --- |
 | `rank` | number | 是 | 排名 |
 | `code` | string | 是 | 基金代码 |
-| `name` | string | 是 | 基金名称 |
-| `tag` | string | 是 | 一句分类标签，如“宽基稳健” |
+| `name` | string | 否 | 基金名称 |
+| `yield` | number | 是 | 收益值 |
 
 ### 返回示例
 
 ```json
 {
   "code": 200,
-  "msg": "success",
+  "message": "success",
   "data": {
+    "dataDate": "2026-03-13",
     "items": [
       {
         "rank": 1,
         "code": "000300",
         "name": "沪深300ETF联接",
-        "tag": "宽基稳健"
+        "yield": 2.35
       },
       {
         "rank": 2,
         "code": "270042",
         "name": "广发纳斯达克100",
-        "tag": "海外科技"
+        "yield": 1.82
       },
       {
         "rank": 3,
         "code": "009051",
         "name": "易方达中证红利",
-        "tag": "防御收息"
+        "yield": 1.26
       }
     ]
   }
 }
 ```
+
+### 前端展示说明
+
+- 首页当前展示的 `tag` 为前端根据 `yield` 格式化生成
+- 当 `name` 为空时，前端会降级显示为 `基金 {code}`
 
 ---
 
@@ -143,47 +149,53 @@
 
 ### 接口
 
-`GET /api/v1/funds/search`
+`POST /api/funds/search`
 
 ### 用途
 
-用于搜索框输入基金名称或代码后进行精确匹配，直接返回目标基金信息。
+用于搜索框输入基金名称或代码后返回基金候选列表。该接口当前已在估值服务中上线。
 
 ### 请求参数
 
-| 参数 | 位置 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- | --- |
-| `q` | query | string | 是 | 基金名称或代码，要求精确匹配 |
+#### body
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `keyword` | string | 是 | 基金名称或代码关键字 |
 
 ### 请求示例
 
-```http
-GET /api/v1/funds/search?q=110020
+```json
+{
+  "keyword": "110020"
+}
 ```
 
 ### 返回字段
 
-#### data
+#### data[]
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `code` | string | 是 | 基金代码 |
 | `name` | string | 是 | 基金名称 |
-| `tags` | string[] | 是 | 轻标签，用于结果页展示 |
-| `summary` | string | 是 | 一句话白话解释 |
+| `channel` | string | 否 | 渠道信息，如 `支付宝`、`天天基金` |
+| `subCategoryId` | string | 否 | 基金子分类 ID，供前端或聚合层做分类映射 |
 
 ### 成功返回示例
 
 ```json
 {
   "code": 200,
-  "msg": "success",
-  "data": {
-    "code": "110020",
-    "name": "易方达沪深300ETF联接A",
-    "tags": ["宽基指数", "被动定投", "大盘风格"],
-    "summary": "这是一只主要跟着沪深300指数走的基金。"
-  }
+  "message": "success",
+  "data": [
+    {
+      "code": "110020",
+      "name": "易方达沪深300ETF联接A",
+      "channel": "天天基金",
+      "subCategoryId": "broad-index"
+    }
+  ]
 }
 ```
 
@@ -192,28 +204,28 @@ GET /api/v1/funds/search?q=110020
 ```json
 {
   "code": 200,
-  "msg": "success",
-  "data": null
+  "message": "success",
+  "data": []
 }
 ```
 
 ### 说明
 
-- 搜不到结果时建议返回 `200`
-- 前端根据 `data = null` 进入“无结果”状态页
-- 不建议对搜索无结果返回 `404`
+- 当前接口返回的是候选列表，不是单条精确命中结果
+- 估值工具结果页需要的 `tags / summary / todayTag` 当前不由该接口直接提供，需由前端本地映射或后续聚合服务补足
+- 搜不到结果时当前口径为 `data: []`
 
 ---
 
-## 4. 获取基金结果详情
+## 4. 获取基金基础详情
 
 ### 接口
 
-`GET /api/v1/funds/{code}/result`
+`GET /api/funds/{code}`
 
 ### 用途
 
-用于基金估值工具详情页 `/subPages/valuation-tool/result` 的主数据展示。
+用于获取基金基础详情。该接口当前已在估值服务中上线，但返回字段还不足以直接覆盖估值工具结果页完整展示。
 
 ### 路径参数
 
@@ -224,12 +236,79 @@ GET /api/v1/funds/search?q=110020
 ### 请求示例
 
 ```http
-GET /api/v1/funds/110020/result
+GET /api/funds/110020
 ```
 
 ### 返回字段
 
 #### data
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `code` | string | 是 | 基金代码 |
+| `name` | string | 是 | 基金名称 |
+| `benchmark` | string | 否 | 业绩比较基准 |
+| `channel` | string | 否 | 渠道信息 |
+| `foundDate` | string | 否 | 成立日期 |
+| `subCategoryId` | string | 否 | 基金子分类 ID |
+
+### 成功返回示例
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "code": "110020",
+    "name": "易方达沪深300ETF联接A",
+    "benchmark": "沪深300指数收益率*95%+活期存款利率(税后)*5%",
+    "channel": "天天基金",
+    "foundDate": "2012-08-21",
+    "subCategoryId": "broad-index"
+  }
+}
+```
+
+### 当前可支撑的前端能力
+
+- 结果页顶部基础身份信息：基金名称、基金代码
+- 基金分类映射：通过 `subCategoryId` 反推标签或类型
+- 白话定义、跟踪方向等基础文案：可结合 `benchmark` 和本地规则生成
+
+### 当前缺失的结果页字段
+
+以下字段仍不在当前已上线详情接口中，需要由前端二次拼装或后续聚合服务提供：
+
+| 字段 | 说明 |
+| --- | --- |
+| `status` | 结果页状态控制，如 `ok / not_found / missing_value / loading` |
+| `intraday` | 今日估值或盘中表现参考 |
+| `quickFacts` | 近一年表现、历史最大跌幅、费率等指标 |
+| `definition` | 白话解释 |
+| `targetIndex` | 主要跟踪 |
+| `marketCoverage` | 覆盖方向 |
+| `riskDescription` | 风险说明 |
+| `disclaimer` | 风险提示 |
+| `reasonList` | “为什么今天会这样”类解释 |
+
+### 说明
+
+- 当前 `GET /api/funds/{code}` 更适合作为结果页的基础资料接口
+- 若要直接支撑现有 [result.vue](/Users/apple/betalpha/beta-mini/src/subPages/valuation-tool/result.vue) 的完整渲染，仍需额外聚合实时估值、规则文案和指标因子数据
+
+---
+
+## 5. 目标结果页聚合接口（仍为目标设计）
+
+### 接口
+
+`GET /api/v1/funds/{code}/result`
+
+### 用途
+
+这是估值工具结果页的目标聚合接口定义。当前服务端尚未按这个 contract 上线，前端仍需基于基础详情接口和其他数据源做拼装。
+
+### 目标字段
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
@@ -244,24 +323,6 @@ GET /api/v1/funds/110020/result
 | `marketCoverage` | string | 否 | 覆盖方向 |
 | `riskDescription` | string | 否 | 风险说明 |
 | `disclaimer` | string | 否 | 风险提示 |
-
-### intraday 字段
-
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `value` | number | 是 | 盘中推算涨跌值 |
-| `unit` | string | 是 | 单位，建议 `%` |
-| `updateTime` | string | 是 | 更新时间 |
-| `source` | string | 是 | 数据来源，建议值：`estimate / realtime / mock` |
-| `explanation` | string | 是 | 今日表现解释文案 |
-
-### quickFacts 字段
-
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `oneYearPerformance` | string | 否 | 近一年表现 |
-| `maxDrawdown` | string | 否 | 历史最大跌幅 |
-| `feeRate` | string | 否 | 费率 |
 
 ### 正常返回示例
 
@@ -918,13 +979,14 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 
 依赖接口：
 
-- `GET /api/v1/funds/search?q=`
+- `POST /api/funds/search`
 
 ### 基金详情页
 
 依赖接口：
 
-- `GET /api/v1/funds/{code}/result`
+- `GET /api/funds/{code}` 作为基础资料接口
+- `GET /api/v1/funds/{code}/result` 作为目标聚合接口（当前未上线）
 - `POST /api/v1/valuation-tool/watchlist`
 - `DELETE /api/v1/valuation-tool/watchlist/{code}`
 - `GET /api/v1/valuation-tool/watchlist`
@@ -952,7 +1014,7 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 
 依赖接口：
 
-- `GET /api/v1/funds/search?q=`
+- `POST /api/funds/search`
 - `POST /api/v1/valuation-tool/holdings`
 
 ### 修改持仓页
@@ -978,8 +1040,8 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 
 1. `GET /api/v1/market/sentiment`
 2. `GET /api/v1/funds/hot-searches`
-3. `GET /api/v1/funds/search?q=`
-4. `GET /api/v1/funds/{code}/result`
+3. `POST /api/funds/search`
+4. `GET /api/funds/{code}`
 5. `GET /api/v1/valuation-tool/watchlist`
 6. `POST /api/v1/valuation-tool/watchlist`
 7. `DELETE /api/v1/valuation-tool/watchlist/{code}`
@@ -990,7 +1052,7 @@ DELETE /api/v1/valuation-tool/watchlist/110020
 12. `POST /api/v1/valuation-tool/holdings/recognize`
 13. `POST /api/v1/valuation-tool/holdings/recognize/confirm`
 
-这 13 个接口足够驱动当前基金估值工具的首页、详情页、自选列表页、我的持仓页、同步持仓、手动录入、修改持仓，以及上传截图后的识别确认流程。
+这 13 个接口中，`POST /api/funds/search` 与 `GET /api/funds/{code}` 已经由当前估值服务提供，足够先打通搜索和基础详情资料；若要完整驱动当前基金估值工具结果页，还需要后续补上聚合型结果接口或由前端继续拼装缺失字段。
 
 ---
 

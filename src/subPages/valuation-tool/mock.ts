@@ -68,12 +68,14 @@ export function normalizeMarketSentimentResponse(payload?: MarketSentimentServic
 }
 
 export function normalizeHotFundItem(item: HotFundServiceItem): HotSearchFund {
+  const normalizedChangeValue = normalizeHotFundYield(item.yield)
+
   return {
     rank: item.rank,
     code: item.code,
     name: item.name?.trim() || `基金 ${item.code}`,
-    changeText: formatHotFundChange(item.yield),
-    changeValue: Number.isNaN(Number(item.yield)) ? null : Number(item.yield),
+    changeText: formatHotFundChange(normalizedChangeValue),
+    changeValue: normalizedChangeValue,
   }
 }
 
@@ -276,9 +278,21 @@ function formatMarketPulseTime(updatedAt?: string | null) {
   return updatedAt.replace('T', ' ').slice(0, 16)
 }
 
-function formatHotFundChange(yieldValue: number) {
+function normalizeHotFundYield(yieldValue: number) {
   if (Number.isNaN(Number(yieldValue)))
+    return null
+
+  const numericValue = Number(yieldValue)
+  if (Math.abs(numericValue) <= 1)
+    return numericValue * 100
+
+  return numericValue
+}
+
+function formatHotFundChange(yieldValue?: number | null) {
+  if (yieldValue === null || yieldValue === undefined || Number.isNaN(Number(yieldValue)))
     return '--'
+
   const sign = yieldValue > 0 ? '+' : ''
   return `${sign}${Number(yieldValue).toFixed(2)}%`
 }
