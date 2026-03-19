@@ -1,20 +1,30 @@
 <script setup lang="ts">
-import type { DiscoveryFundValuation, ExchangeFundQuotePayload, FundIntraday, FundResult } from './types'
-import { getExchangeFundQuote, getFundResult, getFundValuation } from './api/valuationTool'
+import type {
+  ApiEnvelope,
+  DiscoveryFundValuation,
+  FundDetailServiceResponse,
+  FundMetricsServiceResponse,
+  FundRealtimeDataServiceResponse,
+  FundRealtimeServiceResponse,
+  FundResult,
+} from './types'
+import { getFundDetail, getFundMetrics, getFundRealtime, getFundRealtimeData } from './api/valuationTool'
 import DetailActionBar from './components/DetailActionBar.vue'
 import DetailStateCard from './components/DetailStateCard.vue'
 import DetailSummaryCards from './components/DetailSummaryCards.vue'
 import RiskNoteCard from './components/RiskNoteCard.vue'
 import { useValuationWatchlist } from './composables/useValuationWatchlist'
-import { detailStateMetaMap, getFallbackFundResult } from './mock'
+import { detailStateMetaMap } from './mock'
 import {
   createMineScanPath,
   createSearchPath,
   createValuationHomePath,
-  inferFundMarketType,
-  isFundResultStatus,
-  mapExchangeQuote,
-  mapValuationToIntraday,
+  inferMarketTypeFromChannel,
+  isApiNotFound,
+  isApiSuccess,
+  mapFundDetailToResult,
+  mapFundRealtimeDataToExchangeQuote,
+  mapFundRealtimeToValuation,
   normalizeKeyword,
 } from './utils'
 
@@ -32,7 +42,8 @@ const router = useRouter()
 const route = useRoute()
 const fundCode = computed(() => normalizeKeyword(route.query.code))
 const requestError = shallowRef(false)
-const valuationError = shallowRef(false)
+const realtimeError = shallowRef(false)
+const realtimeDataError = shallowRef(false)
 const {
   refreshWatchlist,
   toggleWatchlist,
@@ -40,11 +51,11 @@ const {
 } = useValuationWatchlist()
 
 const {
-  data: resultResponse,
-  loading,
-  send: fetchResult,
+  data: detailResponse,
+  loading: detailLoading,
+  send: fetchDetail,
 } = useRequest(
-  () => getFundResult(fundCode.value),
+  () => getFundDetail(fundCode.value),
   {
     immediate: false,
     onError: () => {
@@ -54,67 +65,79 @@ const {
 )
 
 const {
-  data: valuationResponse,
-  send: fetchValuation,
+  data: metricsResponse,
+  loading: metricsLoading,
+  send: fetchMetrics,
 } = useRequest(
-  () => getFundValuation(fundCode.value),
+  () => getFundMetrics(fundCode.value),
+  {
+    immediate: false,
+  },
+)
+
+const {
+  data: realtimeResponse,
+  loading: realtimeLoading,
+  send: fetchRealtime,
+} = useRequest(
+  () => getFundRealtime(fundCode.value),
   {
     immediate: false,
     onError: () => {
-      valuationError.value = true
+      realtimeError.value = true
     },
   },
 )
 
-const exchangeQuoteError = shallowRef(false)
 const {
-  data: exchangeQuoteResponse,
-  send: fetchExchangeQuote,
+  data: realtimeDataResponse,
+  loading: realtimeDataLoading,
+  send: fetchRealtimeData,
 } = useRequest(
-  () => getExchangeFundQuote(fundCode.value),
+  () => getFundRealtimeData(fundCode.value),
   {
     immediate: false,
     onError: () => {
-      exchangeQuoteError.value = true
+      realtimeDataError.value = true
     },
   },
 )
+
+const loading = computed(() => detailLoading.value || metricsLoading.value || realtimeLoading.value || realtimeDataLoading.value)
+
+const detailEnvelope = computed(() => detailResponse.value as ApiEnvelope<FundDetailServiceResponse> | undefined)
+const metricsEnvelope = computed(() => metricsResponse.value as ApiEnvelope<FundMetricsServiceResponse> | undefined)
+const realtimeEnvelope = computed(() => realtimeResponse.value as ApiEnvelope<FundRealtimeServiceResponse> | undefined)
+const realtimeDataEnvelope = computed(() => realtimeDataResponse.value as ApiEnvelope<FundRealtimeDataServiceResponse> | undefined)
+
+const detailPayload = computed(() => isApiSuccess(detailEnvelope.value) ? detailEnvelope.value?.data : undefined)
+const metricsPayload = computed(() => isApiSuccess(metricsEnvelope.value) ? metricsEnvelope.value?.data : undefined)
+const realtimePayload = computed(() => isApiSuccess(realtimeEnvelope.value) ? realtimeEnvelope.value?.data : undefined)
+const realtimeDataPayload = computed(() => isApiSuccess(realtimeDataEnvelope.value) ? realtimeDataEnvelope.value?.data : undefined)
 
 const result = computed<FundResult>(() => {
-  const payload = (resultResponse.value as { data?: FundResult } | undefined)?.data
-  if (payload && isFundResultStatus(payload.status))
-    return payload
-  if (import.meta.env.DEV && fundCode.value)
-    return getFallbackFundResult(fundCode.value)
+  const mapped = mapFundDetailToResult(detailPayload.value, metricsPayload.value, realtimePayload.value)
+  if (mapped)
+    return mapped
   return { status: 'loading' }
 })
 
 const displayStatus = computed<FundResult['status'] | 'error'>(() => {
   if (requestError.value)
     return 'error'
+  if (isApiNotFound(detailEnvelope.value))
+    return 'not_found'
+  if (detailEnvelope.value && !detailPayload.value)
+    return 'missing_value'
   return result.value.status
 })
 
-const realtimeIntraday = computed<FundIntraday | undefined>(() => {
-  const payload = valuationResponse.value as DiscoveryFundValuation | undefined
-  return mapValuationToIntraday(payload)
-})
-
-const marketType = computed(() => inferFundMarketType(result.value))
+const marketType = computed(() => inferMarketTypeFromChannel(detailPayload.value?.channel))
 const exchangeQuote = computed(() => {
-  const payload = exchangeQuoteResponse.value as ExchangeFundQuotePayload[] | undefined
-  return mapExchangeQuote(payload?.[0])
+  return mapFundRealtimeDataToExchangeQuote(realtimePayload.value, realtimeDataPayload.value)
 })
 
-const displayResult = computed<FundResult>(() => {
-  if (marketType.value !== 'otc' || !realtimeIntraday.value || valuationError.value)
-    return result.value
-
-  return {
-    ...result.value,
-    intraday: realtimeIntraday.value,
-  }
-})
+const valuation = computed<DiscoveryFundValuation | undefined>(() => mapFundRealtimeToValuation(detailPayload.value, realtimePayload.value))
 
 const stateMeta = computed(() => detailStateMetaMap[displayStatus.value])
 const showDetail = computed(() => displayStatus.value === 'ok')
@@ -128,11 +151,12 @@ watch(
       return
     }
     requestError.value = false
-    valuationError.value = false
-    exchangeQuoteError.value = false
-    fetchResult()
-    fetchValuation()
-    fetchExchangeQuote()
+    realtimeError.value = false
+    realtimeDataError.value = false
+    fetchDetail()
+    fetchMetrics()
+    fetchRealtime()
+    fetchRealtimeData()
     refreshWatchlist()
   },
   { immediate: true },
@@ -162,13 +186,13 @@ function handleToggleWatchlist() {
 
   toggleWatchlist({
     code: fundCode.value,
-    name: displayResult.value.name,
+    name: result.value.name,
     dailyChange: marketType.value === 'exchange'
       ? exchangeQuote.value?.priceChangeRatio ?? null
-      : displayResult.value.intraday?.value ?? null,
+      : result.value.intraday?.value ?? null,
     updateTime: marketType.value === 'exchange'
       ? exchangeQuote.value?.updateTime
-      : displayResult.value.intraday?.updateTime,
+      : result.value.intraday?.updateTime,
   })
 }
 </script>
@@ -193,13 +217,13 @@ function handleToggleWatchlist() {
 
       <template v-else>
         <DetailSummaryCards
-          :exchange-quote="exchangeQuoteError ? undefined : exchangeQuote"
+          :exchange-quote="realtimeDataError ? undefined : exchangeQuote"
           :market-type="marketType"
-          :result="displayResult"
-          :valuation="marketType === 'otc' && !valuationError ? (valuationResponse as DiscoveryFundValuation | undefined) : undefined"
+          :result="result"
+          :valuation="marketType === 'otc' && !realtimeError ? valuation : undefined"
         />
         <view class="py-[24rpx] vt-page-x">
-          <RiskNoteCard :text="displayResult.disclaimer" />
+          <RiskNoteCard :text="result.disclaimer" />
         </view>
       </template>
     </view>

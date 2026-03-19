@@ -1,24 +1,54 @@
-import type { PortfolioRecognitionDraft, PortfolioRecognitionResult } from '../types'
+import type {
+  ApiEnvelope,
+  DiscoveryFundValuation,
+  FundDetailServiceResponse,
+  FundMetricsServiceResponse,
+  FundRealtimeDataServiceResponse,
+  FundRealtimeServiceResponse,
+  FundSearchServiceItem,
+  HotFundServiceItem,
+  MarketSentimentServiceResponse,
+  PortfolioRecognitionDraft,
+  PortfolioRecognitionResult,
+} from '../types'
 import { alovaInstance } from '@/api/core/instance'
 import { realtime } from '@/subPages/etf/api'
 import { getFallbackPortfolioRecognitionResult } from '../mock'
 
 export function getMarketSentiment() {
-  return alovaInstance.Get('/api/v1/market/sentiment')
+  return alovaInstance.Get<ApiEnvelope<MarketSentimentServiceResponse>>('/valuation-api/market-pulse/sentiment')
 }
 
 export function getHotSearchFunds() {
-  return alovaInstance.Get('/api/v1/funds/hot-searches')
+  return alovaInstance.Get<ApiEnvelope<{ dataDate: string, items: HotFundServiceItem[] }>>('/valuation-api/market-pulse/hot-funds')
 }
 
-export function searchFunds(params: { q: string }) {
-  return alovaInstance.Get('/api/v1/funds/search', {
-    params,
-  })
+export function searchFunds(params: { keyword: string }) {
+  return alovaInstance.Post<ApiEnvelope<FundSearchServiceItem[]>>('/valuation-api/funds/search', params)
 }
 
 export function getFundResult(code: string) {
-  return alovaInstance.Get(`/api/v1/funds/${code}/result`)
+  return alovaInstance.Get(`/valuation-api/v1/funds/${code}/result`)
+}
+
+export function getFundDetail(code: string) {
+  return alovaInstance.Get<ApiEnvelope<FundDetailServiceResponse>>(`/valuation-api/funds/${code}`)
+}
+
+export function getFundMetrics(code: string) {
+  return alovaInstance.Get<ApiEnvelope<FundMetricsServiceResponse>>(`/valuation-api/funds/${code}/metrics`)
+}
+
+export function getFundRealtime(code: string) {
+  return alovaInstance.Get<ApiEnvelope<FundRealtimeServiceResponse>>(`/valuation-api/funds/${code}/realtime`)
+}
+
+export function getFundRealtimeData(code: string) {
+  return alovaInstance.Get<ApiEnvelope<FundRealtimeDataServiceResponse>>(`/valuation-api/funds/${code}/realtime-data`)
+}
+
+export function getFundValuation(code: string) {
+  return alovaInstance.Get<DiscoveryFundValuation>(`/valuation-api/fund/valuation/${code}`)
 }
 
 export function getExchangeFundQuote(code: string) {
@@ -29,7 +59,7 @@ export function getExchangeFundQuote(code: string) {
 }
 
 export function getValuationWatchlist() {
-  return alovaInstance.Get('/api/v1/valuation-tool/watchlist')
+  return alovaInstance.Get('/valuation-api/v1/valuation-tool/watchlist')
 }
 
 export function addValuationWatchlist(params: {
@@ -38,11 +68,11 @@ export function addValuationWatchlist(params: {
   dailyChange?: number | null
   updateTime?: string
 }) {
-  return alovaInstance.Post('/api/v1/valuation-tool/watchlist', params)
+  return alovaInstance.Post('/valuation-api/v1/valuation-tool/watchlist', params)
 }
 
 export function removeValuationWatchlist(code: string) {
-  return alovaInstance.Delete(`/api/v1/valuation-tool/watchlist/${code}`)
+  return alovaInstance.Delete(`/valuation-api/v1/valuation-tool/watchlist/${code}`)
 }
 
 export async function recognizePortfolioScreenshots(params: {

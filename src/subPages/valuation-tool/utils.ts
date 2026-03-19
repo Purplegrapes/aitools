@@ -1,9 +1,14 @@
 import type {
+  ApiEnvelope,
   DiscoveryFundValuation,
   ExchangeFundQuotePayload,
+  FundDetailServiceResponse,
   FundExchangeQuote,
   FundIntraday,
   FundMarketType,
+  FundMetricsServiceResponse,
+  FundRealtimeDataServiceResponse,
+  FundRealtimeServiceResponse,
   FundResult,
   FundResultStatus,
   PortfolioFundOption,
@@ -193,6 +198,112 @@ export function mapExchangeQuote(quote?: ExchangeFundQuotePayload | null): FundE
   }
 }
 
+export function isApiSuccess<T>(response?: ApiEnvelope<T> | null) {
+  return response?.code === 0
+}
+
+export function isApiNotFound<T>(response?: ApiEnvelope<T> | null) {
+  return response?.code === 404
+}
+
+export function mapFundDetailToResult(
+  detail?: FundDetailServiceResponse | null,
+  metrics?: FundMetricsServiceResponse | null,
+  realtime?: FundRealtimeServiceResponse | null,
+): FundResult | undefined {
+  if (!detail?.code || !detail.name)
+    return undefined
+
+  return {
+    status: 'ok',
+    code: detail.code,
+    name: detail.name,
+    tags: buildFundTags(detail),
+    foundDate: detail.foundDate || undefined,
+    channelLabel: detail.channel === 'EXCHANGE' ? '场内基金' : '场外基金',
+    subCategoryLabel: normalizeSubCategoryLabel(detail.subCategoryId),
+    intraday: mapFundRealtimeToIntraday(realtime),
+    quickFacts: metrics
+      ? {
+          oneMonthReturn: formatRatioToPercent(metrics.return1m),
+          maxDrawdown: formatDrawdownPercent(metrics.maxDrawdown),
+          feeRate: formatRatioToPercent(metrics.feeRate),
+        }
+      : undefined,
+    definition: buildFundDefinition(detail),
+    targetIndex: detail.benchmark || '暂无基准信息',
+    marketCoverage: detail.channel === 'EXCHANGE' ? '场内交易' : '场外申赎',
+    disclaimer: '以上内容仅供理解参考，不构成投资建议，买入前仍请结合自身风险承受能力判断。',
+  }
+}
+
+export function mapFundRealtimeToIntraday(realtime?: FundRealtimeServiceResponse | null): FundIntraday | undefined {
+  if (!realtime)
+    return undefined
+
+  const ratio = toFiniteNumber(realtime.yieldChange)
+  const nav = toFiniteNumber(realtime.nav)
+  const navChange = toFiniteNumber(realtime.navChange)
+
+  if (ratio === null && nav === null && navChange === null)
+    return undefined
+
+  return {
+    value: ratio === null ? 0 : ratio * 100,
+    unit: '%',
+    updateTime: formatCurrentTime(),
+    source: 'estimate',
+    explanation: `当前参考净值约为 ${formatMetricNumber(nav, 4)}，较上一交易日净值变动 ${formatSignedNumber(navChange || 0, 4)}，对应盘中参考涨跌 ${formatSignedNumber((ratio || 0) * 100, 2)}%。`,
+  }
+}
+
+export function mapFundRealtimeToValuation(
+  detail?: Pick<FundDetailServiceResponse, 'code' | 'name'> | null,
+  realtime?: FundRealtimeServiceResponse | null,
+): DiscoveryFundValuation | undefined {
+  if (!detail?.code || !detail.name || !realtime)
+    return undefined
+
+  const nav = toFiniteNumber(realtime.nav)
+  const navChange = toFiniteNumber(realtime.navChange)
+  const ratio = toFiniteNumber(realtime.yieldChange)
+
+  if (nav === null || navChange === null || ratio === null)
+    return undefined
+
+  return {
+    code: detail.code,
+    name: detail.name,
+    offChangeNetValue: navChange,
+    valuation: nav,
+    ratio,
+  }
+}
+
+export function mapFundRealtimeDataToExchangeQuote(
+  realtime?: FundRealtimeServiceResponse | null,
+  realtimeData?: FundRealtimeDataServiceResponse | null,
+): FundExchangeQuote | undefined {
+  if (!realtimeData || realtimeData.channel !== 'EXCHANGE')
+    return undefined
+
+  const currentPrice = toFiniteNumber(realtimeData.nav)
+  const premiumRate = toFiniteNumber(realtimeData.premium_rate)
+  const priceChangeRatio = toFiniteNumber(realtime?.yieldChange)
+
+  if (currentPrice === null && premiumRate === null && priceChangeRatio === null)
+    return undefined
+
+  return {
+    currentPrice,
+    priceChangeRatio: priceChangeRatio === null ? null : priceChangeRatio * 100,
+    premiumRate: premiumRate === null ? null : premiumRate * 100,
+    updateTime: formatCurrentTime(),
+    source: 'realtime',
+    explanation: `当前参考净值 ${formatMetricNumber(currentPrice, 4)}，盘中参考涨跌 ${formatPercent(priceChangeRatio === null ? null : priceChangeRatio * 100)}，折溢价率 ${formatPercent(premiumRate === null ? null : premiumRate * 100)}。`,
+  }
+}
+
 function formatCurrentTime() {
   const currentDate = new Date()
   const hours = `${currentDate.getHours()}`.padStart(2, '0')
@@ -257,6 +368,10 @@ export function inferFundMarketType(result?: Pick<FundResult, 'name' | 'tags' | 
   return 'otc'
 }
 
+export function inferMarketTypeFromChannel(channel?: string | null): FundMarketType {
+  return channel === 'EXCHANGE' ? 'exchange' : 'otc'
+}
+
 export function getPortfolioValueTone(value?: number | null) {
   if (value === null || value === undefined || Number(value) === 0)
     return 'text-primary'
@@ -298,4 +413,53 @@ export function getPortfolioUnavailableState(): PortfolioUnavailableState {
 function toFiniteNumber(value: unknown) {
   const numericValue = Number(value)
   return Number.isFinite(numericValue) ? numericValue : null
+}
+
+function formatRatioToPercent(value?: number | null) {
+  const numericValue = toFiniteNumber(value)
+  if (numericValue === null)
+    return undefined
+  const sign = numericValue > 0 ? '+' : ''
+  return `${sign}${(numericValue * 100).toFixed(2)}%`
+}
+
+function formatDrawdownPercent(value?: number | null) {
+  const numericValue = toFiniteNumber(value)
+  if (numericValue === null)
+    return undefined
+  return `-${Math.abs(numericValue * 100).toFixed(2)}%`
+}
+
+function buildFundTags(detail: FundDetailServiceResponse) {
+  const tags = new Set<string>()
+
+  tags.add(detail.channel === 'EXCHANGE' ? '场内基金' : '场外基金')
+
+  const subCategoryLabel = normalizeSubCategoryLabel(detail.subCategoryId)
+  if (subCategoryLabel)
+    tags.add(subCategoryLabel)
+
+  return Array.from(tags)
+}
+
+function buildFundDefinition(detail: FundDetailServiceResponse) {
+  const segments = []
+  if (detail.foundDate)
+    segments.push(`成立于 ${detail.foundDate}`)
+  if (detail.benchmark)
+    segments.push(`业绩比较基准为 ${detail.benchmark}`)
+
+  return segments.length
+    ? `${segments.join('，')}。`
+    : '当前可用信息包含基金名称、代码、交易渠道以及实时参考数据。'
+}
+
+function normalizeSubCategoryLabel(value?: string | null) {
+  if (!value)
+    return ''
+
+  if (value === 'index_enhanced')
+    return '指数增强'
+
+  return value
 }

@@ -15,6 +15,21 @@ const activeMetricTip = shallowRef<{
   description: string
 } | null>(null)
 
+const infoRows = computed(() => [
+  {
+    label: '业绩比较基准',
+    value: props.result.targetIndex || '--',
+  },
+  {
+    label: '成立日期',
+    value: props.result.foundDate || '--',
+  },
+  {
+    label: '交易渠道',
+    value: props.result.channelLabel || props.result.marketCoverage || '--',
+  },
+])
+
 function formatSignedMetricNumber(value?: number | null, fractionDigits = 4) {
   if (value === null || value === undefined || Number.isNaN(Number(value)))
     return '--'
@@ -43,49 +58,20 @@ function formatFeeRateDisplay(value?: string | null) {
   return value.includes('年') ? value : `${value} / 年`
 }
 
-function getOneYearPerformanceMeta(value?: string | null) {
+function getOneMonthReturnMeta(value?: string | null) {
   const numericValue = parseMetricNumber(value)
   if (numericValue === null) {
     return {
-      evaluation: '暂无结论',
+      evaluation: '暂无数据',
       evaluationTextClass: 'text-secondary',
-      tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
-    }
-  }
-
-  if (numericValue >= 20) {
-    return {
-      evaluation: '过去一年整体表现较强',
-      evaluationTextClass: 'text-success',
-      tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
-    }
-  }
-  if (numericValue >= 10) {
-    return {
-      evaluation: '过去一年表现不错',
-      evaluationTextClass: 'text-brand',
-      tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
-    }
-  }
-  if (numericValue >= 0) {
-    return {
-      evaluation: '过去一年表现一般',
-      evaluationTextClass: 'text-warning',
-      tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
-    }
-  }
-  if (numericValue >= -10) {
-    return {
-      evaluation: '过去一年表现偏弱',
-      evaluationTextClass: 'text-warning',
-      tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
+      tip: '近1月收益是接口返回的最近 1 个月区间收益率，可用于快速查看这只基金近期表现。',
     }
   }
 
   return {
-    evaluation: '过去一年整体偏弱',
-    evaluationTextClass: 'text-danger',
-    tip: '近一年表现是指这只基金过去 1 年的累计涨跌幅。它能帮助你快速了解这只基金最近一年的整体表现，但不能单独代表未来收益，也要结合风险和回撤一起看。',
+    evaluation: numericValue >= 0 ? '近期上涨' : '近期回撤',
+    evaluationTextClass: numericValue >= 0 ? 'text-brand' : 'text-warning',
+    tip: '近1月收益是接口返回的最近 1 个月区间收益率，可用于快速查看这只基金近期表现。',
   }
 }
 
@@ -93,45 +79,16 @@ function getMaxDrawdownMeta(value?: string | null) {
   const numericValue = parseMetricNumber(value)
   if (numericValue === null) {
     return {
-      evaluation: '暂无结论',
+      evaluation: '暂无数据',
       evaluationTextClass: 'text-secondary',
-      tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
-    }
-  }
-
-  if (numericValue >= -10) {
-    return {
-      evaluation: '最差时跌幅不大',
-      evaluationTextClass: 'text-success',
-      tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
-    }
-  }
-  if (numericValue >= -20) {
-    return {
-      evaluation: '最差时跌幅还算可控',
-      evaluationTextClass: 'text-brand',
-      tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
-    }
-  }
-  if (numericValue >= -30) {
-    return {
-      evaluation: '最差时大概跌过 2 成',
-      evaluationTextClass: 'text-brand',
-      tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
-    }
-  }
-  if (numericValue >= -40) {
-    return {
-      evaluation: '最差时大概跌过 3 成',
-      evaluationTextClass: 'text-warning',
-      tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
+      tip: '最大回撤是接口返回的历史区间最大回撤值，用来观察这只基金曾经经历过的最大跌幅。',
     }
   }
 
   return {
-    evaluation: '最差时跌得比较深',
+    evaluation: numericValue >= -20 ? '回撤较小' : numericValue >= -35 ? '回撤中等' : '回撤较大',
     evaluationTextClass: 'text-danger',
-    tip: '历史最大跌幅是这只基金在一段历史时间里，从最高点跌到最低点的最大跌幅。它能帮助你理解这只基金过去最极端的回撤有多大，也能帮助判断它的波动风险。',
+    tip: '最大回撤是接口返回的历史区间最大回撤值，用来观察这只基金曾经经历过的最大跌幅。',
   }
 }
 
@@ -139,56 +96,34 @@ function getFeeRateMeta(value?: string | null) {
   const numericValue = parseMetricNumber(value)
   if (numericValue === null) {
     return {
-      evaluation: '暂无结论',
+      evaluation: '暂无数据',
       evaluationTextClass: 'text-secondary',
-      tip: '费率是持有基金时需要承担的年度费用比例。费率越低，长期持有时越有利；费率越高，长期收益越容易被成本侵蚀。在同类基金中，费率通常是一个很重要的比较指标。',
-    }
-  }
-
-  if (numericValue <= 0.3) {
-    return {
-      evaluation: '长期持有成本较低',
-      evaluationTextClass: 'text-success',
-      tip: '费率是持有基金时需要承担的年度费用比例。费率越低，长期持有时越有利；费率越高，长期收益越容易被成本侵蚀。在同类基金中，费率通常是一个很重要的比较指标。',
-    }
-  }
-  if (numericValue <= 0.6) {
-    return {
-      evaluation: '长期持有成本中等',
-      evaluationTextClass: 'text-brand',
-      tip: '费率是持有基金时需要承担的年度费用比例。费率越低，长期持有时越有利；费率越高，长期收益越容易被成本侵蚀。在同类基金中，费率通常是一个很重要的比较指标。',
-    }
-  }
-  if (numericValue <= 1) {
-    return {
-      evaluation: '长期持有成本偏高',
-      evaluationTextClass: 'text-warning',
-      tip: '费率是持有基金时需要承担的年度费用比例。费率越低，长期持有时越有利；费率越高，长期收益越容易被成本侵蚀。在同类基金中，费率通常是一个很重要的比较指标。',
+      tip: '费率是接口返回的年度费率数据，主要用于了解长期持有时的成本水平。',
     }
   }
 
   return {
-    evaluation: '长期持有成本较高',
-    evaluationTextClass: 'text-danger',
-    tip: '费率是持有基金时需要承担的年度费用比例。费率越低，长期持有时越有利；费率越高，长期收益越容易被成本侵蚀。在同类基金中，费率通常是一个很重要的比较指标。',
+    evaluation: numericValue <= 0.6 ? '成本较低' : numericValue <= 1 ? '成本适中' : '成本较高',
+    evaluationTextClass: numericValue <= 0.6 ? 'text-brand' : 'text-warning',
+    tip: '费率是接口返回的年度费率数据，主要用于了解长期持有时的成本水平。',
   }
 }
 
 const quickFactRows = computed(() => {
-  const oneYearPerformanceMeta = getOneYearPerformanceMeta(props.result.quickFacts?.oneYearPerformance)
+  const oneMonthPerformanceMeta = getOneMonthReturnMeta(props.result.quickFacts?.oneMonthReturn)
   const maxDrawdownMeta = getMaxDrawdownMeta(props.result.quickFacts?.maxDrawdown)
   const feeRateMeta = getFeeRateMeta(props.result.quickFacts?.feeRate)
 
   return [
     {
-      label: '近一年表现',
-      value: props.result.quickFacts?.oneYearPerformance || '--',
-      evaluation: oneYearPerformanceMeta.evaluation,
-      tip: oneYearPerformanceMeta.tip,
-      valueClass: parseMetricNumber(props.result.quickFacts?.oneYearPerformance) === null
+      label: '近1月收益',
+      value: props.result.quickFacts?.oneMonthReturn || '--',
+      evaluation: oneMonthPerformanceMeta.evaluation,
+      tip: oneMonthPerformanceMeta.tip,
+      valueClass: parseMetricNumber(props.result.quickFacts?.oneMonthReturn) === null
         ? 'text-primary'
-        : parseMetricNumber(props.result.quickFacts?.oneYearPerformance)! >= 0 ? 'text-danger' : 'text-success',
-      evaluationTextClass: oneYearPerformanceMeta.evaluationTextClass,
+        : parseMetricNumber(props.result.quickFacts?.oneMonthReturn)! >= 0 ? 'text-danger' : 'text-success',
+      evaluationTextClass: oneMonthPerformanceMeta.evaluationTextClass,
     },
     {
       label: '历史最大跌幅',
@@ -213,8 +148,8 @@ const todayMetrics = computed(() => {
   if (props.marketType === 'exchange') {
     return [
       {
-        label: '场内价格',
-        value: formatMetricNumber(props.exchangeQuote?.currentPrice, 3),
+        label: '参考净值',
+        value: formatMetricNumber(props.exchangeQuote?.currentPrice, 4),
         toneClass: 'text-primary',
       },
       {
@@ -275,33 +210,13 @@ const updateTimeText = computed(() => {
   return props.result.intraday?.updateTime
 })
 
-const detailInfoCards = computed(() => [
-  {
-    label: '主要跟踪',
-    value: props.result.targetIndex || '--',
-    iconClass: 'i-carbon-chart-line-data',
-    iconToneClass: 'bg-brandMuted text-brand',
-    panelStyle: 'background: linear-gradient(180deg, rgba(238,244,253,1) 0%, rgba(244,248,255,1) 100%);',
-  },
-  {
-    label: '覆盖方向',
-    value: props.result.marketCoverage || '--',
-    iconClass: 'i-carbon-compass',
-    iconToneClass: 'bg-danger/10 text-danger',
-    panelStyle: 'background: linear-gradient(180deg, rgba(238,244,253,1) 0%, rgba(244,248,255,1) 100%);',
-  },
-])
-
-const riskLevel = computed(() => {
-  const description = props.result.riskDescription || ''
-  if (!description)
-    return '暂无'
-  if (description.includes('较大') || description.includes('明显') || description.includes('更高'))
-    return '较高'
-  if (description.includes('较低') || description.includes('偏稳'))
-    return '较低'
-  return '中度'
-})
+const detailInfoCards = computed(() => infoRows.value.map((item, index) => ({
+  label: item.label,
+  value: item.value,
+  iconClass: index % 2 === 0 ? 'i-carbon-chart-line-data' : 'i-carbon-calendar',
+  iconToneClass: index % 2 === 0 ? 'bg-brandMuted text-brand' : 'bg-danger/10 text-danger',
+  panelStyle: 'background: linear-gradient(180deg, rgba(238,244,253,1) 0%, rgba(244,248,255,1) 100%);',
+})))
 
 function handleShowMetricTip(row: { label: string, tip: string }) {
   activeMetricTip.value = {
@@ -422,7 +337,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
 
     <view class="vt-card bg-surface">
       <text class="block text-lg text-primary font-600 leading-tight">
-        快速看懂这只基金
+        基金信息摘要
       </text>
 
       <view class="mt-[24rpx] flex flex-col gap-[16rpx]">
@@ -431,7 +346,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
           :key="item.label"
           class="rounded-panel vt-panel bg-surfaceSubtle"
         >
-          <view class="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.5fr)] items-center gap-[20rpx]">
+          <view class="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1.2fr)_minmax(0,1fr)] items-center gap-[20rpx]">
             <view class="min-w-0 flex items-center gap-[8rpx]">
               <text class="truncate text-[28rpx] text-regular leading-[40rpx]">
                 {{ item.label }}
@@ -487,20 +402,6 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
             {{ item.value }}
           </text>
         </view>
-      </view>
-
-      <view class="mt-[28rpx]">
-        <view class="flex items-center gap-[12rpx]">
-          <text class="text-[30rpx] text-primary font-600 leading-[42rpx]">
-            日常波动预感
-          </text>
-          <text class="rounded-[10rpx] bg-warning/10 px-[14rpx] py-[6rpx] text-[20rpx] text-warning font-600 leading-[28rpx]">
-            {{ riskLevel }}
-          </text>
-        </view>
-        <text class="mt-[12rpx] block text-[24rpx] text-secondary leading-[38rpx]">
-          {{ result.riskDescription }}
-        </text>
       </view>
     </view>
 

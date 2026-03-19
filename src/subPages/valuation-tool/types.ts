@@ -9,11 +9,23 @@ export interface MarketSentiment {
   description: string
 }
 
+export interface MarketSentimentServiceResponse {
+  score: number
+  updatedAt: string
+}
+
 export interface HotSearchFund {
   rank: number
   code: string
   name: string
   tag: string
+}
+
+export interface HotFundServiceItem {
+  rank: number
+  code: string
+  name?: string | null
+  yield: number
 }
 
 export interface FundSearchItem {
@@ -22,6 +34,13 @@ export interface FundSearchItem {
   tags: string[]
   summary: string
   todayTag?: string
+}
+
+export interface FundSearchServiceItem {
+  code: string
+  name: string
+  channel?: string | null
+  subCategoryId?: string | null
 }
 
 export interface FundIntraday {
@@ -42,6 +61,41 @@ export interface DiscoveryFundValuation {
   ratio: number
 }
 
+export interface FundDetailServiceResponse {
+  benchmark?: string | null
+  channel?: string | null
+  code: string
+  foundDate?: string | null
+  name: string
+  subCategoryId?: string | null
+}
+
+export interface FundMetricsServiceResponse {
+  feeRate?: number | null
+  maxDrawdown?: number | null
+  return1m?: number | null
+}
+
+export interface FundRealtimeServiceResponse {
+  nav: number
+  navChange: number
+  yieldChange: number
+}
+
+export interface FundRealtimeDataExchangeResponse {
+  channel: 'EXCHANGE'
+  nav: number
+  premium_rate: number
+}
+
+export interface FundRealtimeDataOtcResponse {
+  channel: 'OTC'
+  nav: number
+  yield_change: number
+}
+
+export type FundRealtimeDataServiceResponse = FundRealtimeDataExchangeResponse | FundRealtimeDataOtcResponse
+
 export interface ExchangeFundQuotePayload {
   currentPrice?: number
   priceChangeRatio?: number
@@ -58,7 +112,7 @@ export interface FundExchangeQuote {
 }
 
 export interface FundQuickFacts {
-  oneYearPerformance?: string
+  oneMonthReturn?: string
   maxDrawdown?: string
   feeRate?: string
 }
@@ -68,6 +122,9 @@ export interface FundResult {
   code?: string
   name?: string
   tags?: string[]
+  foundDate?: string
+  channelLabel?: string
+  subCategoryLabel?: string
   intraday?: FundIntraday
   quickFacts?: FundQuickFacts
   definition?: string
@@ -81,7 +138,8 @@ export interface FundResult {
 
 export interface ApiEnvelope<T> {
   code: number
-  msg: string
+  msg?: string
+  message?: string
   data: T
 }
 
