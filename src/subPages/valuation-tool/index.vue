@@ -101,9 +101,6 @@ function handleOpenSearch() {
               <text class="block text-[28rpx] text-primary font-600">
                 查基金估值
               </text>
-              <text class="mt-[6rpx] block text-[22rpx] text-secondary leading-[34rpx]">
-                输入基金名称或代码，去搜索页快速查看并加入自选
-              </text>
             </view>
             <view class="h-[64rpx] flex shrink-0 items-center justify-center rounded-[18rpx] bg-brand px-[24rpx]">
               <text class="text-[24rpx] text-white font-500">

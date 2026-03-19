@@ -27,7 +27,7 @@ function handleBackToDetail() {
 
 <template>
   <view class="min-h-screen bg-page vt-page-shell pb-8">
-    <view class="mx-auto max-w-[680rpx] vt-top-card p-6">
+    <view class="mx-auto vt-top-card p-6">
       <view class="h-[96rpx] w-[96rpx] flex items-center justify-center rounded-full bg-brand-muted text-brand">
         <view class="i-carbon-warning-alt-filled text-[44rpx]" />
       </view>

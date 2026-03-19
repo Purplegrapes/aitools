@@ -7,9 +7,37 @@ const props = defineProps<{
 
 const temperatureLabel = computed(() => `${props.sentiment.temperature}°C`)
 const progress = computed(() => Math.min(Math.max(props.sentiment.temperature, 0), 100))
+const sentimentTone = computed(() => {
+  const toneMap: Record<MarketSentiment['level'], { color: string, softBg: string, shadow: string }> = {
+    freezing: {
+      color: '#10B388',
+      softBg: 'rgba(16,179,136,0.12)',
+      shadow: '0 8rpx 18rpx rgba(16,179,136,0.24)',
+    },
+    cool: {
+      color: '#7CC88E',
+      softBg: 'rgba(124,200,142,0.16)',
+      shadow: '0 8rpx 18rpx rgba(124,200,142,0.24)',
+    },
+    neutral: {
+      color: '#D6A23C',
+      softBg: 'rgba(244,215,164,0.28)',
+      shadow: '0 8rpx 18rpx rgba(214,162,60,0.20)',
+    },
+    hot: {
+      color: '#FF7A1A',
+      softBg: 'rgba(255,122,26,0.14)',
+      shadow: '0 8rpx 18rpx rgba(255,122,26,0.24)',
+    },
+  }
+
+  return toneMap[props.sentiment.level]
+})
 const thumbStyle = computed(() => {
   return {
     left: `calc(${progress.value}% - 18rpx)`,
+    background: sentimentTone.value.color,
+    boxShadow: sentimentTone.value.shadow,
   }
 })
 </script>
@@ -18,7 +46,7 @@ const thumbStyle = computed(() => {
   <view class="overflow-hidden vt-card bg-surface">
     <view class="flex items-center justify-between gap-[20rpx]">
       <view class="flex items-center gap-[12rpx]">
-        <view class="i-carbon-temperature text-[30rpx] text-brand" />
+        <view class="i-carbon-temperature text-[30rpx]" :style="{ color: sentimentTone.color }" />
         <text class="text-[30rpx] text-primary font-600 leading-[42rpx]">
           今日市场情绪
         </text>
@@ -30,11 +58,11 @@ const thumbStyle = computed(() => {
     </view>
 
     <view class="mt-[22rpx] flex items-center gap-[20rpx]">
-      <text class="text-2xl text-success font-700 leading-none">
+      <text class="text-2xl font-700 leading-none" :style="{ color: sentimentTone.color }">
         {{ temperatureLabel }}
       </text>
-      <view class="rounded-[12rpx] bg-success/12 px-[16rpx] py-[8rpx]">
-        <text class="text-[22rpx] text-success font-600 leading-[30rpx]">
+      <view class="rounded-[12rpx] px-[16rpx] py-[8rpx]" :style="{ background: sentimentTone.softBg }">
+        <text class="text-[22rpx] font-600 leading-[30rpx]" :style="{ color: sentimentTone.color }">
           {{ sentiment.label }}
         </text>
       </view>
@@ -54,10 +82,10 @@ const thumbStyle = computed(() => {
       <text>狂热</text>
     </view>
 
-    <view class="mt-[28rpx] border border-[#CFE0FF] rounded-panel vt-panel-tight border-solid bg-[#F4F8FF]">
+    <view class="mt-[28rpx] rounded-panel vt-panel-tight bg-[#F4F8FF]">
       <view class="flex items-start gap-[12rpx]">
-        <view class="i-carbon-information text-[28rpx] text-brand" />
-        <text class="min-w-0 flex-1 text-[24rpx] text-brand leading-[40rpx]">
+        <wd-icon name="info-circle" size="20px" :color="sentimentTone.color" />
+        <text class="min-w-0 flex-1 text-[24rpx] leading-[40rpx]" :style="{ color: sentimentTone.color }">
           {{ sentiment.description }}
         </text>
       </view>

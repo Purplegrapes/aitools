@@ -168,7 +168,7 @@ function stringifyNullableField(value: unknown) {
 
 <template>
   <view class="min-h-screen bg-page vt-page-shell pb-8">
-    <view class="mx-auto max-w-[680rpx] flex flex-col gap-4">
+    <view class="mx-auto flex flex-col gap-4">
       <ValuationSearchBar
         v-model="searchKeyword"
         placeholder="输入基金名称或代码"
