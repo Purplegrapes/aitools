@@ -31,6 +31,10 @@ export function createSearchPath(keyword: string) {
   return `/subPages/valuation-tool/search?q=${encodeURIComponent(keyword.trim())}`
 }
 
+export function createValuationHomePath() {
+  return '/subPages/valuation-tool/index'
+}
+
 export function createResultPath(code: string) {
   return `/subPages/valuation-tool/result?code=${encodeURIComponent(code)}`
 }

@@ -3,7 +3,7 @@ const router = useRouter()
 
 const route = useRoute()
 
-const { activeTabbar, getTabbarItemValue, setTabbarItemActive, tabbarList } = useTabbar()
+const { activeTabbar, getTabbarItemValue, tabbarList } = useTabbar()
 
 // #ifdef MP-WEIXIN
 // 导航栏配置
@@ -28,7 +28,9 @@ const navbarConfig = computed(() => {
 // #endif
 
 function handleTabbarChange({ value }: { value: string }) {
-  setTabbarItemActive(value)
+  if (value === activeTabbar.value?.name)
+    return
+
   router.pushTab({ name: value })
 }
 
@@ -36,11 +38,6 @@ onMounted(() => {
   // #ifdef APP
   uni.hideTabBar()
   // #endif
-  nextTick(() => {
-    if (route.name && route.name !== activeTabbar.value.name) {
-      setTabbarItemActive(route.name)
-    }
-  })
 })
 </script>
 
@@ -60,7 +57,10 @@ export default {
   <!-- #endif -->
   <slot />
   <wd-tabbar
-    :model-value="activeTabbar.name" bordered safe-area-inset-bottom fixed
+    :model-value="activeTabbar.name"
+    :bordered="false"
+    safe-area-inset-bottom
+    fixed
     @change="handleTabbarChange"
   >
     <wd-tabbar-item

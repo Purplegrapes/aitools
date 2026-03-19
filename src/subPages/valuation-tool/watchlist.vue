@@ -5,7 +5,7 @@ import { createResultPath } from './utils'
 
 definePage({
   name: 'valuation-tool-watchlist',
-  layout: 'default',
+  layout: 'tabbar',
   style: {
     navigationBarTitleText: '自选基金',
     navigationBarBackgroundColor: '#F5F7FA',
@@ -47,12 +47,12 @@ function handleRemove(code: string) {
 }
 
 function handleBackHome() {
-  router.replace('/subPages/valuation-tool/index')
+  router.pushTab({ name: 'valuation-tool-home' })
 }
 </script>
 
 <template>
-  <view class="min-h-screen bg-page vt-page-shell pb-8">
+  <view class="min-h-screen bg-page vt-page-shell pb-[120rpx]">
     <view class="pointer-events-none absolute inset-x-0 top-0 h-[280rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.14),_transparent_62%)]" />
 
     <view class="relative mx-auto flex flex-col gap-4">

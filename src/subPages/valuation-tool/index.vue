@@ -6,7 +6,6 @@ import type {
   MarketSentimentServiceResponse,
 } from './types'
 import { getHotSearchFunds, getMarketSentiment } from './api/valuationTool'
-import HomeActionBar from './components/HomeActionBar.vue'
 import HotSearchList from './components/HotSearchList.vue'
 import RiskNoteCard from './components/RiskNoteCard.vue'
 import SentimentCard from './components/SentimentCard.vue'
@@ -16,11 +15,11 @@ import {
   normalizeHotFundItem,
   normalizeMarketSentimentResponse,
 } from './mock'
-import { createHoldingsPath, createResultPath, createSearchPath, createWatchlistPath } from './utils'
+import { createResultPath, createSearchPath } from './utils'
 
 definePage({
   name: 'valuation-tool-home',
-  layout: 'default',
+  layout: 'tabbar',
   style: {
     navigationBarTitleText: '宝倍估值',
     navigationBarBackgroundColor: '#F5F7FA',
@@ -62,14 +61,6 @@ function handleSelectHotSearch(item: HotSearchFund) {
   router.push(createResultPath(item.code))
 }
 
-function handleOpenWatchlist() {
-  router.push(createWatchlistPath())
-}
-
-function handleOpenHoldings() {
-  router.push(createHoldingsPath())
-}
-
 function handleOpenSearch() {
   router.push(createSearchPath(''))
 }
@@ -81,7 +72,7 @@ function handleOpenSearch() {
     <view class="pointer-events-none absolute right-[-30rpx] top-[78rpx] h-[164rpx] w-[164rpx] rounded-full bg-[radial-gradient(circle,_rgba(22,120,255,0.16)_0%,_rgba(22,120,255,0.03)_58%,_rgba(22,120,255,0)_100%)]" />
     <view class="pointer-events-none absolute left-[-36rpx] top-[126rpx] h-[120rpx] w-[120rpx] rounded-full bg-[radial-gradient(circle,_rgba(24,144,255,0.08)_0%,_rgba(24,144,255,0)_72%)]" />
 
-    <view class="relative mx-auto box-border vt-page-x pb-[180rpx] pt-[28rpx]">
+    <view class="relative mx-auto box-border vt-page-x pb-[120rpx] pt-[28rpx]">
       <view class="px-[4rpx] pt-[72rpx]">
         <view class="max-w-[460rpx]">
           <text class="block text-[56rpx] text-primary font-700 leading-[1.08] tracking-[1rpx]">
@@ -134,10 +125,5 @@ function handleOpenSearch() {
         <RiskNoteCard text="以上内容用于帮助你快速理解基金，不构成投资建议。短期涨跌只是一种参考，先判断它适不适合自己更重要。" />
       </view>
     </view>
-
-    <HomeActionBar
-      @open-holdings="handleOpenHoldings"
-      @open-watchlist="handleOpenWatchlist"
-    />
   </view>
 </template>

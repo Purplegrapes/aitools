@@ -2,7 +2,7 @@
 import BottomActionBar from './components/BottomActionBar.vue'
 import EditPositionSheet from './components/EditPositionSheet.vue'
 import { usePortfolio } from './composables/usePortfolio'
-import { createHoldingsPath, formatCurrency, normalizeKeyword } from './utils'
+import { formatCurrency, normalizeKeyword } from './utils'
 
 definePage({
   name: 'valuation-tool-holdings-edit',
@@ -74,7 +74,7 @@ function handleSave() {
     costNav: costNavValue,
   })
   globalToast.success('持仓已更新')
-  router.replace(createHoldingsPath())
+  router.pushTab({ name: 'valuation-tool-holdings' })
 }
 
 function handleRemove() {
@@ -82,7 +82,7 @@ function handleRemove() {
     return
   removePosition(currentPosition.value.id)
   globalToast.success('持仓已删除')
-  router.replace(createHoldingsPath())
+  router.pushTab({ name: 'valuation-tool-holdings' })
 }
 
 function toEditableNumber(value: number) {
@@ -130,7 +130,7 @@ function toEditableNumber(value: number) {
     <BottomActionBar
       :secondary-text="currentPosition ? '删除持仓' : undefined"
       :primary-text="currentPosition ? '保存修改' : '返回持仓页'"
-      @primary="currentPosition ? handleSave() : router.replace(createHoldingsPath())"
+      @primary="currentPosition ? handleSave() : router.pushTab({ name: 'valuation-tool-holdings' })"
       @secondary="handleRemove"
     />
   </view>

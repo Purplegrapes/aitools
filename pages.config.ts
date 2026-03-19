@@ -49,6 +49,12 @@ export default defineUniPages({
       pagePath: 'pages/index/index',
     }, {
       pagePath: 'pages/about/index',
+    }, {
+      pagePath: 'subPages/valuation-tool/index',
+    }, {
+      pagePath: 'subPages/valuation-tool/watchlist',
+    }, {
+      pagePath: 'subPages/valuation-tool/holdings',
     }],
   },
 })

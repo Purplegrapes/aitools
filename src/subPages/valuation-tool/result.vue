@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { DiscoveryFundValuation, ExchangeFundQuotePayload, FundIntraday, FundResult } from './types'
-import { getFundValuation } from '@/api/discovery'
-import { getExchangeFundQuote, getFundResult } from './api/valuationTool'
+import { getExchangeFundQuote, getFundResult, getFundValuation } from './api/valuationTool'
 import DetailActionBar from './components/DetailActionBar.vue'
 import DetailStateCard from './components/DetailStateCard.vue'
 import DetailSummaryCards from './components/DetailSummaryCards.vue'
@@ -11,7 +10,7 @@ import { detailStateMetaMap, getFallbackFundResult } from './mock'
 import {
   createMineScanPath,
   createSearchPath,
-  createWatchlistPath,
+  createValuationHomePath,
   inferFundMarketType,
   isFundResultStatus,
   mapExchangeQuote,
@@ -143,11 +142,11 @@ function handlePrimaryAction() {
   if (displayStatus.value === 'not_found')
     router.replace(createSearchPath('沪深300'))
   else
-    router.replace('/subPages/valuation-tool/index')
+    router.replace(createValuationHomePath())
 }
 
 function handleOpenWatchlist() {
-  router.push(createWatchlistPath())
+  router.pushTab({ name: 'valuation-tool-watchlist' })
 }
 
 function handleOpenMineScan() {

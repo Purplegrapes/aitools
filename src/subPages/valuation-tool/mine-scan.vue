@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { createResultPath, normalizeKeyword } from './utils'
+import { createResultPath, createValuationHomePath, normalizeKeyword } from './utils'
 
 definePage({
   name: 'valuation-tool-mine-scan',
@@ -17,7 +17,7 @@ const fundCode = computed(() => normalizeKeyword(route.query.code))
 
 function handleBackToDetail() {
   if (!fundCode.value) {
-    router.replace('/subPages/valuation-tool/index')
+    router.replace(createValuationHomePath())
     return
   }
 

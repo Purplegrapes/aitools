@@ -75,8 +75,8 @@ const allTools: ToolItem[] = [
   // 投资工具
   {
     id: 'valuation-tool',
-    name: 'ETF翻译器',
-    description: '小白快速看懂基金',
+    name: '宝倍估值',
+    description: '宝倍查估值，快速看懂你的基',
     icon: 'idea',
     category: 'investment',
     route: { name: 'valuation-tool-home' },
