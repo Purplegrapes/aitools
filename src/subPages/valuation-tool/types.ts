@@ -44,6 +44,18 @@ export interface FundSearchServiceItem {
   subCategoryId?: string | null
 }
 
+export interface FavouriteItemServiceResponse {
+  code: string
+  name: string
+}
+
+export interface FavouriteRealtimeItemServiceResponse {
+  code: string
+  nav: number
+  navChange: number
+  yieldChange: number
+}
+
 export interface FundIntraday {
   value: number
   unit: string

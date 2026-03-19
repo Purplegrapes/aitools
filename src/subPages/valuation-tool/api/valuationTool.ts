@@ -1,6 +1,8 @@
 import type {
   ApiEnvelope,
   DiscoveryFundValuation,
+  FavouriteItemServiceResponse,
+  FavouriteRealtimeItemServiceResponse,
   FundDetailServiceResponse,
   FundMetricsServiceResponse,
   FundRealtimeDataServiceResponse,
@@ -58,8 +60,24 @@ export function getExchangeFundQuote(code: string) {
   })
 }
 
+function getFavouriteUid() {
+  return '1'
+}
+
 export function getValuationWatchlist() {
-  return alovaInstance.Get('/valuation-api/v1/valuation-tool/watchlist')
+  return alovaInstance.Get<ApiEnvelope<FavouriteItemServiceResponse[]>>('/valuation-api/favourites', {
+    headers: {
+      uid: getFavouriteUid(),
+    },
+  })
+}
+
+export function getValuationWatchlistRealtime() {
+  return alovaInstance.Get<ApiEnvelope<FavouriteRealtimeItemServiceResponse[]>>('/valuation-api/favourites/realtime', {
+    headers: {
+      uid: getFavouriteUid(),
+    },
+  })
 }
 
 export function addValuationWatchlist(params: {
@@ -68,11 +86,25 @@ export function addValuationWatchlist(params: {
   dailyChange?: number | null
   updateTime?: string
 }) {
-  return alovaInstance.Post('/valuation-api/v1/valuation-tool/watchlist', params)
+  return alovaInstance.Post<ApiEnvelope<string>>('/valuation-api/favourites', {
+    code: params.code,
+  }, {
+    headers: {
+      uid: getFavouriteUid(),
+    },
+  })
 }
 
 export function removeValuationWatchlist(code: string) {
-  return alovaInstance.Delete(`/valuation-api/v1/valuation-tool/watchlist/${code}`)
+  return alovaInstance.Delete<ApiEnvelope<string>>(
+    `/valuation-api/favourites/${code}`,
+    undefined,
+    {
+      headers: {
+        uid: getFavouriteUid(),
+      },
+    },
+  )
 }
 
 export async function recognizePortfolioScreenshots(params: {

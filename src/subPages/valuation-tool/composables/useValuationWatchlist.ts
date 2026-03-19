@@ -1,14 +1,15 @@
-import type { ValuationWatchlistFund, ValuationWatchlistMutationInput } from '../types'
+import type {
+  FavouriteItemServiceResponse,
+  FavouriteRealtimeItemServiceResponse,
+  ValuationWatchlistFund,
+  ValuationWatchlistMutationInput,
+} from '../types'
 import {
   addValuationWatchlist,
   getValuationWatchlist,
+  getValuationWatchlistRealtime,
   removeValuationWatchlist,
 } from '../api/valuationTool'
-import {
-  getFallbackWatchlistFunds,
-  removeFallbackWatchlistFund,
-  saveFallbackWatchlistFund,
-} from '../mock'
 
 const watchlistItemsState = shallowRef<ValuationWatchlistFund[]>([])
 const watchlistLoadingState = shallowRef(false)
@@ -34,22 +35,41 @@ export function useValuationWatchlist() {
     watchlistErrorState.value = false
 
     try {
-      const response = await getValuationWatchlist().send()
-      const items = (response as { data?: ValuationWatchlistFund[] | { items?: ValuationWatchlistFund[] } } | undefined)?.data
-      const normalizedItems = normalizeWatchlistItems(Array.isArray(items) ? items : items?.items)
-      watchlistItemsState.value = import.meta.env.DEV && !normalizedItems.length
-        ? normalizeWatchlistItems(getFallbackWatchlistFunds())
-        : normalizedItems
+      const [listResponse, realtimeResponse] = await Promise.all([
+        getValuationWatchlist().send(),
+        getValuationWatchlistRealtime().send(),
+      ])
+      const listItems = (listResponse as { data?: FavouriteItemServiceResponse[] } | undefined)?.data
+      const realtimeItems = (realtimeResponse as { data?: FavouriteRealtimeItemServiceResponse[] } | undefined)?.data
+      const normalizedItems = normalizeWatchlistItems(listItems, realtimeItems)
+      watchlistItemsState.value = normalizedItems
       watchlistLoadedState.value = true
     }
     catch {
-      if (import.meta.env.DEV) {
-        watchlistItemsState.value = normalizeWatchlistItems(getFallbackWatchlistFunds())
-        watchlistLoadedState.value = true
-      }
-      else {
-        watchlistErrorState.value = true
-      }
+      watchlistItemsState.value = []
+      watchlistErrorState.value = true
+    }
+    finally {
+      watchlistLoadingState.value = false
+    }
+  }
+
+  async function refreshWatchlistListOnly() {
+    if (watchlistLoadingState.value)
+      return
+
+    watchlistLoadingState.value = true
+    watchlistErrorState.value = false
+
+    try {
+      const listResponse = await getValuationWatchlist().send()
+      const listItems = (listResponse as { data?: FavouriteItemServiceResponse[] } | undefined)?.data
+      watchlistItemsState.value = normalizeWatchlistItems(listItems)
+      watchlistLoadedState.value = true
+    }
+    catch (error) {
+      watchlistErrorState.value = true
+      throw error
     }
     finally {
       watchlistLoadingState.value = false
@@ -59,42 +79,26 @@ export function useValuationWatchlist() {
   async function addToWatchlist(input: ValuationWatchlistMutationInput) {
     try {
       await addValuationWatchlist(input).send()
-      upsertWatchlistItem(input)
+      await syncWatchlistListAfterMutation(() => upsertWatchlistItem(input))
       globalToast.success('加入自选成功')
       return true
     }
     catch {
-      if (!import.meta.env.DEV) {
-        globalToast.error('加入自选失败')
-        return false
-      }
-
-      const fallbackItem = saveFallbackWatchlistFund(input)
-      watchlistItemsState.value = normalizeWatchlistItems([...watchlistItemsState.value, fallbackItem])
-      watchlistLoadedState.value = true
-      globalToast.success('加入自选成功')
-      return true
+      globalToast.error('加入自选失败')
+      return false
     }
   }
 
   async function removeFromWatchlist(code: string) {
     try {
       await removeValuationWatchlist(code).send()
-      watchlistItemsState.value = watchlistItemsState.value.filter(item => item.code !== code)
+      await syncWatchlistListAfterMutation(() => removeLocalWatchlistItem(code))
       globalToast.success('取消自选成功')
       return true
     }
     catch {
-      if (!import.meta.env.DEV) {
-        globalToast.error('取消自选失败')
-        return false
-      }
-
-      removeFallbackWatchlistFund(code)
-      watchlistItemsState.value = watchlistItemsState.value.filter(item => item.code !== code)
-      watchlistLoadedState.value = true
-      globalToast.success('取消自选成功')
-      return true
+      globalToast.error('取消自选失败')
+      return false
     }
   }
 
@@ -115,36 +119,115 @@ export function useValuationWatchlist() {
     removeFromWatchlist,
     toggleWatchlist,
   }
+
+  async function syncWatchlistListAfterMutation(fallback: () => void) {
+    try {
+      await refreshWatchlistListOnly()
+    }
+    catch {
+      fallback()
+    }
+  }
 }
 
-function normalizeWatchlistItems(items?: ValuationWatchlistFund[]) {
+function normalizeWatchlistItems(
+  items?: ValuationWatchlistFund[] | FavouriteItemServiceResponse[],
+  realtimeItems?: FavouriteRealtimeItemServiceResponse[],
+) {
   if (!Array.isArray(items))
     return [] as ValuationWatchlistFund[]
 
+  const realtimeMap = new Map(
+    Array.isArray(realtimeItems)
+      ? realtimeItems.map(item => [normalizeWatchlistCode(item.code), item])
+      : [],
+  )
+
   return items.map((item) => {
+    const realtimeItem = realtimeMap.get(normalizeWatchlistCode(item.code))
     return {
       code: item.code,
       name: item.name,
-      dailyChange: typeof item.dailyChange === 'number' ? item.dailyChange : null,
-      updateTime: item.updateTime || '14:05',
+      dailyChange: normalizeWatchlistDailyChange(
+        'dailyChange' in item ? item.dailyChange : getRealtimeYieldChange(realtimeItem),
+      ),
+      updateTime: 'updateTime' in item ? item.updateTime || currentTimeText() : currentTimeText(),
       watchlisted: true,
     } satisfies ValuationWatchlistFund
   })
 }
 
 function upsertWatchlistItem(input: ValuationWatchlistMutationInput) {
+  const normalizedCode = normalizeWatchlistCode(input.code)
   const nextItem: ValuationWatchlistFund = {
     code: input.code,
-    name: input.name || `基金 ${input.code}`,
-    dailyChange: typeof input.dailyChange === 'number' ? input.dailyChange : null,
-    updateTime: input.updateTime || '14:05',
+    name: input.name || input.code,
+    dailyChange: normalizeWatchlistDailyChange(input.dailyChange),
+    updateTime: input.updateTime || currentTimeText(),
     watchlisted: true,
   }
 
-  watchlistItemsState.value = normalizeWatchlistItems([
-    ...watchlistItemsState.value.filter(item => item.code !== input.code),
-    nextItem,
-  ])
+  const currentItems = [...watchlistItemsState.value]
+  const currentIndex = currentItems.findIndex(item => normalizeWatchlistCode(item.code) === normalizedCode)
+
+  if (currentIndex >= 0) {
+    currentItems[currentIndex] = {
+      ...currentItems[currentIndex],
+      ...nextItem,
+      name: input.name || currentItems[currentIndex].name,
+      watchlisted: true,
+    }
+  }
+  else {
+    currentItems.unshift(nextItem)
+  }
+
+  watchlistItemsState.value = currentItems
   watchlistLoadedState.value = true
   watchlistErrorState.value = false
+}
+
+function removeLocalWatchlistItem(code: string) {
+  const normalizedCode = normalizeWatchlistCode(code)
+  watchlistItemsState.value = watchlistItemsState.value.filter(
+    item => normalizeWatchlistCode(item.code) !== normalizedCode,
+  )
+  watchlistLoadedState.value = true
+  watchlistErrorState.value = false
+}
+
+function normalizeWatchlistCode(code?: string | null) {
+  return `${code || ''}`.trim().toUpperCase()
+}
+
+function getRealtimeYieldChange(item?: FavouriteRealtimeItemServiceResponse | null) {
+  if (!item)
+    return null
+
+  const candidate = (item as FavouriteRealtimeItemServiceResponse & {
+    yield_change?: number | null
+    yield?: number | null
+  }).yieldChange
+  ?? (item as FavouriteRealtimeItemServiceResponse & { yield_change?: number | null }).yield_change
+  ?? (item as FavouriteRealtimeItemServiceResponse & { yield?: number | null }).yield
+
+  return candidate ?? null
+}
+
+function normalizeWatchlistDailyChange(value?: number | null) {
+  if (value === null || value === undefined || Number.isNaN(Number(value)))
+    return null
+
+  const numericValue = Number(value)
+  if (Math.abs(numericValue) <= 1)
+    return numericValue * 100
+
+  return numericValue
+}
+
+function currentTimeText() {
+  const currentDate = new Date()
+  const hours = `${currentDate.getHours()}`.padStart(2, '0')
+  const minutes = `${currentDate.getMinutes()}`.padStart(2, '0')
+  return `${hours}:${minutes}`
 }
