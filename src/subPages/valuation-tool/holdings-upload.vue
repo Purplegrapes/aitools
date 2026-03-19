@@ -7,6 +7,7 @@ import { usePortfolio } from './composables/usePortfolio'
 import { consumePortfolioRecognitionSession } from './composables/usePortfolioRecognitionSession'
 import {
   buildPortfolioPositionFromSnapshot,
+  createHoldingsPath,
   createHoldingsSyncPath,
   getRecognitionDraftStatusMeta,
 } from './utils'
@@ -175,7 +176,7 @@ async function handleConfirmImport() {
 
   if (!drafts.value.length) {
     globalToast.success(`已导入 ${importedCount} 条持仓`)
-    router.pushTab({ name: 'valuation-tool-holdings' })
+    router.replace(createHoldingsPath())
     return
   }
 

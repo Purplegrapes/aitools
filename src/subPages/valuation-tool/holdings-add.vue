@@ -3,7 +3,7 @@ import type { PortfolioFundOption } from './types'
 import AddPositionForm from './components/AddPositionForm.vue'
 import BottomActionBar from './components/BottomActionBar.vue'
 import { usePortfolio } from './composables/usePortfolio'
-import { buildPortfolioPositionFromSnapshot, createHoldingsSyncPath } from './utils'
+import { buildPortfolioPositionFromSnapshot, createHoldingsPath, createHoldingsSyncPath } from './utils'
 
 definePage({
   name: 'valuation-tool-holdings-add',
@@ -69,7 +69,7 @@ function handleSave(resetAfterSave = false) {
     return
   }
 
-  router.pushTab({ name: 'valuation-tool-holdings' })
+  router.replace(createHoldingsPath())
 }
 
 function handleOpenScreenshotFlow() {

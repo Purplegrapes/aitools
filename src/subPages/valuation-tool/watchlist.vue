@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import ValuationBottomNav from './components/ValuationBottomNav.vue'
 import WatchlistFundCard from './components/WatchlistFundCard.vue'
 import { useValuationWatchlist } from './composables/useValuationWatchlist'
-import { createResultPath } from './utils'
+import { createResultPath, createValuationHomePath } from './utils'
 
 definePage({
   name: 'valuation-tool-watchlist',
-  layout: 'tabbar',
+  layout: 'default',
   style: {
     navigationBarTitleText: '自选基金',
     navigationBarBackgroundColor: '#F5F7FA',
@@ -23,6 +24,7 @@ const {
 } = useValuationWatchlist()
 
 onShow(() => {
+  uni.hideTabBar()
   refreshWatchlist(true)
 })
 
@@ -47,12 +49,12 @@ function handleRemove(code: string) {
 }
 
 function handleBackHome() {
-  router.pushTab({ name: 'valuation-tool-home' })
+  router.replace(createValuationHomePath())
 }
 </script>
 
 <template>
-  <view class="min-h-screen bg-page vt-page-shell pb-[120rpx]">
+  <view class="min-h-screen bg-page vt-page-shell pb-[220rpx]">
     <view class="pointer-events-none absolute inset-x-0 top-0 h-[280rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.14),_transparent_62%)]" />
 
     <view class="relative mx-auto flex flex-col gap-4">
@@ -167,5 +169,7 @@ function handleBackHome() {
         </view>
       </template>
     </view>
+
+    <ValuationBottomNav current="watchlist" />
   </view>
 </template>

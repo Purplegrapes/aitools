@@ -19,6 +19,7 @@ import {
   createMineScanPath,
   createSearchPath,
   createValuationHomePath,
+  createWatchlistPath,
   inferMarketTypeFromChannel,
   isApiNotFound,
   isApiSuccess,
@@ -170,7 +171,7 @@ function handlePrimaryAction() {
 }
 
 function handleOpenWatchlist() {
-  router.pushTab({ name: 'valuation-tool-watchlist' })
+  router.push(createWatchlistPath())
 }
 
 function handleOpenMineScan() {

@@ -225,12 +225,12 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
 
 <template>
   <view class="flex flex-col gap-4">
-    <view class="px-[4rpx] pt-[68rpx]">
+    <view class="px-[4rpx]">
       <view class="max-w-[620rpx]">
-        <text class="block text-[52rpx] text-primary font-700 leading-[1.08] tracking-[1rpx]">
+        <text class="block text-2xl text-primary font-500 leading-[1.08] tracking-[1rpx]">
           {{ result.name }}
         </text>
-        <text class="mt-[12rpx] block text-[24rpx] text-secondary leading-[36rpx]">
+        <text class="mt-[12rpx] block text-sm text-secondary leading-[36rpx]">
           {{ result.code }}
         </text>
 
@@ -238,8 +238,8 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
           <wd-tag
             v-for="tag in result.tags || []"
             :key="tag"
-            round
-            type="primary"
+            mark
+            bg-color="#7894da"
           >
             <text class="text-[22rpx] leading-[32rpx]">
               {{ tag }}
@@ -249,10 +249,10 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
       </view>
     </view>
 
-    <view class="vt-top-card p-4">
+    <view class="vt-card bg-surface">
       <view class="flex items-start justify-between gap-4">
         <view>
-          <text class="block text-sm text-secondary">
+          <text class="block text-base text-primary font-500">
             {{ marketType === 'exchange' ? '场内行情参考' : '净值估算参考' }}
           </text>
         </view>
@@ -312,7 +312,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
       </view>
 
       <view class="mt-4 rounded-panel bg-page px-3 py-3">
-        <text v-if="otcExplanationMetrics" class="text-sm text-regular leading-6">
+        <text v-if="otcExplanationMetrics" class="text-xs text-regular leading-6">
           当前估算净值约为
           <text class="text-primary font-600">
             {{ otcExplanationMetrics.valuation }}
@@ -334,7 +334,7 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
     </view>
 
     <view class="vt-card bg-surface">
-      <text class="block text-lg text-primary font-600 leading-tight">
+      <text class="block text-base text-primary font-600 leading-tight">
         基金信息摘要
       </text>
 
@@ -375,12 +375,6 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
             </view>
           </view>
         </view>
-      </view>
-
-      <view class="mt-[28rpx]">
-        <text class="block text-[24rpx] text-secondary leading-[38rpx]">
-          {{ result.definition }}
-        </text>
       </view>
 
       <view class="grid grid-cols-2 mt-[26rpx] gap-[20rpx]">
