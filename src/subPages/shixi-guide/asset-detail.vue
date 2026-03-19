@@ -318,6 +318,23 @@ const latestTreasuryYieldValue = computed(() => {
   const raw = treasuryYieldChartData.value[treasuryYieldChartData.value.length - 1]?.value?.[1]
   return typeof raw === 'number' ? `${raw.toFixed(2)}%` : '--'
 })
+const comparisonLegendItems = computed(() => [
+  {
+    label: '股息率',
+    value: latestDividendValue.value,
+    colorClass: 'bg-blue',
+  },
+  {
+    label: '余额宝7日年化',
+    value: latestYuEBaoValue.value,
+    colorClass: 'bg-#ff7a1a',
+  },
+  {
+    label: '10年期国债收益率',
+    value: latestTreasuryYieldValue.value,
+    colorClass: 'bg-#A7AFBF',
+  },
+])
 
 function hexToRgba(hex: string, alpha: number): string {
   const r = Number.parseInt(hex.slice(1, 3), 16)
@@ -410,7 +427,7 @@ const chartOption = computed<EChartsOption>(() => ({
       showSymbol: false,
       smooth: true,
       data: treasuryYieldChartData.value,
-      lineStyle: { width: 2, color: '#16a34a' },
+      lineStyle: { width: 2, color: '#A7AFBF' },
     },
   ],
 }))
@@ -537,37 +554,25 @@ onMounted(async () => {
           <wd-icon name="info-circle" custom-class="text-14px! text-tertiary! leading-none!" />
         </view>
 
-        <view class="mt-3 rounded-xl bg-#f2f5fb p-3">
-          <text class="text-sm text-tertiary">
+        <view class="mt-3 rounded-xl bg-#f2f5fb px-3 py-3">
+          <text class="text-sm text-tertiary leading-5">
             {{ latestLegendDate }}
           </text>
-          <view class="mt-2 flex flex-col gap-2">
-            <view class="flex items-center gap-1.5">
-              <view class="h-0.75 w-4 rounded-full bg-blue" />
-              <text class="text-xs text-secondary">
-                食息率
-              </text>
-              <text class="text-xs text-primary">
-                {{ latestDividendValue }}
-              </text>
-            </view>
-            <view class="flex items-center gap-1.5">
-              <view class="h-0.75 w-4 rounded-full bg-#ff7a1a" />
-              <text class="shrink-0 whitespace-nowrap text-xs text-secondary">
-                余额宝7日年化
-              </text>
-              <text class="text-xs text-primary">
-                {{ latestYuEBaoValue }}
-              </text>
-            </view>
-            <view class="flex items-center gap-1.5">
-              <view class="h-0.75 w-4 rounded-full bg-green" />
-              <text class="shrink-0 whitespace-nowrap text-xs text-secondary">
-                10年期国债收益率
-              </text>
-              <text class="text-xs text-primary">
-                {{ latestTreasuryYieldValue }}
-              </text>
+          <view class="grid grid-cols-[0.82fr_1.08fr_1.22fr] mt-3 gap-2">
+            <view
+              v-for="item in comparisonLegendItems"
+              :key="item.label"
+              class="min-w-0 flex items-start gap-2"
+            >
+              <view :class="item.colorClass" class="mt-[4rpx] h-[60rpx] w-[6rpx] shrink-0 rounded-full" />
+              <view class="min-w-0">
+                <text class="block truncate text-xs text-secondary leading-[32rpx]">
+                  {{ item.label }}
+                </text>
+                <text class="mt-[8rpx] block text-sm text-primary font-600 leading-[32rpx]">
+                  {{ item.value }}
+                </text>
+              </view>
             </view>
           </view>
         </view>
