@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import type { HotSearchFund, MarketSentiment } from './types'
+import type {
+  HotFundServiceItem,
+  HotSearchFund,
+  MarketSentiment,
+  MarketSentimentServiceResponse,
+} from './types'
 import { getHotSearchFunds, getMarketSentiment } from './api/valuationTool'
 import HomeActionBar from './components/HomeActionBar.vue'
 import HotSearchList from './components/HotSearchList.vue'
 import RiskNoteCard from './components/RiskNoteCard.vue'
 import SentimentCard from './components/SentimentCard.vue'
-import ValuationSearchBar from './components/ValuationSearchBar.vue'
-import { fallbackHotSearches, fallbackMarketSentiment } from './mock'
+import {
+  fallbackHotSearches,
+  fallbackMarketSentiment,
+  normalizeHotFundItem,
+  normalizeMarketSentimentResponse,
+} from './mock'
 import { createHoldingsPath, createResultPath, createSearchPath, createWatchlistPath } from './utils'
 
 definePage({
@@ -20,7 +29,6 @@ definePage({
 })
 
 const router = useRouter()
-const searchKeyword = shallowRef('')
 
 const {
   data: sentimentResponse,
@@ -39,22 +47,16 @@ const {
 })
 
 const sentiment = computed<MarketSentiment>(() => {
-  return (sentimentResponse.value as { data?: MarketSentiment } | undefined)?.data || fallbackMarketSentiment
+  const payload = (sentimentResponse.value as { data?: MarketSentimentServiceResponse } | undefined)?.data
+  return payload ? normalizeMarketSentimentResponse(payload) : fallbackMarketSentiment
 })
 
 const hotSearches = computed<HotSearchFund[]>(() => {
-  return (hotSearchResponse.value as { data?: { items?: HotSearchFund[] } } | undefined)?.data?.items || fallbackHotSearches
+  const items = (hotSearchResponse.value as { data?: { items?: HotFundServiceItem[] } } | undefined)?.data?.items
+  return items?.map(normalizeHotFundItem) || fallbackHotSearches
 })
 
 const isLoading = computed(() => sentimentLoading.value || hotSearchLoading.value)
-
-function handleSearch() {
-  const keyword = searchKeyword.value.trim()
-  if (!keyword)
-    return
-
-  router.push(createSearchPath(keyword))
-}
 
 function handleSelectHotSearch(item: HotSearchFund) {
   router.push(createResultPath(item.code))
@@ -66,6 +68,10 @@ function handleOpenWatchlist() {
 
 function handleOpenHoldings() {
   router.push(createHoldingsPath())
+}
+
+function handleOpenSearch() {
+  router.push(createSearchPath(''))
 }
 </script>
 
@@ -86,13 +92,29 @@ function handleOpenHoldings() {
           </text>
         </view>
 
-        <view class="mt-[24rpx]">
-          <ValuationSearchBar
-            v-model="searchKeyword"
-            placeholder="请输入基金全称或代码"
-            button-text="查询"
-            @submit="handleSearch"
-          />
+        <view
+          class="mt-[24rpx] border border-line/70 rounded-card bg-surface px-[22rpx] py-[20rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.06)]"
+          hover-class="opacity-92"
+          @click="handleOpenSearch"
+        >
+          <view class="flex items-center gap-[14rpx]">
+            <view class="h-[54rpx] w-[54rpx] flex shrink-0 items-center justify-center rounded-full bg-brand-muted text-brand">
+              <view class="i-carbon-search text-[32rpx]" />
+            </view>
+            <view class="min-w-0 flex-1">
+              <text class="block text-[28rpx] text-primary font-600">
+                查基金估值
+              </text>
+              <text class="mt-[6rpx] block text-[22rpx] text-secondary leading-[34rpx]">
+                输入基金名称或代码，去搜索页快速查看并加入自选
+              </text>
+            </view>
+            <view class="h-[64rpx] flex shrink-0 items-center justify-center rounded-[18rpx] bg-brand px-[24rpx]">
+              <text class="text-[24rpx] text-white font-500">
+                去搜索
+              </text>
+            </view>
+          </view>
         </view>
       </view>
 
