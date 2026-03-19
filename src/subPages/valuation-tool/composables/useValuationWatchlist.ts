@@ -12,9 +12,8 @@ import {
 } from '../api/valuationTool'
 
 const watchlistItemsState = shallowRef<ValuationWatchlistFund[]>([])
-const watchlistLoadingState = shallowRef(false)
-const watchlistLoadedState = shallowRef(false)
-const watchlistErrorState = shallowRef(false)
+const watchlistHasSnapshotState = shallowRef(false)
+const watchlistRefreshModeState = shallowRef<'full' | 'list-only' | null>(null)
 
 export function useValuationWatchlist() {
   const globalToast = useGlobalToast()
@@ -25,60 +24,101 @@ export function useValuationWatchlist() {
     return watchlistItemsState.value.some(item => item.code === code)
   }
 
+  const { error: watchlistListRequestError, loading: watchlistListLoading, send: sendWatchlistListRequest } = useRequest(
+    () => getValuationWatchlist(),
+    {
+      immediate: false,
+      onError: () => undefined,
+    },
+  )
+
+  const { error: watchlistRealtimeRequestError, loading: watchlistRealtimeLoading, send: sendWatchlistRealtimeRequest } = useRequest(
+    () => getValuationWatchlistRealtime(),
+    {
+      immediate: false,
+      onError: () => undefined,
+    },
+  )
+
+  const { send: sendAddWatchlistRequest } = useRequest(
+    (input: ValuationWatchlistMutationInput) => addValuationWatchlist(input),
+    {
+      immediate: false,
+      onError: () => undefined,
+    },
+  )
+
+  const { send: sendRemoveWatchlistRequest } = useRequest(
+    (code: string) => removeValuationWatchlist(code),
+    {
+      immediate: false,
+      onError: () => undefined,
+    },
+  )
+
+  const watchlistLoading = computed(() => {
+    return watchlistRefreshModeState.value === 'full' && (watchlistListLoading.value || watchlistRealtimeLoading.value)
+  })
+  const watchlistError = computed(() => {
+    if (watchlistLoading.value)
+      return false
+
+    if (watchlistRefreshModeState.value === 'list-only')
+      return false
+
+    if (watchlistHasSnapshotState.value)
+      return false
+
+    return !!watchlistListRequestError.value || !!watchlistRealtimeRequestError.value
+  })
+
   async function refreshWatchlist(force = false) {
-    if (watchlistLoadingState.value)
+    if (watchlistRefreshModeState.value)
       return
-    if (!force && watchlistLoadedState.value)
+    if (!force && watchlistHasSnapshotState.value)
       return
 
-    watchlistLoadingState.value = true
-    watchlistErrorState.value = false
-
+    watchlistRefreshModeState.value = 'full'
     try {
       const [listResponse, realtimeResponse] = await Promise.all([
-        getValuationWatchlist().send(),
-        getValuationWatchlistRealtime().send(),
+        sendWatchlistListRequest(),
+        sendWatchlistRealtimeRequest(),
       ])
-      const listItems = (listResponse as { data?: FavouriteItemServiceResponse[] } | undefined)?.data
-      const realtimeItems = (realtimeResponse as { data?: FavouriteRealtimeItemServiceResponse[] } | undefined)?.data
-      const normalizedItems = normalizeWatchlistItems(listItems, realtimeItems)
-      watchlistItemsState.value = normalizedItems
-      watchlistLoadedState.value = true
+      applyWatchlistItems(
+        (listResponse as { data?: FavouriteItemServiceResponse[] } | undefined)?.data,
+        (realtimeResponse as { data?: FavouriteRealtimeItemServiceResponse[] } | undefined)?.data,
+      )
     }
     catch {
       watchlistItemsState.value = []
-      watchlistErrorState.value = true
     }
     finally {
-      watchlistLoadingState.value = false
+      watchlistRefreshModeState.value = null
     }
   }
 
   async function refreshWatchlistListOnly() {
-    if (watchlistLoadingState.value)
-      return
+    if (watchlistRefreshModeState.value)
+      return false
 
-    watchlistLoadingState.value = true
-    watchlistErrorState.value = false
+    watchlistRefreshModeState.value = 'list-only'
 
     try {
-      const listResponse = await getValuationWatchlist().send()
-      const listItems = (listResponse as { data?: FavouriteItemServiceResponse[] } | undefined)?.data
-      watchlistItemsState.value = normalizeWatchlistItems(listItems)
-      watchlistLoadedState.value = true
+      const listResponse = await sendWatchlistListRequest()
+      applyWatchlistItems((listResponse as { data?: FavouriteItemServiceResponse[] } | undefined)?.data)
+      return true
     }
-    catch (error) {
-      watchlistErrorState.value = true
-      throw error
+    catch {
+      return false
     }
     finally {
-      watchlistLoadingState.value = false
+      watchlistRefreshModeState.value = null
     }
   }
 
   async function addToWatchlist(input: ValuationWatchlistMutationInput) {
     try {
-      await addValuationWatchlist(input).send()
+      await sendAddWatchlistRequest(input)
       await syncWatchlistListAfterMutation(() => upsertWatchlistItem(input))
       globalToast.success('加入自选成功')
       return true
@@ -91,7 +131,7 @@ export function useValuationWatchlist() {
 
   async function removeFromWatchlist(code: string) {
     try {
-      await removeValuationWatchlist(code).send()
+      await sendRemoveWatchlistRequest(code)
       await syncWatchlistListAfterMutation(() => removeLocalWatchlistItem(code))
       globalToast.success('取消自选成功')
       return true
@@ -110,9 +150,8 @@ export function useValuationWatchlist() {
 
   return {
     watchlistItems,
-    watchlistLoading: readonly(watchlistLoadingState),
-    watchlistLoaded: readonly(watchlistLoadedState),
-    watchlistError: readonly(watchlistErrorState),
+    watchlistLoading,
+    watchlistError,
     isWatchlisted,
     refreshWatchlist,
     addToWatchlist,
@@ -121,13 +160,19 @@ export function useValuationWatchlist() {
   }
 
   async function syncWatchlistListAfterMutation(fallback: () => void) {
-    try {
-      await refreshWatchlistListOnly()
-    }
-    catch {
+    const synced = await refreshWatchlistListOnly()
+    if (!synced) {
       fallback()
     }
   }
+}
+
+function applyWatchlistItems(
+  items?: ValuationWatchlistFund[] | FavouriteItemServiceResponse[],
+  realtimeItems?: FavouriteRealtimeItemServiceResponse[],
+) {
+  watchlistItemsState.value = normalizeWatchlistItems(items, realtimeItems)
+  watchlistHasSnapshotState.value = true
 }
 
 function normalizeWatchlistItems(
@@ -183,8 +228,7 @@ function upsertWatchlistItem(input: ValuationWatchlistMutationInput) {
   }
 
   watchlistItemsState.value = currentItems
-  watchlistLoadedState.value = true
-  watchlistErrorState.value = false
+  watchlistHasSnapshotState.value = true
 }
 
 function removeLocalWatchlistItem(code: string) {
@@ -192,8 +236,7 @@ function removeLocalWatchlistItem(code: string) {
   watchlistItemsState.value = watchlistItemsState.value.filter(
     item => normalizeWatchlistCode(item.code) !== normalizedCode,
   )
-  watchlistLoadedState.value = true
-  watchlistErrorState.value = false
+  watchlistHasSnapshotState.value = true
 }
 
 function normalizeWatchlistCode(code?: string | null) {
