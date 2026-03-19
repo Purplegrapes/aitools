@@ -74,12 +74,12 @@ const categories = {
 const allTools: ToolItem[] = [
   // 投资工具
   {
-    id: 'etf-valuation-tool',
-    name: 'ETF翻译器',
-    description: '小白快速看懂基金',
+    id: 'valuation-tool',
+    name: '宝倍估值',
+    description: '宝倍查估值，快速看懂你的基',
     icon: 'idea',
     category: 'investment',
-    route: { name: 'etf-valuation-tool-home' },
+    route: { name: 'valuation-tool-home' },
     popular: true,
   },
   {

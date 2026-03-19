@@ -106,7 +106,7 @@ export async function handleAlovaError(error: any, method: Method) {
 
   // 处理401/403错误（如果不是在handleAlovaResponse中处理的）
   if (error instanceof ApiError && (error.code === 401 || error.code === 403)) {
-    if (!method.url.startsWith('/tools-api')) {
+    if (!method.url.startsWith('/tools-api') && !method.url.startsWith('/valuation-api')) {
       globalToast.error({ msg: error.message || '登录已过期，请重新登录！', duration: 500 })
     }
     throw error

@@ -48,10 +48,10 @@ export default defineConfig({
         target: 'https://cngz.yhlsd.com',
         changeOrigin: true,
       },
-      '/discovery-api': {
-        target: 'https://ai.firstindex.cn',
+      '/valuation-api': {
+        target: 'https://etf-insight.betalpha.com',
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/discovery-api/, ''),
+        rewrite: path => path.replace(/^\/valuation-api/, '/api'),
       },
     },
   },

@@ -127,6 +127,8 @@ alwaysApply: false
 - 禁止零散色值: 业务页面尽量不要直接写 `#xxxxxx`、`rgb()` 等颜色值；新增颜色先沉淀到 `uno.config.ts`
 - 单位规范: 业务样式不要再出现 `px` 单位；自定义尺寸统一使用 `rpx`
 - `rpx` 使用原则: `rpx` 只用于间距、圆角、阴影、定位、组件尺寸等移动端尺寸表达，并且要以保守视觉为准，优先复用已有间距等级，避免单页出现过大留白或过密排版
+- 语义化布局优先: 页面边距、卡片圆角、卡片内边距优先复用 `uno.config.ts` 中定义的语义类和 token，不要在业务页面重复散落 `rounded-[xxrpx]`、`px-[xxrpx]`、`py-[xxrpx]`
+- 估值工具约定: `src/subPages/valuation-tool` 后续默认优先使用 `vt-page-shell`、`vt-page-x`、`vt-card`、`vt-card-tight`、`vt-panel`、`vt-panel-tight` 以及 `rounded-card`、`rounded-panel`
 - **类名顺序**: 运行 `pnpm lint:fix` 自动排序 UnoCSS 类名
 
 ### 常用模式

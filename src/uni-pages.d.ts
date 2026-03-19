@@ -16,9 +16,16 @@ type _LocationUrl =
   "/subPages/tamp/index" |
   "/subPages/tamp/marketing" |
   "/subPages/tools/entry" |
-  "/subPages/etf/valuation-tool/index" |
-  "/subPages/etf/valuation-tool/result" |
-  "/subPages/etf/valuation-tool/search" |
+  "/subPages/valuation-tool/holdings-add" |
+  "/subPages/valuation-tool/holdings-edit" |
+  "/subPages/valuation-tool/holdings-sync" |
+  "/subPages/valuation-tool/holdings-upload" |
+  "/subPages/valuation-tool/holdings" |
+  "/subPages/valuation-tool/index" |
+  "/subPages/valuation-tool/mine-scan" |
+  "/subPages/valuation-tool/result" |
+  "/subPages/valuation-tool/search" |
+  "/subPages/valuation-tool/watchlist" |
   "/subPages/tools/demo/index";
 
 interface NavigateToOptions {

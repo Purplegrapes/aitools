@@ -330,7 +330,7 @@ const chartOption = computed<EChartsOption>(() => ({
   },
   yAxis: {
     type: 'value',
-    min: 'dataMin',
+    min: 0,
     axisLine: { show: false },
     axisTick: { show: false },
     splitLine: { lineStyle: { color: 'rgba(148, 163, 184, 0.25)', type: 'dashed' } },
