@@ -13,7 +13,8 @@ alwaysApply: true
 ## 🚀 快速开始
 - **开发**: `pnpm dev` (H5), `pnpm dev:mp-weixin` (微信小程序)。
 - **构建**: `pnpm build:h5`, `pnpm build:mp-weixin`。
-- **Lint**: `pnpm lint:fix`。
+- **Lint**: `pnpm lint` / `pnpm lint:fix`。
+- **Alova 规范检查**: `pnpm lint:alova`。
 - **预览**: `dist/` 目录。
 
 ## 📂 目录结构概览
@@ -71,7 +72,11 @@ alwaysApply: false
 - **子包独立 API**: 各子包可维护独立的 API 模块
     - `src/subPages/etf/api` - ETF 相关 API（含 userApi）
     - `src/subPages/tamp/api` - TAMP 认证和店铺 API
-- **使用 useRequest**: 组件中使用 `useRequest` 调用 API，自动处理 loading/error/data
+- **使用 useRequest**: 组件和组合式函数中统一使用 `useRequest`/`useWatcher` 调用 API，自动处理 loading/error/data
+- **Method 边界**: `src/api` 和各子包 `api` 模块只负责创建并返回 alova `Method`，不要在 API 模块外直接写 `getFoo().send()`
+- **状态来源**: 请求状态优先使用 `useRequest` 暴露的 `loading/error/data`，仅在确有 UI 语义需要时补充极少量本地派生状态
+- **Delete 规范**: `alovaInstance.Delete` 必须使用 `Delete(url, data, config)`，不要把 `headers` 放在第二个参数里
+- **规范文档**: 详细规则见 `docs/alova-guidelines.md`
 - **Skill**: 使用 **`alova-api-module`** 创建新的 API 模块
 
 ## 🛣️ 路由

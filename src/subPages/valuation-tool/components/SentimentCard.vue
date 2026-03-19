@@ -47,7 +47,7 @@ const thumbStyle = computed(() => {
     <view class="flex items-center justify-between gap-[20rpx]">
       <view class="flex items-center gap-[12rpx]">
         <view class="i-carbon-temperature text-[30rpx]" :style="{ color: sentimentTone.color }" />
-        <text class="text-[30rpx] text-primary font-600 leading-[42rpx]">
+        <text class="text-base text-primary font-600 leading-[42rpx]">
           今日市场情绪
         </text>
       </view>
@@ -57,7 +57,7 @@ const thumbStyle = computed(() => {
       </view>
     </view>
 
-    <view class="mt-[22rpx] flex items-center gap-[20rpx]">
+    <view class="mt-[30rpx] flex items-center gap-[20rpx]">
       <text class="text-2xl font-700 leading-none" :style="{ color: sentimentTone.color }">
         {{ temperatureLabel }}
       </text>
