@@ -171,8 +171,8 @@ function stringifyNullableField(value: unknown) {
     <view class="mx-auto max-w-[680rpx] flex flex-col gap-4">
       <ValuationSearchBar
         v-model="searchKeyword"
-        placeholder="继续搜索基金名称或代码"
-        button-text="查看"
+        placeholder="输入基金名称或代码"
+        button-text="搜索"
         @submit="handleSubmit"
       />
 
