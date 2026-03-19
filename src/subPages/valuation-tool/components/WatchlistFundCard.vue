@@ -13,7 +13,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <view class="grid grid-cols-[minmax(0,1.4fr)_120rpx_110rpx_120rpx] items-center gap-[12rpx] border-b border-line/70 px-4 py-4 last:border-b-0">
+  <view class="grid grid-cols-[minmax(0,1.5fr)_150rpx_120rpx] items-center gap-[12rpx] border-b border-line/70 px-4 py-4 last:border-b-0">
     <view class="min-w-0" @click="emit('select', item.code)">
       <text class="block truncate text-sm text-primary font-600">
         {{ item.name }}
@@ -29,15 +29,9 @@ const emit = defineEmits<{
       </text>
     </view>
 
-    <view class="text-center" @click="emit('select', item.code)">
-      <text class="block text-xs text-secondary">
-        {{ item.updateTime || '--' }}
-      </text>
-    </view>
-
     <view class="flex justify-end">
-      <wd-button size="small" plain type="warning" @click="emit('remove', item.code)">
-        取消
+      <wd-button size="small" plain @click="emit('remove', item.code)">
+        移除
       </wd-button>
     </view>
   </view>
