@@ -171,13 +171,14 @@ function applyWatchlistItems(
   items?: ValuationWatchlistFund[] | FavouriteItemServiceResponse[],
   realtimeItems?: FavouriteRealtimeItemServiceResponse[],
 ) {
-  watchlistItemsState.value = normalizeWatchlistItems(items, realtimeItems)
+  watchlistItemsState.value = normalizeWatchlistItems(items, realtimeItems, watchlistItemsState.value)
   watchlistHasSnapshotState.value = true
 }
 
 function normalizeWatchlistItems(
   items?: ValuationWatchlistFund[] | FavouriteItemServiceResponse[],
   realtimeItems?: FavouriteRealtimeItemServiceResponse[],
+  currentItems: ValuationWatchlistFund[] = [],
 ) {
   if (!Array.isArray(items))
     return [] as ValuationWatchlistFund[]
@@ -187,16 +188,25 @@ function normalizeWatchlistItems(
       ? realtimeItems.map(item => [normalizeWatchlistCode(item.code), item])
       : [],
   )
+  const currentItemMap = new Map(
+    currentItems.map(item => [normalizeWatchlistCode(item.code), item]),
+  )
 
   return items.map((item) => {
     const realtimeItem = realtimeMap.get(normalizeWatchlistCode(item.code))
+    const currentItem = currentItemMap.get(normalizeWatchlistCode(item.code))
+    const dailyChange = 'dailyChange' in item
+      ? item.dailyChange
+      : getRealtimeYieldChange(realtimeItem) ?? currentItem?.dailyChange
+    const updateTime = 'updateTime' in item
+      ? item.updateTime || currentTimeText()
+      : currentItem?.updateTime || currentTimeText()
+
     return {
       code: item.code,
       name: item.name,
-      dailyChange: normalizeWatchlistDailyChange(
-        'dailyChange' in item ? item.dailyChange : getRealtimeYieldChange(realtimeItem),
-      ),
-      updateTime: 'updateTime' in item ? item.updateTime || currentTimeText() : currentTimeText(),
+      dailyChange: normalizeWatchlistDailyChange(dailyChange),
+      updateTime,
       watchlisted: true,
     } satisfies ValuationWatchlistFund
   })
