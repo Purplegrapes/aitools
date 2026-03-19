@@ -12,14 +12,21 @@ const emit = defineEmits<{
 function getRankClass(rank: number) {
   return rank <= 3 ? 'text-danger' : 'text-tertiary'
 }
+
+function getChangeClass(value?: number | null) {
+  if (value === null || value === undefined || Number(value) === 0)
+    return 'text-secondary'
+
+  return Number(value) > 0 ? 'text-danger' : 'text-success'
+}
 </script>
 
 <template>
   <view class="vt-card bg-surface">
     <view class="flex items-center gap-[14rpx]">
-      <view class="i-carbon-fire text-[32rpx] text-danger" />
+      <view class="i-carbon-chart-line text-[32rpx] text-danger" />
       <text class="text-[34rpx] text-primary font-600 leading-[48rpx]">
-        热搜排行榜
+        涨幅榜
       </text>
     </view>
 
@@ -41,11 +48,9 @@ function getRankClass(rank: number) {
             {{ item.code }}
           </text>
         </view>
-        <view class="shrink-0 rounded-[12rpx] bg-surfaceSubtle px-[16rpx] py-[10rpx]">
-          <text class="text-[22rpx] text-secondary leading-[30rpx]">
-            {{ item.tag }}
-          </text>
-        </view>
+        <text class="shrink-0 text-[26rpx] font-600 leading-[36rpx]" :class="getChangeClass(item.changeValue)">
+          {{ item.changeText }}
+        </text>
       </view>
     </view>
   </view>

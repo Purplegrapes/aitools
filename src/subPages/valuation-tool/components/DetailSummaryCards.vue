@@ -17,10 +17,6 @@ const activeMetricTip = shallowRef<{
 
 const infoRows = computed(() => [
   {
-    label: '业绩比较基准',
-    value: props.result.targetIndex || '--',
-  },
-  {
     label: '成立日期',
     value: props.result.foundDate || '--',
   },

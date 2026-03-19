@@ -18,7 +18,8 @@ export interface HotSearchFund {
   rank: number
   code: string
   name: string
-  tag: string
+  changeText: string
+  changeValue?: number | null
 }
 
 export interface HotFundServiceItem {

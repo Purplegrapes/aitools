@@ -3,8 +3,11 @@ import type {
   FundResult,
   FundResultStatus,
   FundSearchItem,
+  FundSearchServiceItem,
+  HotFundServiceItem,
   HotSearchFund,
   MarketSentiment,
+  MarketSentimentServiceResponse,
   PortfolioFundOption,
   PortfolioInsight,
   PortfolioPosition,
@@ -31,11 +34,48 @@ export const fallbackMarketSentiment: MarketSentiment = {
 }
 
 export const fallbackHotSearches: HotSearchFund[] = [
-  { rank: 1, code: '000300', name: '沪深300ETF联接', tag: '宽基稳健' },
-  { rank: 2, code: '270042', name: '广发纳斯达克100', tag: '海外科技' },
-  { rank: 3, code: '009051', name: '易方达中证红利', tag: '防御收息' },
-  { rank: 4, code: '000218', name: '华安黄金ETF联接', tag: '抗通胀' },
+  { rank: 1, code: '000300', name: '沪深300ETF联接', changeText: '+2.36%', changeValue: 2.36 },
+  { rank: 2, code: '270042', name: '广发纳斯达克100', changeText: '+1.92%', changeValue: 1.92 },
+  { rank: 3, code: '009051', name: '易方达中证红利', changeText: '+1.48%', changeValue: 1.48 },
+  { rank: 4, code: '000218', name: '华安黄金ETF联接', changeText: '+1.15%', changeValue: 1.15 },
 ]
+
+const sentimentLabelMap: Record<MarketSentiment['level'], string> = {
+  freezing: '极冷',
+  cool: '偏冷',
+  neutral: '中性',
+  hot: '偏热',
+}
+
+const sentimentDescriptionMap: Record<MarketSentiment['level'], string> = {
+  freezing: '当前市场情绪明显降温，热点持续性偏弱，更适合放慢节奏看清基金投向。',
+  cool: '当前市场情绪整体偏谨慎，热点轮动较快，更适合先看清基金投向，再决定是否继续关注。',
+  neutral: '当前市场情绪相对平稳，结构性机会和波动会同时存在，适合按计划观察。',
+  hot: '当前市场关注度较高，短期波动和情绪放大都更明显，先看清基金定位再行动会更稳。',
+}
+
+export function normalizeMarketSentimentResponse(payload?: MarketSentimentServiceResponse | null): MarketSentiment {
+  const score = clampScore(payload?.score)
+  const level = inferSentimentLevel(score)
+
+  return {
+    updateTime: formatMarketPulseTime(payload?.updatedAt),
+    temperature: Math.round(score),
+    label: sentimentLabelMap[level],
+    level,
+    description: sentimentDescriptionMap[level],
+  }
+}
+
+export function normalizeHotFundItem(item: HotFundServiceItem): HotSearchFund {
+  return {
+    rank: item.rank,
+    code: item.code,
+    name: item.name?.trim() || `基金 ${item.code}`,
+    changeText: formatHotFundChange(item.yield),
+    changeValue: Number.isNaN(Number(item.yield)) ? null : Number(item.yield),
+  }
+}
 
 export const fallbackSearchResults: FundSearchItem[] = [
   {
@@ -63,6 +103,32 @@ export function findFallbackSearchResult(keyword: string) {
     return item.code.toLowerCase() === normalizedKeyword
       || item.name.toLowerCase() === normalizedKeyword
   }) || null
+}
+
+export function findFallbackSearchResults(keyword: string) {
+  const normalizedKeyword = keyword.trim().toLowerCase()
+  if (!normalizedKeyword)
+    return []
+
+  return fallbackSearchResults.filter((item) => {
+    return item.code.toLowerCase().includes(normalizedKeyword)
+      || item.name.toLowerCase().includes(normalizedKeyword)
+  })
+}
+
+export function normalizeFundSearchServiceItem(item: FundSearchServiceItem): SearchResultViewModel {
+  const categoryTag = inferCategoryTag(item.subCategoryId)
+  const channelTag = item.channel?.trim()
+
+  const tags = [categoryTag, channelTag].filter(Boolean) as string[]
+
+  return {
+    code: item.code,
+    name: item.name,
+    tags: tags.length ? tags : ['基金'],
+    summary: buildSearchSummary(item),
+    todayTag: inferTodayTag(tags),
+  }
 }
 
 export const fallbackFundResult: FundResult = {
@@ -186,6 +252,70 @@ function inferTodayTag(tags: string[]) {
   if (tagText.includes('黄金') || tagText.includes('科技'))
     return '今天波动较大'
   return '今天偏弱'
+}
+
+function clampScore(value?: number | null) {
+  if (value === null || value === undefined || Number.isNaN(Number(value)))
+    return fallbackMarketSentiment.temperature
+  return Math.max(0, Math.min(100, Number(value)))
+}
+
+function inferSentimentLevel(score: number): MarketSentiment['level'] {
+  if (score < 20)
+    return 'freezing'
+  if (score < 45)
+    return 'cool'
+  if (score < 70)
+    return 'neutral'
+  return 'hot'
+}
+
+function formatMarketPulseTime(updatedAt?: string | null) {
+  if (!updatedAt)
+    return fallbackMarketSentiment.updateTime
+  return updatedAt.replace('T', ' ').slice(0, 16)
+}
+
+function formatHotFundChange(yieldValue: number) {
+  if (Number.isNaN(Number(yieldValue)))
+    return '--'
+  const sign = yieldValue > 0 ? '+' : ''
+  return `${sign}${Number(yieldValue).toFixed(2)}%`
+}
+
+function inferCategoryTag(subCategoryId?: string | null) {
+  const rawValue = subCategoryId?.trim()
+  if (!rawValue)
+    return '基金'
+
+  const normalizedValue = rawValue.toLowerCase()
+
+  if (normalizedValue.includes('bond') || normalizedValue.includes('债'))
+    return '债券'
+  if (normalizedValue.includes('gold') || normalizedValue.includes('黄金'))
+    return '黄金'
+  if (normalizedValue.includes('hongli') || normalizedValue.includes('dividend') || normalizedValue.includes('红利'))
+    return '红利'
+  if (normalizedValue.includes('nasdaq') || normalizedValue.includes('oversea') || normalizedValue.includes('qdii') || normalizedValue.includes('海外'))
+    return '跨境'
+  if (normalizedValue.includes('broad') || normalizedValue.includes('index') || normalizedValue.includes('宽基'))
+    return '宽基'
+
+  return rawValue
+}
+
+function buildSearchSummary(item: FundSearchServiceItem) {
+  const channelText = item.channel?.trim()
+  const categoryText = inferCategoryTag(item.subCategoryId)
+
+  if (channelText && categoryText !== '基金')
+    return `这是一只${categoryText}基金，当前可在${channelText}等渠道看到相关资料。`
+  if (categoryText !== '基金')
+    return `这是一只${categoryText}基金，适合先从基金类型和跟踪方向开始理解。`
+  if (channelText)
+    return `这只基金当前可在${channelText}等渠道查询到基础资料。`
+
+  return '这只基金已搜到基础资料，你可以先进入详情页查看更完整的解释。'
 }
 
 const VALUATION_WATCHLIST_STORAGE_KEY = 'valuationToolWatchlist'
