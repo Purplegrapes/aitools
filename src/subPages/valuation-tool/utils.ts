@@ -349,6 +349,10 @@ function formatCurrentTime() {
   return `${hours}:${minutes}`
 }
 
+export function formatCurrentTimeLabel() {
+  return formatCurrentTime()
+}
+
 function formatSignedNumber(value: number, fractionDigits: number) {
   const sign = value > 0 ? '+' : ''
   return `${sign}${value.toFixed(fractionDigits)}`

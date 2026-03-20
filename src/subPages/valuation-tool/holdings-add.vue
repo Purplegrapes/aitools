@@ -18,31 +18,73 @@ definePage({
 
 const router = useRouter()
 const globalToast = useGlobalToast()
-const { ensureLoaded, addPosition, searchFunds } = usePortfolio()
+const { ensureLoaded, addManualPosition, searchFundsByKeyword } = usePortfolio()
 
 const keyword = shallowRef('')
 const selectedFund = shallowRef<PortfolioFundOption | null>(null)
 const holdingAmount = shallowRef('')
 const holdingProfit = shallowRef('')
+const searchResults = shallowRef<PortfolioFundOption[]>([])
+const searchLoading = shallowRef(false)
+let searchSeq = 0
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
-const searchResults = computed(() => {
-  if (!keyword.value.trim())
-    return []
-  if (selectedFund.value && keyword.value.trim() === selectedFund.value.name)
-    return []
-  return searchFunds(keyword.value)
+watch(keyword, (value) => {
+  const normalizedKeyword = value.trim()
+  if (!normalizedKeyword) {
+    selectedFund.value = null
+    searchResults.value = []
+    searchLoading.value = false
+    return
+  }
+
+  if (selectedFund.value && normalizedKeyword !== selectedFund.value.name)
+    selectedFund.value = null
+
+  if (selectedFund.value && normalizedKeyword === selectedFund.value.name) {
+    searchResults.value = []
+    searchLoading.value = false
+    return
+  }
+
+  if (searchTimer)
+    clearTimeout(searchTimer)
+
+  searchTimer = setTimeout(async () => {
+    const seq = ++searchSeq
+    const requestKeyword = normalizedKeyword
+    searchLoading.value = true
+    try {
+      const results = await searchFundsByKeyword(requestKeyword)
+      if (seq !== searchSeq)
+        return
+      if (keyword.value.trim() === requestKeyword)
+        searchResults.value = results
+    }
+    finally {
+      if (seq === searchSeq)
+        searchLoading.value = false
+    }
+  }, 240)
 })
 
 onShow(() => {
   ensureLoaded()
 })
 
+onBeforeUnmount(() => {
+  if (searchTimer)
+    clearTimeout(searchTimer)
+})
+
 function handleSelectFund(fund: PortfolioFundOption) {
   selectedFund.value = fund
   keyword.value = fund.name
+  searchResults.value = []
+  searchLoading.value = false
 }
 
-function handleSave(resetAfterSave = false) {
+async function handleSave(resetAfterSave = false) {
   if (!selectedFund.value) {
     globalToast.error('请先选择基金')
     return
@@ -59,8 +101,19 @@ function handleSave(resetAfterSave = false) {
     return
   }
 
-  addPosition(result.position)
-  globalToast.success('持仓已保存')
+  try {
+    await addManualPosition({
+      code: result.position.code,
+      name: result.position.name,
+      holdingAmount: Number(holdingAmount.value),
+      holdingProfit: Number(holdingProfit.value),
+    })
+    globalToast.success('持仓已保存')
+  }
+  catch {
+    globalToast.error('持仓保存失败，请稍后再试')
+    return
+  }
 
   if (resetAfterSave) {
     keyword.value = ''
@@ -113,6 +166,7 @@ function handleOpenScreenshotFlow() {
           v-model:keyword="keyword"
           :hide-actions="true"
           :results="searchResults"
+          :search-loading="searchLoading"
           :selected-fund="selectedFund"
           @select-fund="handleSelectFund"
         />

@@ -11,6 +11,8 @@ import type {
   MarketSentimentServiceResponse,
   PortfolioRecognitionDraft,
   PortfolioRecognitionResult,
+  PositionItemServiceResponse,
+  PositionRealtimeItemServiceResponse,
 } from '../types'
 import { alovaInstance } from '@/api/core/instance'
 import { realtime } from '@/subPages/etf/api'
@@ -59,6 +61,10 @@ function getFavouriteUid() {
   return '1'
 }
 
+function getPositionUid() {
+  return '1'
+}
+
 export function getValuationWatchlist() {
   return alovaInstance.Get<ApiEnvelope<FavouriteItemServiceResponse[]>>('/valuation-api/favourites', {
     headers: {
@@ -71,6 +77,34 @@ export function getValuationWatchlistRealtime() {
   return alovaInstance.Get<ApiEnvelope<FavouriteRealtimeItemServiceResponse[]>>('/valuation-api/favourites/realtime', {
     headers: {
       uid: getFavouriteUid(),
+    },
+  })
+}
+
+export function getPortfolioPositions() {
+  return alovaInstance.Get<ApiEnvelope<PositionItemServiceResponse[]>>('/valuation-api/positions', {
+    headers: {
+      uid: getPositionUid(),
+    },
+  })
+}
+
+export function getPortfolioPositionsRealtime() {
+  return alovaInstance.Get<ApiEnvelope<PositionRealtimeItemServiceResponse[]>>('/valuation-api/positions/realtime', {
+    headers: {
+      uid: getPositionUid(),
+    },
+  })
+}
+
+export function addPortfolioPosition(params: {
+  fundCode: string
+  holdingAmount: number
+  holdingProfit: number
+}) {
+  return alovaInstance.Post<ApiEnvelope<string>>('/valuation-api/positions', params, {
+    headers: {
+      uid: getPositionUid(),
     },
   })
 }

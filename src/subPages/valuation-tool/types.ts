@@ -56,6 +56,20 @@ export interface FavouriteRealtimeItemServiceResponse {
   yieldChange: number
 }
 
+export interface PositionItemServiceResponse {
+  code: string
+  name: string
+  totalAmount: number
+  totalProfit: number
+  totalProfitRate: number
+}
+
+export interface PositionRealtimeItemServiceResponse {
+  code: string
+  nav: number
+  yieldChange: number
+}
+
 export interface FundIntraday {
   value: number
   unit: string
