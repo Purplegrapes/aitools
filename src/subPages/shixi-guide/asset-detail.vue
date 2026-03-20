@@ -17,7 +17,7 @@ definePage({
   name: 'asset-detail',
   layout: 'default',
   style: {
-    navigationBarTitleText: '指数详情',
+    navigationBarTitleText: '资产详情',
     backgroundColor: '#F5F7FA',
     navigationBarBackgroundColor: '#CFE3FB',
   },
