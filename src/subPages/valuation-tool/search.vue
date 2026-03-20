@@ -11,6 +11,7 @@ definePage({
   name: 'valuation-tool-search',
   layout: 'default',
   style: {
+    backgroundColor: '#F5F7FA',
     navigationBarTitleText: '基金搜索',
     navigationBarBackgroundColor: '#F5F7FA',
     navigationBarTextStyle: 'black',
@@ -167,7 +168,7 @@ function stringifyNullableField(value: unknown) {
 </script>
 
 <template>
-  <view class="min-h-screen bg-page vt-page-shell pb-8">
+  <view class="bg-page vt-page-shell pb-8">
     <view class="mx-auto flex flex-col gap-4">
       <ValuationSearchBar
         v-model="searchKeyword"

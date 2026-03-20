@@ -16,6 +16,7 @@ definePage({
   name: 'valuation-tool-holdings-upload',
   layout: 'default',
   style: {
+    backgroundColor: '#F5F7FA',
     navigationBarTitleText: '确认持仓信息',
     navigationBarBackgroundColor: '#F5F7FA',
     navigationBarTextStyle: 'black',
@@ -204,7 +205,7 @@ function handleSecondaryAction() {
 </script>
 
 <template>
-  <view class="min-h-screen overflow-x-hidden bg-page pb-[220rpx] pt-[24rpx]">
+  <view class="overflow-x-hidden bg-page pb-[220rpx] pt-[24rpx]">
     <view
       class="pointer-events-none absolute inset-x-0 top-0 h-[320rpx]"
       style="background: linear-gradient(180deg, rgba(232,241,255,0.96), rgba(248,250,253,0.74) 58%, transparent);"

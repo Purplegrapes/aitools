@@ -167,6 +167,7 @@
           "name": "valuation-tool-holdings-add",
           "layout": "default",
           "style": {
+            "backgroundColor": "#F5F7FA",
             "navigationBarTitleText": "添加持仓",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
@@ -178,6 +179,7 @@
           "name": "valuation-tool-holdings-edit",
           "layout": "default",
           "style": {
+            "backgroundColor": "#F5F7FA",
             "navigationBarTitleText": "修改持仓",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
@@ -189,6 +191,7 @@
           "name": "valuation-tool-holdings-sync",
           "layout": "default",
           "style": {
+            "backgroundColor": "#F5F7FA",
             "navigationBarTitleText": "同步持仓",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
@@ -200,6 +203,7 @@
           "name": "valuation-tool-holdings-upload",
           "layout": "default",
           "style": {
+            "backgroundColor": "#F5F7FA",
             "navigationBarTitleText": "确认持仓信息",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
@@ -211,6 +215,7 @@
           "name": "valuation-tool-holdings",
           "layout": "default",
           "style": {
+            "backgroundColor": "#F5F7FA",
             "navigationBarTitleText": "我的持仓",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
@@ -222,6 +227,7 @@
           "name": "valuation-tool-home",
           "layout": "default",
           "style": {
+            "backgroundColor": "#F5F7FA",
             "navigationBarTitleText": "宝倍估值",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
@@ -233,6 +239,7 @@
           "name": "valuation-tool-mine-scan",
           "layout": "default",
           "style": {
+            "backgroundColor": "#F5F7FA",
             "navigationBarTitleText": "基金诊断",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
@@ -244,6 +251,7 @@
           "name": "valuation-tool-result",
           "layout": "default",
           "style": {
+            "backgroundColor": "#F5F7FA",
             "navigationBarTitleText": "基金详情",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
@@ -255,6 +263,7 @@
           "name": "valuation-tool-search",
           "layout": "default",
           "style": {
+            "backgroundColor": "#F5F7FA",
             "navigationBarTitleText": "基金搜索",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
@@ -266,6 +275,7 @@
           "name": "valuation-tool-watchlist",
           "layout": "default",
           "style": {
+            "backgroundColor": "#F5F7FA",
             "navigationBarTitleText": "自选基金",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"

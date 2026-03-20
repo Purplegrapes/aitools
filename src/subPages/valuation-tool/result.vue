@@ -33,6 +33,7 @@ definePage({
   name: 'valuation-tool-result',
   layout: 'default',
   style: {
+    backgroundColor: '#F5F7FA',
     navigationBarTitleText: '基金详情',
     navigationBarBackgroundColor: '#F5F7FA',
     navigationBarTextStyle: 'black',
@@ -199,7 +200,7 @@ function handleToggleWatchlist() {
 </script>
 
 <template>
-  <view class="relative min-h-screen overflow-x-hidden bg-page vt-page-shell" :class="showDetail ? 'pb-[160rpx]' : 'pb-8'">
+  <view class="relative overflow-x-hidden bg-page vt-page-shell" :class="showDetail ? 'pb-[160rpx]' : 'pb-8'">
     <view
       v-if="showDetail"
       class="pointer-events-none absolute inset-x-0 top-0 h-[380rpx] bg-[linear-gradient(180deg,_#E7F0FF_0%,_#F0F5FF_54%,_rgba(245,247,250,0)_100%)]"

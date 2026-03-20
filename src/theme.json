@@ -1,8 +1,8 @@
 {
   "light": {
-    "bgColor": "#F8F8F8",
-    "bgColorBottom": "#F8F8F8",
-    "bgColorTop": "#F8F8F8",
+    "bgColor": "#F5F7FA",
+    "bgColorBottom": "#F5F7FA",
+    "bgColorTop": "#F5F7FA",
     "bgTxtStyle": "dark",
     "navBgColor": "#FFF",
     "navTxtStyle": "black",

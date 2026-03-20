@@ -5,6 +5,7 @@ definePage({
   name: 'valuation-tool-mine-scan',
   layout: 'default',
   style: {
+    backgroundColor: '#F5F7FA',
     navigationBarTitleText: '基金诊断',
     navigationBarBackgroundColor: '#F5F7FA',
     navigationBarTextStyle: 'black',
@@ -26,7 +27,7 @@ function handleBackToDetail() {
 </script>
 
 <template>
-  <view class="min-h-screen bg-page vt-page-shell pb-8">
+  <view class="bg-page vt-page-shell pb-8">
     <view class="mx-auto vt-top-card p-6">
       <view class="h-[96rpx] w-[96rpx] flex items-center justify-center rounded-full bg-brand-muted text-brand">
         <view class="i-carbon-warning-alt-filled text-[44rpx]" />
