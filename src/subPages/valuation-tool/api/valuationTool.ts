@@ -15,6 +15,7 @@ import type {
   PositionRealtimeItemServiceResponse,
 } from '../types'
 import { alovaInstance } from '@/api/core/instance'
+import { getStoredUserId } from '@/subPages/auth/utils/loginGuard'
 import { realtime } from '@/subPages/etf/api'
 import { getFallbackPortfolioRecognitionResult } from '../mock'
 
@@ -57,26 +58,18 @@ export function getExchangeFundQuote(code: string) {
   })
 }
 
-function getFavouriteUid() {
-  return '1'
-}
-
-function getPositionUid() {
-  return '1'
-}
-
-export function getValuationWatchlist() {
+export function getValuationWatchlist(uid: string) {
   return alovaInstance.Get<ApiEnvelope<FavouriteItemServiceResponse[]>>('/valuation-api/favourites', {
     headers: {
-      uid: getFavouriteUid(),
+      uid,
     },
   })
 }
 
-export function getValuationWatchlistRealtime() {
+export function getValuationWatchlistRealtime(uid: string) {
   return alovaInstance.Get<ApiEnvelope<FavouriteRealtimeItemServiceResponse[]>>('/valuation-api/favourites/realtime', {
     headers: {
-      uid: getFavouriteUid(),
+      uid,
     },
   })
 }
@@ -84,7 +77,7 @@ export function getValuationWatchlistRealtime() {
 export function getPortfolioPositions() {
   return alovaInstance.Get<ApiEnvelope<PositionItemServiceResponse[]>>('/valuation-api/positions', {
     headers: {
-      uid: getPositionUid(),
+      uid: getStoredUserId(),
     },
   })
 }
@@ -92,7 +85,7 @@ export function getPortfolioPositions() {
 export function getPortfolioPositionsRealtime() {
   return alovaInstance.Get<ApiEnvelope<PositionRealtimeItemServiceResponse[]>>('/valuation-api/positions/realtime', {
     headers: {
-      uid: getPositionUid(),
+      uid: getStoredUserId(),
     },
   })
 }
@@ -104,12 +97,13 @@ export function addPortfolioPosition(params: {
 }) {
   return alovaInstance.Post<ApiEnvelope<string>>('/valuation-api/positions', params, {
     headers: {
-      uid: getPositionUid(),
+      uid: getStoredUserId(),
     },
   })
 }
 
 export function addValuationWatchlist(params: {
+  uid: string
   code: string
   name?: string
   dailyChange?: number | null
@@ -119,18 +113,18 @@ export function addValuationWatchlist(params: {
     code: params.code,
   }, {
     headers: {
-      uid: getFavouriteUid(),
+      uid: params.uid,
     },
   })
 }
 
-export function removeValuationWatchlist(code: string) {
+export function removeValuationWatchlist(code: string, uid: string) {
   return alovaInstance.Delete<ApiEnvelope<string>>(
     `/valuation-api/favourites/${code}`,
     undefined,
     {
       headers: {
-        uid: getFavouriteUid(),
+        uid,
       },
     },
   )

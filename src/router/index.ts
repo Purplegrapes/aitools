@@ -1,5 +1,6 @@
 /// <reference types="@uni-helper/vite-plugin-uni-pages/client" />
 import { pages, subPackages } from 'virtual:uni-pages'
+import { buildRefererPath, createAuthLoginRoute, getStoredUserId } from '@/subPages/auth/utils/loginGuard'
 
 function generateRoutes() {
   const routes = pages.map((page) => {
@@ -59,6 +60,19 @@ function isMiniProgramExternalAccess(path: string, query: Record<string, unknown
   return pickQueryValue(query.from) === 'miniapp'
 }
 
+const valuationAuthPaths = new Set([
+  '/subPages/valuation-tool/watchlist',
+  '/subPages/valuation-tool/holdings',
+  '/subPages/valuation-tool/holdings-sync',
+  '/subPages/valuation-tool/holdings-add',
+  '/subPages/valuation-tool/holdings-edit',
+  '/subPages/valuation-tool/holdings-upload',
+])
+
+function isValuationAuthRequired(path: string) {
+  return valuationAuthPaths.has(path)
+}
+
 router.beforeEach((to, from, next) => {
   console.log('🚀 beforeEach 守卫触发:', { to, from })
 
@@ -83,6 +97,15 @@ router.beforeEach((to, from, next) => {
       query: nextQuery,
     })
     return
+  }
+
+  if (isValuationAuthRequired(to.path || '')) {
+    const userId = getStoredUserId()
+    if (!userId) {
+      const referer = buildRefererPath(to.path || '/subPages/valuation-tool/index', toQuery)
+      next(createAuthLoginRoute(referer))
+      return
+    }
   }
 
   // 演示：基本的导航日志记录

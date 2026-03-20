@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useTampStore } from '@/store/tampStore'
-import { applyAuthSession, extractAuthSessionPayload } from '../auth/utils/authSession'
-import { tokenByCode } from './api'
+import { applyAuthSession, applyAuthUserProfile, extractAuthSessionPayload } from '../auth/utils/authSession'
+import { getCurrentAuthUser, tokenByCode } from './api'
 import { handleExternalRedirect } from './utils/externalRedirect'
 import { detectAccessMode } from './utils/sourceDetector'
 
@@ -61,6 +61,9 @@ onMounted(async () => {
         const authSession = extractAuthSessionPayload(response)
         if (authSession) {
           applyAuthSession(authSession)
+          const profile = await getCurrentAuthUser()
+          if (profile?.id)
+            applyAuthUserProfile(profile)
         }
         else {
           throw new Error('code 换 token 未返回有效凭证')
@@ -74,6 +77,14 @@ onMounted(async () => {
     }
     else if (tokenFromQuery) {
       applyAuthSession({ token: tokenFromQuery })
+      try {
+        const profile = await getCurrentAuthUser()
+        if (profile?.id)
+          applyAuthUserProfile(profile)
+      }
+      catch {
+        // token 直传兼容链路下，用户信息获取失败不阻断后续跳转
+      }
       cleanupSensitiveQuery()
     }
   }

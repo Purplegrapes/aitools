@@ -48,7 +48,11 @@ export default defineConfig({
       '/auth-api': {
         target: 'http://172.16.60.233:3000',
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/auth-api/, '/api/oauth'),
+        rewrite: (path) => {
+          if (path.startsWith('/auth-api/user/me'))
+            return path.replace(/^\/auth-api\/user\/me/, '/api/user/me')
+          return path.replace(/^\/auth-api/, '/api/oauth')
+        },
       },
       '/tools-api': {
         target: 'https://cngz.yhlsd.com',

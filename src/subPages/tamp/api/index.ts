@@ -24,6 +24,15 @@ export interface SendSmsCodeResponseDto {
   expires_in: number
 }
 
+export interface AuthUserProfileDto {
+  id: string
+  open_id: string
+  nickname: string
+  avatar_url: string
+  created_at: string
+  updated_at: string
+}
+
 /**
  * 通过code换取token（小程序跳转H5场景）
  * @param params 认证参数
@@ -80,6 +89,13 @@ export function exchangeToken(params: {
     code: params.code,
     grant_type: params.grant_type || 'authorization_code',
   })
+}
+
+/**
+ * 获取当前登录用户信息
+ */
+export function getCurrentAuthUser() {
+  return alovaInstance.Get<AuthUserProfileDto>('/auth-api/user/me')
 }
 
 /**

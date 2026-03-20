@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { exchangeToken, sendPhoneCode, verifyPhoneCode } from '../tamp/api'
-import { applyAuthSession, extractAuthSessionPayload } from './utils/authSession'
+import { exchangeToken, getCurrentAuthUser, sendPhoneCode, verifyPhoneCode } from '../tamp/api'
+import { applyAuthSession, applyAuthUserProfile, extractAuthSessionPayload } from './utils/authSession'
 
 definePage({
   name: 'auth-login',
@@ -120,6 +120,9 @@ async function handleSubmit() {
     }
 
     applyAuthSession(authPayload)
+    const profile = await getCurrentAuthUser()
+    if (profile?.id)
+      applyAuthUserProfile(profile)
     toast.success('登录成功')
     router.replace(referer.value)
   }

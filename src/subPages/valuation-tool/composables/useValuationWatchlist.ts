@@ -4,6 +4,8 @@ import type {
   ValuationWatchlistFund,
   ValuationWatchlistMutationInput,
 } from '../types'
+import { useEtfUserStore } from '@/store/etfUserStore'
+import { buildRefererPath, createAuthLoginRoute, getStoredUserId } from '@/subPages/auth/utils/loginGuard'
 import {
   addValuationWatchlist,
   getValuationWatchlist,
@@ -16,7 +18,10 @@ const watchlistHasSnapshotState = shallowRef(false)
 const watchlistRefreshModeState = shallowRef<'full' | 'list-only' | null>(null)
 
 export function useValuationWatchlist() {
+  const router = useRouter()
+  const route = useRoute()
   const globalToast = useGlobalToast()
+  const userStore = useEtfUserStore()
 
   const watchlistItems = computed(() => watchlistItemsState.value)
 
@@ -25,7 +30,7 @@ export function useValuationWatchlist() {
   }
 
   const { error: watchlistListRequestError, loading: watchlistListLoading, send: sendWatchlistListRequest } = useRequest(
-    () => getValuationWatchlist(),
+    (uid: string) => getValuationWatchlist(uid),
     {
       immediate: false,
       onError: () => undefined,
@@ -33,7 +38,7 @@ export function useValuationWatchlist() {
   )
 
   const { error: watchlistRealtimeRequestError, loading: watchlistRealtimeLoading, send: sendWatchlistRealtimeRequest } = useRequest(
-    () => getValuationWatchlistRealtime(),
+    (uid: string) => getValuationWatchlistRealtime(uid),
     {
       immediate: false,
       onError: () => undefined,
@@ -41,7 +46,7 @@ export function useValuationWatchlist() {
   )
 
   const { send: sendAddWatchlistRequest } = useRequest(
-    (input: ValuationWatchlistMutationInput) => addValuationWatchlist(input),
+    (input: ValuationWatchlistMutationInput & { uid: string }) => addValuationWatchlist(input),
     {
       immediate: false,
       onError: () => undefined,
@@ -49,7 +54,7 @@ export function useValuationWatchlist() {
   )
 
   const { send: sendRemoveWatchlistRequest } = useRequest(
-    (code: string) => removeValuationWatchlist(code),
+    ({ code, uid }: { code: string, uid: string }) => removeValuationWatchlist(code, uid),
     {
       immediate: false,
       onError: () => undefined,
@@ -73,6 +78,11 @@ export function useValuationWatchlist() {
   })
 
   async function refreshWatchlist(force = false) {
+    const userId = ensureUserId()
+    if (!userId) {
+      watchlistItemsState.value = []
+      return
+    }
     if (watchlistRefreshModeState.value)
       return
     if (!force && watchlistHasSnapshotState.value)
@@ -81,8 +91,8 @@ export function useValuationWatchlist() {
     watchlistRefreshModeState.value = 'full'
     try {
       const [listResponse, realtimeResponse] = await Promise.all([
-        sendWatchlistListRequest(),
-        sendWatchlistRealtimeRequest(),
+        sendWatchlistListRequest(userId),
+        sendWatchlistRealtimeRequest(userId),
       ])
       applyWatchlistItems(
         (listResponse as { data?: FavouriteItemServiceResponse[] } | undefined)?.data,
@@ -98,13 +108,17 @@ export function useValuationWatchlist() {
   }
 
   async function refreshWatchlistListOnly() {
+    const userId = ensureUserId()
+    if (!userId)
+      return false
+
     if (watchlistRefreshModeState.value)
       return false
 
     watchlistRefreshModeState.value = 'list-only'
 
     try {
-      const listResponse = await sendWatchlistListRequest()
+      const listResponse = await sendWatchlistListRequest(userId)
       applyWatchlistItems((listResponse as { data?: FavouriteItemServiceResponse[] } | undefined)?.data)
       return true
     }
@@ -117,8 +131,15 @@ export function useValuationWatchlist() {
   }
 
   async function addToWatchlist(input: ValuationWatchlistMutationInput) {
+    const userId = ensureUserId()
+    if (!userId)
+      return false
+
     try {
-      await sendAddWatchlistRequest(input)
+      await sendAddWatchlistRequest({
+        ...input,
+        uid: userId,
+      })
       await syncWatchlistListAfterMutation(() => upsertWatchlistItem(input))
       globalToast.success('加入自选成功')
       return true
@@ -130,8 +151,12 @@ export function useValuationWatchlist() {
   }
 
   async function removeFromWatchlist(code: string) {
+    const userId = ensureUserId()
+    if (!userId)
+      return false
+
     try {
-      await sendRemoveWatchlistRequest(code)
+      await sendRemoveWatchlistRequest({ code, uid: userId })
       await syncWatchlistListAfterMutation(() => removeLocalWatchlistItem(code))
       globalToast.success('取消自选成功')
       return true
@@ -146,6 +171,21 @@ export function useValuationWatchlist() {
     if (isWatchlisted(input.code))
       return removeFromWatchlist(input.code)
     return addToWatchlist(input)
+  }
+
+  function ensureUserId() {
+    const inMemoryUserId = userStore.userInfo?.id
+    if (inMemoryUserId !== null && inMemoryUserId !== undefined && `${inMemoryUserId}`.trim())
+      return `${inMemoryUserId}`
+
+    const persistedUserId = getStoredUserId()
+    if (persistedUserId)
+      return persistedUserId
+
+    const referer = buildRefererPath(route.path || '/subPages/valuation-tool/index', route.query as Record<string, unknown>)
+    router.replace(createAuthLoginRoute(referer))
+    globalToast.warning('请先登录后再使用该功能')
+    return ''
   }
 
   return {

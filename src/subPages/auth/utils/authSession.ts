@@ -1,4 +1,4 @@
-import type { TokenResponseDto } from '../api'
+import type { TokenResponseDto } from '../../tamp/api'
 import cookie from 'js-cookie'
 import { useEtfUserStore } from '@/store/etfUserStore'
 
@@ -30,4 +30,17 @@ export function applyAuthSession(payload: AuthSessionPayload) {
   // #ifdef H5
   cookie.set('ticket', payload.token)
   // #endif
+}
+
+export function applyAuthUserProfile(profile: {
+  id: string
+  nickname?: string
+  avatar_url?: string
+  [key: string]: any
+}) {
+  const userStore = useEtfUserStore()
+  userStore.setUserInfo({
+    ...profile,
+    avatar: profile.avatar || profile.avatar_url,
+  })
 }
