@@ -5,6 +5,7 @@ defineProps<{
   keyword: string
   results: PortfolioFundOption[]
   selectedFund?: PortfolioFundOption | null
+  loading?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -51,6 +52,15 @@ const emit = defineEmits<{
           {{ fund.code }} · {{ fund.tag }}
         </text>
       </view>
+    </view>
+
+    <view
+      v-else-if="keyword.trim() && !selectedFund"
+      class="mt-[12rpx] rounded-[16rpx] bg-surface px-[18rpx] py-[16rpx]"
+    >
+      <text class="block text-[22rpx] text-secondary">
+        {{ loading ? '正在搜索基金...' : '未搜索到匹配基金' }}
+      </text>
     </view>
   </view>
 </template>

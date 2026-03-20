@@ -2,13 +2,11 @@
 import DataUnavailableCard from './components/DataUnavailableCard.vue'
 import EmptyPortfolioState from './components/EmptyPortfolioState.vue'
 import PortfolioSummaryCard from './components/PortfolioSummaryCard.vue'
-import PositionFundCard from './components/PositionFundCard.vue'
-import PositionInsightCard from './components/PositionInsightCard.vue'
+import PositionDataTable from './components/PositionDataTable.vue'
 import SkeletonBlock from './components/SkeletonBlock.vue'
 import ValuationBottomNav from './components/ValuationBottomNav.vue'
 import { usePortfolio } from './composables/usePortfolio'
 import {
-  createHoldingsEditPath,
   createHoldingsSyncPath,
   createResultPath,
 } from './utils'
@@ -29,7 +27,6 @@ const {
   positions,
   metrics,
   summary,
-  insight,
   previewState,
   unavailableState,
   ensureLoaded,
@@ -47,10 +44,6 @@ function handleOpenSync() {
   router.push(createHoldingsSyncPath())
 }
 
-function handleEditPosition(id: string) {
-  router.push(createHoldingsEditPath(id))
-}
-
 function handleOpenFundDetail(code: string) {
   router.push(createResultPath(code))
 }
@@ -62,18 +55,6 @@ function handleOpenFundDetail(code: string) {
     <view class="pointer-events-none absolute inset-x-0 top-[120rpx] h-[220rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.08),_transparent_68%)]" />
 
     <view class="relative mx-auto max-w-[702rpx] flex flex-col gap-[20rpx]">
-      <view
-        v-if="!isLoadingState && hasPositions"
-        class="flex justify-end px-[4rpx] py-[6rpx]"
-      >
-        <view
-          class="shrink-0 rounded-full bg-brand px-[22rpx] py-[14rpx] text-[24rpx] text-white font-600 shadow-[0_12rpx_24rpx_rgba(22,120,255,0.22)]"
-          @click="handleOpenSync"
-        >
-          同步持仓
-        </view>
-      </view>
-
       <template v-if="isLoadingState">
         <view class="border border-line/70 rounded-[20rpx] bg-surface px-[24rpx] py-[24rpx] shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
           <SkeletonBlock height="32rpx" width="180rpx" rounded="14rpx" />
@@ -125,17 +106,24 @@ function handleOpenFundDetail(code: string) {
           :hint="unavailableState.hint"
         />
 
-        <PositionInsightCard :insight="insight" />
+        <PositionDataTable
+          :items="metrics"
+          :today-unavailable="isDataUnavailable"
+          @select="handleOpenFundDetail"
+        />
 
-        <view class="flex flex-col gap-[16rpx]">
-          <PositionFundCard
-            v-for="item in metrics"
-            :key="item.id"
-            :item="item"
-            :today-unavailable="isDataUnavailable"
-            @edit="handleEditPosition"
-            @select="handleOpenFundDetail(item.code)"
-          />
+        <view class="rounded-[16rpx] bg-surfaceSubtle px-[18rpx] py-[16rpx]">
+          <view class="flex items-center justify-between gap-[16rpx]">
+            <text class="text-[22rpx] text-secondary">
+              需要补录或更新持仓时，再去同步即可
+            </text>
+            <view
+              class="shrink-0 border border-line/80 rounded-full bg-surface px-[20rpx] py-[10rpx] text-[22rpx] text-primary font-500"
+              @click="handleOpenSync"
+            >
+              同步持仓
+            </view>
+          </view>
         </view>
       </template>
     </view>

@@ -21,3 +21,4 @@ dist
 *.sln
 *.sw?
 .vercel
+.agents

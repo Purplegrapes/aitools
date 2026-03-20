@@ -6,6 +6,7 @@ defineProps<{
   keyword: string
   results: PortfolioFundOption[]
   selectedFund: PortfolioFundOption | null
+  searchLoading?: boolean
   holdingAmount: string
   holdingProfit: string
   saveText?: string
@@ -29,6 +30,7 @@ const emit = defineEmits<{
       :keyword="keyword"
       :results="results"
       :selected-fund="selectedFund"
+      :loading="searchLoading"
       @select="emit('selectFund', $event)"
       @update:keyword="emit('update:keyword', $event)"
     />
