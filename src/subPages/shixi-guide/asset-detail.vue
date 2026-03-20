@@ -36,7 +36,7 @@ const TIME_RANGE_OPTIONS: Array<{ value: TimeRange, label: string, days: number 
 
 const query = computed(() => route.query as { code?: string, name?: string, assetType?: string, poolCode?: string })
 
-const currentTimeRange = ref<TimeRange>('1w')
+const currentTimeRange = ref<TimeRange>('1m')
 const loading = ref(true)
 const assetCode = ref('')
 
@@ -73,10 +73,9 @@ const assetDisplayCode = computed(() => {
 })
 
 const updatedDate = computed(() => {
-  const raw = assetDetail.value?.updated_at || ''
-  if (raw.includes('T'))
-    return raw.split('T')[0]
-  return raw.slice(0, 10) || '--'
+  return normalizeDateValue(assetDetail.value?.dividend_update_date)
+    || normalizeDateValue(assetDetail.value?.updated_at)
+    || '--'
 })
 
 const formattedDividendRate = computed(() => {
@@ -102,7 +101,7 @@ const detailRows = computed(() => {
       { label: '指数成分个数', value: toText(detail.constituent_count) || toText(detail.constituents_count) || '--', icon: 'layers' },
       { label: '指数加权方式', value: toText(detail.weighting_method) || '--', icon: 'swap' },
       { label: '指数样本调整周期', value: toText(detail.rebalance_cycle) || '--', icon: 'time' },
-      { label: '食息率(TTM)', value: formattedDividendRate.value, icon: 'chart' },
+      { label: '股息率(TTM)', value: formattedDividendRate.value, icon: 'chart' },
       { label: '每月千元分红需总投入(万元)', value: monthlyInvestmentText.value, icon: 'creditcard' },
     ]
   }
@@ -158,6 +157,23 @@ function parseDateUTC(dateString: string): Date | null {
 function formatDateUTC(date: Date): string {
   return date.toISOString().split('T')[0]
 }
+
+function normalizeDateValue(raw: unknown): string {
+  if (typeof raw !== 'string')
+    return ''
+  const text = raw.trim()
+  if (!text)
+    return ''
+  if (text.includes('T'))
+    return text.split('T')[0] || ''
+  return text.slice(0, 10)
+}
+
+const chartBaseEndDate = computed(() => {
+  return normalizeDateValue(assetDetail.value?.dividend_update_date)
+    || normalizeDateValue(assetDetail.value?.updated_at)
+    || currentDate.value
+})
 
 function fillDividendHistorySparse(
   factors: DividendRatePoint[],
@@ -432,13 +448,15 @@ const chartOption = computed<EChartsOption>(() => ({
   ],
 }))
 
-function buildFactorParams(code: string, days: number) {
-  const end = currentDate.value
-  const start = new Date()
-  start.setDate(start.getDate() - days)
+function buildFactorParams(code: string, days: number, endDate: string) {
+  const endDateObject = parseDateUTC(endDate)
+  if (!endDateObject)
+    return null
+  const start = new Date(endDateObject.getTime())
+  start.setUTCDate(start.getUTCDate() - days)
   return {
     start_date: start.toISOString().split('T')[0],
-    end_date: end,
+    end_date: formatDateUTC(endDateObject),
     codes: `${code},${YUEBAO_COMPARISON_CODE},${TEN_YEAR_TREASURY_CODE}`,
     factors: 'dividend_rate',
   }
@@ -450,7 +468,10 @@ async function refreshData() {
   const option = TIME_RANGE_OPTIONS.find(o => o.value === currentTimeRange.value)
   if (!option)
     return
-  factorParams.value = buildFactorParams(assetCode.value, option.days)
+  const nextParams = buildFactorParams(assetCode.value, option.days, chartBaseEndDate.value)
+  if (!nextParams)
+    return
+  factorParams.value = nextParams
   await fetchFactorHistory()
 }
 
@@ -484,9 +505,13 @@ onMounted(async () => {
   assetCode.value = code
   loading.value = true
   try {
+    await fetchAssetDetail()
     const option = TIME_RANGE_OPTIONS.find(o => o.value === currentTimeRange.value) || TIME_RANGE_OPTIONS[0]
-    factorParams.value = buildFactorParams(code, option.days)
-    await Promise.all([fetchAssetDetail(), fetchFactorHistory()])
+    const nextParams = buildFactorParams(code, option.days, chartBaseEndDate.value)
+    if (!nextParams)
+      throw new Error('invalid date range')
+    factorParams.value = nextParams
+    await fetchFactorHistory()
   }
   catch {
     globalToast.error({ msg: '数据加载失败，请稍后重试' })

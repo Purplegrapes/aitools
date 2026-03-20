@@ -18,6 +18,7 @@ export interface AssetDetail {
   monthly_dividend_investment: number
   description: string
   updated_at: string
+  dividend_update_date?: string
 }
 
 /**
