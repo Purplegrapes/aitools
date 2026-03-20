@@ -75,6 +75,15 @@
           }
         },
         {
+          "path": "auth/login",
+          "type": "page",
+          "name": "auth-login",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "手机号登录"
+          }
+        },
+        {
           "path": "etf/index",
           "type": "page",
           "name": "etf",

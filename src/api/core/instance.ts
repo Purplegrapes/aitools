@@ -200,6 +200,8 @@ export const alovaInstance = createAlova({
         apiType = '[Asset API]'
       else if (method.url.startsWith('/tamp-api') || method.url.startsWith('/app-api'))
         apiType = '[TAMP API]'
+      else if (method.url.startsWith('/auth-api'))
+        apiType = '[Auth API]'
       else if (method.url.startsWith('/tools-api'))
         apiType = '[Tools API]'
       else if (method.url.startsWith('/valuation-api'))

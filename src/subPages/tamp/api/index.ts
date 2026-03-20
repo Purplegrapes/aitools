@@ -7,15 +7,34 @@ import { alovaInstance } from '@/api/core/instance'
 export * from './marketing'
 
 // ==================== 外部认证相关 API ====================
+export interface AuthorizeResponseDto {
+  code: string
+  expires_in: number
+}
+
+export interface TokenResponseDto {
+  access_token: string
+  refresh_token: string
+  token_type: string
+  expires_in: number
+}
+
+export interface SendSmsCodeResponseDto {
+  success: boolean
+  expires_in: number
+}
+
 /**
  * 通过code换取token（小程序跳转H5场景）
  * @param params 认证参数
  */
 export function tokenByCode(params: {
   code: string
-  appId?: string
 }) {
-  return alovaInstance.Post('/api/v1/auth/token-by-code', params)
+  return alovaInstance.Post<TokenResponseDto>('/auth-api/token', {
+    code: params.code,
+    grant_type: 'authorization_code',
+  })
 }
 
 /**
@@ -25,7 +44,42 @@ export function tokenByCode(params: {
 export function tokenBySession(params: {
   sessionId: string
 }) {
-  return alovaInstance.Post('/api/v1/auth/token-by-session', params)
+  return alovaInstance.Post<TokenResponseDto>('/auth-api/token', {
+    code: params.sessionId,
+    grant_type: 'authorization_code',
+  })
+}
+
+/**
+ * 发送手机号短信验证码（H5 登录）
+ */
+export function sendPhoneCode(params: {
+  phone: string
+}) {
+  return alovaInstance.Post<SendSmsCodeResponseDto>('/auth-api/sms/send', params)
+}
+
+/**
+ * 校验手机号短信验证码（H5 登录）
+ */
+export function verifyPhoneCode(params: {
+  phone: string
+  code: string
+}) {
+  return alovaInstance.Post<AuthorizeResponseDto>('/auth-api/sms/verify', params)
+}
+
+/**
+ * 授权码换 token（OAuth）
+ */
+export function exchangeToken(params: {
+  code: string
+  grant_type?: 'authorization_code'
+}) {
+  return alovaInstance.Post<TokenResponseDto>('/auth-api/token', {
+    code: params.code,
+    grant_type: params.grant_type || 'authorization_code',
+  })
 }
 
 /**

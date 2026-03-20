@@ -22,8 +22,68 @@ const router = createRouter({
   routes: generateRoutes(),
 })
 
+function pickQueryValue(value: unknown) {
+  if (Array.isArray(value))
+    return value[0]
+  return typeof value === 'string' ? value : ''
+}
+
+function stringifyQuery(query: Record<string, unknown>) {
+  const params = new URLSearchParams()
+  Object.entries(query).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '')
+      return
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item !== undefined && item !== null)
+          params.append(key, `${item}`)
+      })
+      return
+    }
+    params.append(key, `${value}`)
+  })
+  const search = params.toString()
+  return search ? `?${search}` : ''
+}
+
+function buildTargetFullPath(path: string, query: Record<string, unknown>) {
+  return `${path}${stringifyQuery(query)}`
+}
+
+function isMiniProgramExternalAccess(path: string, query: Record<string, unknown>) {
+  if (!path.startsWith('/subPages/'))
+    return false
+  if (path.startsWith('/subPages/tamp/'))
+    return false
+
+  return pickQueryValue(query.from) === 'miniapp'
+}
+
 router.beforeEach((to, from, next) => {
   console.log('🚀 beforeEach 守卫触发:', { to, from })
+
+  const toQuery = (to.query || {}) as Record<string, unknown>
+
+  if (isMiniProgramExternalAccess(to.path || '', toQuery)) {
+    const referer = buildTargetFullPath(to.path, toQuery)
+    const nextQuery: Record<string, unknown> = {
+      ...toQuery,
+      from: 'miniapp',
+      referer: encodeURIComponent(referer),
+    }
+
+    const targetUrl = to.path.startsWith('/subPages/tools/')
+      ? referer
+      : pickQueryValue(toQuery.targetUrl)
+    if (targetUrl)
+      nextQuery.targetUrl = targetUrl
+
+    next({
+      path: '/subPages/tamp/index',
+      query: nextQuery,
+    })
+    return
+  }
 
   // 演示：基本的导航日志记录
   if (to.path && from.path) {

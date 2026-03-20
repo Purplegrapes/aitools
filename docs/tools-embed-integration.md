@@ -1,16 +1,18 @@
 # 外部小程序嵌入 H5 工具页接入说明
 
 ## 1. 打开方式
-- 外部小程序只能打开统一入口页：`/subPages/tools/entry`
-- 不允许直接打开具体工具页
+- 外部小程序统一只打开中转入口页：`/subPages/tamp/index`
+- 不允许外部直接打开具体工具页
+- 当目标为 `subPages/tools/**` 时，中转页会二跳到 `subPages/tools/entry` 建立 embed 会话，再进入具体工具页
 
 示例：
 
 ```text
-https://your-h5-domain.com/#/subPages/tools/entry?targetUrl=%2FsubPages%2Ftools%2Fdemo&ticket=xxx&timestamp=1741586400&nonce=abc123&sign=sign-value&traceId=trace-demo-001
+https://your-h5-domain.com/#/subPages/tamp/index?referer=%2FsubPages%2Ftools%2Fdemo&targetUrl=%2FsubPages%2Ftools%2Fdemo&ticket=xxx&timestamp=1741586400&nonce=abc123&sign=sign-value&traceId=trace-demo-001&from=miniapp
 ```
 
 ## 2. 启动参数
+- `referer`: 目标 H5 内部路径（统一中转参数，建议与 `targetUrl` 一致）
 - `targetUrl`: 目标 H5 内部路径，必须以 `/subPages/tools/` 开头
 - `ticket`: 一次性换票凭证
 - `timestamp`: 时间戳
@@ -20,16 +22,18 @@ https://your-h5-domain.com/#/subPages/tools/entry?targetUrl=%2FsubPages%2Ftools%
 - `bizId`: 可选业务 ID
 
 限制：
+- 外部入口必须指向 `/subPages/tamp/index`
 - `targetUrl` 只能是当前 H5 站点的受控内部路径
 - 禁止传完整 URL、协议头、外部域名
 - 禁止传 `/subPages/tools/entry`
 
 ## 3. H5 启动流程
-1. 外部小程序拼接统一入口页 URL。
-2. H5 入口页校验 `targetUrl` 和换票参数。
-3. H5 检测当前是否运行在小程序 `web-view`。
-4. H5 调用后端换票接口，建立本域会话。
-5. H5 清理敏感参数，跳转到 `targetUrl`。
+1. 外部小程序拼接统一中转页 URL（`/subPages/tamp/index`）。
+2. TAMP 校验来源和目标路径，识别是否为 tools 目标。
+3. 若目标为 `subPages/tools/**`，TAMP 透传 embed 参数并跳转到 `/subPages/tools/entry`。
+4. tools entry 校验 `targetUrl` 与换票参数、检测小程序 `web-view` 环境。
+5. tools entry 调用后端换票接口建立本域会话，清理敏感参数后跳转 `targetUrl`。
+6. 若目标不是 tools 页面，TAMP 按统一登录与重定向规则直接落目标页。
 
 ## 4. Bridge 协议
 Bridge 在这里是“宿主协作协议”，不要求外部小程序一定额外封装一个独立 SDK。协议可以通过两种方式承载：
@@ -273,7 +277,8 @@ H5 请求宿主关闭当前 web-view：
 - `host_callback_missing`
 
 ## 7. 联调检查项
-- 入口页是否总是作为唯一打开地址
+- 外部入口是否总是打开 `/subPages/tamp/index`
+- tools 目标是否总是经过 `TAMP -> tools/entry` 二跳链路
 - `targetUrl` 是否经过 encodeURIComponent
 - 宿主是否提供 `requestAuthRefresh`
 - 宿主是否实现订阅消息授权后回调本项目后端

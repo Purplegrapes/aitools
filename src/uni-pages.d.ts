@@ -6,6 +6,7 @@
 type _LocationUrl =
   "/pages/index/index" |
   "/pages/about/index" |
+  "/subPages/auth/login" |
   "/subPages/etf/detail" |
   "/subPages/etf/index" |
   "/subPages/etf/performance" |
