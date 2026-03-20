@@ -36,7 +36,6 @@ const {
 } = usePortfolio()
 
 onShow(() => {
-  uni.hideTabBar()
   ensureLoaded()
 })
 

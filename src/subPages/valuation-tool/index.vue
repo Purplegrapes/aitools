@@ -59,10 +59,6 @@ const hotSearches = computed<HotSearchFund[]>(() => {
 
 const isLoading = computed(() => sentimentLoading.value || hotSearchLoading.value)
 
-onShow(() => {
-  uni.hideTabBar()
-})
-
 function handleSelectHotSearch(item: HotSearchFund) {
   router.push(createResultPath(item.code))
 }

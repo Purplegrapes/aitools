@@ -6,7 +6,6 @@ import type {
   FundDetailServiceResponse,
   FundMetricsServiceResponse,
   FundRealtimeDataServiceResponse,
-  FundRealtimeServiceResponse,
   FundSearchServiceItem,
   HotFundServiceItem,
   MarketSentimentServiceResponse,
@@ -39,10 +38,6 @@ export function getFundDetail(code: string) {
 
 export function getFundMetrics(code: string) {
   return alovaInstance.Get<ApiEnvelope<FundMetricsServiceResponse>>(`/valuation-api/funds/${code}/metrics`)
-}
-
-export function getFundRealtime(code: string) {
-  return alovaInstance.Get<ApiEnvelope<FundRealtimeServiceResponse>>(`/valuation-api/funds/${code}/realtime`)
 }
 
 export function getFundRealtimeData(code: string) {

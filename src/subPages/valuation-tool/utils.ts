@@ -8,7 +8,6 @@ import type {
   FundMarketType,
   FundMetricsServiceResponse,
   FundRealtimeDataServiceResponse,
-  FundRealtimeServiceResponse,
   FundResult,
   FundResultStatus,
   PortfolioFundOption,
@@ -209,7 +208,7 @@ export function isApiNotFound<T>(response?: ApiEnvelope<T> | null) {
 export function mapFundDetailToResult(
   detail?: FundDetailServiceResponse | null,
   metrics?: FundMetricsServiceResponse | null,
-  realtime?: FundRealtimeServiceResponse | null,
+  realtimeData?: FundRealtimeDataServiceResponse | null,
 ): FundResult | undefined {
   if (!detail?.code || !detail.name)
     return undefined
@@ -222,12 +221,12 @@ export function mapFundDetailToResult(
     foundDate: detail.foundDate || undefined,
     channelLabel: detail.channel === 'EXCHANGE' ? '场内基金' : '场外基金',
     subCategoryLabel: normalizeSubCategoryLabel(detail.subCategoryId),
-    intraday: mapFundRealtimeToIntraday(realtime),
+    intraday: mapFundRealtimeDataToIntraday(realtimeData),
     quickFacts: metrics
       ? {
           oneMonthReturn: formatRatioToPercent(metrics.return1m),
           maxDrawdown: formatDrawdownPercent(metrics.maxDrawdown),
-          feeRate: formatRatioToPercent(metrics.feeRate),
+          feeRate: formatUnsignedRatioToPercent(metrics.feeRate),
         }
       : undefined,
     definition: buildFundDefinition(detail),
@@ -237,13 +236,13 @@ export function mapFundDetailToResult(
   }
 }
 
-export function mapFundRealtimeToIntraday(realtime?: FundRealtimeServiceResponse | null): FundIntraday | undefined {
-  if (!realtime)
+export function mapFundRealtimeDataToIntraday(realtimeData?: FundRealtimeDataServiceResponse | null): FundIntraday | undefined {
+  if (!realtimeData || realtimeData.channel !== 'OTC')
     return undefined
 
-  const ratio = toFiniteNumber(realtime.yieldChange)
-  const nav = toFiniteNumber(realtime.nav)
-  const navChange = toFiniteNumber(realtime.navChange)
+  const ratio = readRealtimeDataYieldChange(realtimeData)
+  const nav = toFiniteNumber(realtimeData.nav)
+  const navChange = readRealtimeDataNavChange(realtimeData)
 
   if (ratio === null && nav === null && navChange === null)
     return undefined
@@ -259,14 +258,14 @@ export function mapFundRealtimeToIntraday(realtime?: FundRealtimeServiceResponse
 
 export function mapFundRealtimeToValuation(
   detail?: Pick<FundDetailServiceResponse, 'code' | 'name'> | null,
-  realtime?: FundRealtimeServiceResponse | null,
+  realtimeData?: FundRealtimeDataServiceResponse | null,
 ): DiscoveryFundValuation | undefined {
-  if (!detail?.code || !detail.name || !realtime)
+  if (!detail?.code || !detail.name || !realtimeData || realtimeData.channel !== 'OTC')
     return undefined
 
-  const nav = toFiniteNumber(realtime.nav)
-  const navChange = toFiniteNumber(realtime.navChange)
-  const ratio = toFiniteNumber(realtime.yieldChange)
+  const nav = toFiniteNumber(realtimeData.nav)
+  const navChange = readRealtimeDataNavChange(realtimeData)
+  const ratio = readRealtimeDataYieldChange(realtimeData)
 
   if (nav === null || navChange === null || ratio === null)
     return undefined
@@ -281,7 +280,6 @@ export function mapFundRealtimeToValuation(
 }
 
 export function mapFundRealtimeDataToExchangeQuote(
-  realtime?: FundRealtimeServiceResponse | null,
   realtimeData?: FundRealtimeDataServiceResponse | null,
 ): FundExchangeQuote | undefined {
   if (!realtimeData || realtimeData.channel !== 'EXCHANGE')
@@ -289,7 +287,7 @@ export function mapFundRealtimeDataToExchangeQuote(
 
   const currentPrice = toFiniteNumber(realtimeData.nav)
   const premiumRate = toFiniteNumber(realtimeData.premium_rate)
-  const priceChangeRatio = toFiniteNumber(realtime?.yieldChange)
+  const priceChangeRatio = readRealtimeDataYieldChange(realtimeData)
 
   if (currentPrice === null && premiumRate === null && priceChangeRatio === null)
     return undefined
@@ -302,6 +300,46 @@ export function mapFundRealtimeDataToExchangeQuote(
     source: 'realtime',
     explanation: `当前参考净值 ${formatMetricNumber(currentPrice, 4)}，盘中参考涨跌 ${formatPercent(priceChangeRatio === null ? null : priceChangeRatio * 100)}，折溢价率 ${formatPercent(premiumRate === null ? null : premiumRate * 100)}。`,
   }
+}
+
+function readRealtimeDataYieldChange(realtimeData?: FundRealtimeDataServiceResponse | null) {
+  if (!realtimeData)
+    return null
+
+  const payload = realtimeData as FundRealtimeDataServiceResponse & {
+    yield_change?: number | null
+    yieldChange?: number | null
+  }
+
+  const numericValue = toFiniteNumber(payload.yield_change ?? payload.yieldChange)
+  if (numericValue === null)
+    return null
+
+  return Math.abs(numericValue) > 1 ? numericValue / 100 : numericValue
+}
+
+function readRealtimeDataNavChange(realtimeData?: FundRealtimeDataServiceResponse | null) {
+  if (!realtimeData || realtimeData.channel !== 'OTC')
+    return null
+
+  const payload = realtimeData as FundRealtimeDataServiceResponse & {
+    nav_change?: number | null
+    navChange?: number | null
+  }
+  const directValue = toFiniteNumber(payload.nav_change ?? payload.navChange)
+  if (directValue !== null)
+    return directValue
+
+  const nav = toFiniteNumber(realtimeData.nav)
+  const ratio = readRealtimeDataYieldChange(realtimeData)
+  if (nav === null || ratio === null)
+    return null
+
+  if (ratio <= -1)
+    return null
+
+  const previousNav = nav / (1 + ratio)
+  return nav - previousNav
 }
 
 function formatCurrentTime() {
@@ -427,7 +465,14 @@ function formatDrawdownPercent(value?: number | null) {
   const numericValue = toFiniteNumber(value)
   if (numericValue === null)
     return undefined
-  return `-${Math.abs(numericValue * 100).toFixed(2)}%`
+  return `${Math.abs(numericValue * 100).toFixed(2)}%`
+}
+
+function formatUnsignedRatioToPercent(value?: number | null) {
+  const numericValue = toFiniteNumber(value)
+  if (numericValue === null)
+    return undefined
+  return `${Math.abs(numericValue * 100).toFixed(2)}%`
 }
 
 function buildFundTags(detail: FundDetailServiceResponse) {

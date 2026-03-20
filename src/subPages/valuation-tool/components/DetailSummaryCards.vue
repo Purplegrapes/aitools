@@ -65,8 +65,8 @@ function getOneMonthReturnMeta(value?: string | null) {
   }
 
   return {
-    evaluation: numericValue >= 0 ? '近期上涨' : '近期回撤',
-    evaluationTextClass: numericValue >= 0 ? 'text-brand' : 'text-warning',
+    evaluation: numericValue >= 1 ? '近期表现偏强' : numericValue > -1 ? '近期表现平稳' : '近期表现承压',
+    evaluationTextClass: numericValue >= 1 ? 'text-brand' : numericValue > -1 ? 'text-secondary' : 'text-warning',
     tip: '近1月收益是接口返回的最近 1 个月区间收益率，可用于快速查看这只基金近期表现。',
   }
 }
@@ -77,14 +77,14 @@ function getMaxDrawdownMeta(value?: string | null) {
     return {
       evaluation: '暂无数据',
       evaluationTextClass: 'text-secondary',
-      tip: '最大回撤是接口返回的历史区间最大回撤值，用来观察这只基金曾经经历过的最大跌幅。',
+      tip: '最大回撤是接口返回的历史区间最大回撤值，可用于观察基金面对下跌时的抗波动能力。',
     }
   }
 
   return {
-    evaluation: numericValue >= -20 ? '回撤较小' : numericValue >= -35 ? '回撤中等' : '回撤较大',
-    evaluationTextClass: 'text-danger',
-    tip: '最大回撤是接口返回的历史区间最大回撤值，用来观察这只基金曾经经历过的最大跌幅。',
+    evaluation: numericValue <= 20 ? '抗下跌能力较强' : numericValue <= 35 ? '抗下跌能力一般' : '抗下跌能力较弱',
+    evaluationTextClass: numericValue <= 20 ? 'text-brand' : numericValue <= 35 ? 'text-warning' : 'text-danger',
+    tip: '最大回撤是接口返回的历史区间最大回撤值，可用于观察基金面对下跌时的抗波动能力。',
   }
 }
 
@@ -122,11 +122,11 @@ const quickFactRows = computed(() => {
       evaluationTextClass: oneMonthPerformanceMeta.evaluationTextClass,
     },
     {
-      label: '历史最大跌幅',
+      label: '最大回撤',
       value: props.result.quickFacts?.maxDrawdown || '--',
       evaluation: maxDrawdownMeta.evaluation,
       tip: maxDrawdownMeta.tip,
-      valueClass: 'text-danger',
+      valueClass: 'text-primary',
       evaluationTextClass: maxDrawdownMeta.evaluationTextClass,
     },
     {
@@ -206,11 +206,11 @@ const updateTimeText = computed(() => {
   return props.result.intraday?.updateTime
 })
 
-const detailInfoCards = computed(() => infoRows.value.map((item, index) => ({
+const detailInfoCards = computed(() => infoRows.value.map(item => ({
   label: item.label,
   value: item.value,
-  iconClass: index % 2 === 0 ? 'i-carbon-chart-line-data' : 'i-carbon-calendar',
-  iconToneClass: index % 2 === 0 ? 'bg-brandMuted text-brand' : 'bg-danger/10 text-danger',
+  iconClass: item.label === '成立日期' ? 'i-carbon-calendar' : 'i-carbon-store',
+  iconToneClass: item.label === '成立日期' ? 'bg-warning/10 text-warning' : 'bg-brandMuted text-brand',
   panelStyle: 'background: linear-gradient(180deg, rgba(238,244,253,1) 0%, rgba(244,248,255,1) 100%);',
 })))
 

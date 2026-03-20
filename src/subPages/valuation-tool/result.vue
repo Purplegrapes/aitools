@@ -5,10 +5,9 @@ import type {
   FundDetailServiceResponse,
   FundMetricsServiceResponse,
   FundRealtimeDataServiceResponse,
-  FundRealtimeServiceResponse,
   FundResult,
 } from './types'
-import { getFundDetail, getFundMetrics, getFundRealtime, getFundRealtimeData } from './api/valuationTool'
+import { getFundDetail, getFundMetrics, getFundRealtimeData } from './api/valuationTool'
 import DetailActionBar from './components/DetailActionBar.vue'
 import DetailStateCard from './components/DetailStateCard.vue'
 import DetailSummaryCards from './components/DetailSummaryCards.vue'
@@ -44,7 +43,6 @@ const router = useRouter()
 const route = useRoute()
 const fundCode = computed(() => normalizeKeyword(route.query.code))
 const requestError = shallowRef(false)
-const realtimeError = shallowRef(false)
 const realtimeDataError = shallowRef(false)
 const {
   refreshWatchlist,
@@ -78,20 +76,6 @@ const {
 )
 
 const {
-  data: realtimeResponse,
-  loading: realtimeLoading,
-  send: fetchRealtime,
-} = useRequest(
-  () => getFundRealtime(fundCode.value),
-  {
-    immediate: false,
-    onError: () => {
-      realtimeError.value = true
-    },
-  },
-)
-
-const {
   data: realtimeDataResponse,
   loading: realtimeDataLoading,
   send: fetchRealtimeData,
@@ -105,20 +89,18 @@ const {
   },
 )
 
-const loading = computed(() => detailLoading.value || metricsLoading.value || realtimeLoading.value || realtimeDataLoading.value)
+const loading = computed(() => detailLoading.value || metricsLoading.value || realtimeDataLoading.value)
 
 const detailEnvelope = computed(() => detailResponse.value as ApiEnvelope<FundDetailServiceResponse> | undefined)
 const metricsEnvelope = computed(() => metricsResponse.value as ApiEnvelope<FundMetricsServiceResponse> | undefined)
-const realtimeEnvelope = computed(() => realtimeResponse.value as ApiEnvelope<FundRealtimeServiceResponse> | undefined)
 const realtimeDataEnvelope = computed(() => realtimeDataResponse.value as ApiEnvelope<FundRealtimeDataServiceResponse> | undefined)
 
 const detailPayload = computed(() => isApiSuccess(detailEnvelope.value) ? detailEnvelope.value?.data : undefined)
 const metricsPayload = computed(() => isApiSuccess(metricsEnvelope.value) ? metricsEnvelope.value?.data : undefined)
-const realtimePayload = computed(() => isApiSuccess(realtimeEnvelope.value) ? realtimeEnvelope.value?.data : undefined)
 const realtimeDataPayload = computed(() => isApiSuccess(realtimeDataEnvelope.value) ? realtimeDataEnvelope.value?.data : undefined)
 
 const result = computed<FundResult>(() => {
-  const mapped = mapFundDetailToResult(detailPayload.value, metricsPayload.value, realtimePayload.value)
+  const mapped = mapFundDetailToResult(detailPayload.value, metricsPayload.value, realtimeDataPayload.value)
   if (mapped)
     return mapped
   return { status: 'loading' }
@@ -136,10 +118,10 @@ const displayStatus = computed<FundResult['status'] | 'error'>(() => {
 
 const marketType = computed(() => inferMarketTypeFromChannel(detailPayload.value?.channel))
 const exchangeQuote = computed(() => {
-  return mapFundRealtimeDataToExchangeQuote(realtimePayload.value, realtimeDataPayload.value)
+  return mapFundRealtimeDataToExchangeQuote(realtimeDataPayload.value)
 })
 
-const valuation = computed<DiscoveryFundValuation | undefined>(() => mapFundRealtimeToValuation(detailPayload.value, realtimePayload.value))
+const valuation = computed<DiscoveryFundValuation | undefined>(() => mapFundRealtimeToValuation(detailPayload.value, realtimeDataPayload.value))
 
 const stateMeta = computed(() => detailStateMetaMap[displayStatus.value])
 const showDetail = computed(() => displayStatus.value === 'ok')
@@ -153,11 +135,9 @@ watch(
       return
     }
     requestError.value = false
-    realtimeError.value = false
     realtimeDataError.value = false
     fetchDetail()
     fetchMetrics()
-    fetchRealtime()
     fetchRealtimeData()
     refreshWatchlist()
   },
@@ -236,7 +216,7 @@ function handleToggleWatchlist() {
           :exchange-quote="realtimeDataError ? undefined : exchangeQuote"
           :market-type="marketType"
           :result="result"
-          :valuation="marketType === 'otc' && !realtimeError ? valuation : undefined"
+          :valuation="marketType === 'otc' && !realtimeDataError ? valuation : undefined"
         />
         <view class="py-[24rpx] vt-page-x">
           <RiskNoteCard :text="result.disclaimer" />

@@ -89,22 +89,21 @@ export interface FundMetricsServiceResponse {
   return1m?: number | null
 }
 
-export interface FundRealtimeServiceResponse {
-  nav: number
-  navChange: number
-  yieldChange: number
-}
-
 export interface FundRealtimeDataExchangeResponse {
   channel: 'EXCHANGE'
   nav: number
   premium_rate: number
+  yield_change?: number | null
+  yieldChange?: number | null
 }
 
 export interface FundRealtimeDataOtcResponse {
   channel: 'OTC'
   nav: number
   yield_change: number
+  yieldChange?: number | null
+  nav_change?: number | null
+  navChange?: number | null
 }
 
 export type FundRealtimeDataServiceResponse = FundRealtimeDataExchangeResponse | FundRealtimeDataOtcResponse
