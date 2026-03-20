@@ -120,9 +120,14 @@ async function handleSubmit() {
     }
 
     applyAuthSession(authPayload)
-    const profile = await getCurrentAuthUser()
-    if (profile?.id)
-      applyAuthUserProfile(profile)
+    try {
+      const profile = await getCurrentAuthUser()
+      if (profile?.id)
+        applyAuthUserProfile(profile)
+    }
+    catch {
+      // user/me 失败不阻断登录成功与回跳
+    }
     toast.success('登录成功')
     router.replace(referer.value)
   }

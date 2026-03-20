@@ -1,6 +1,6 @@
 /// <reference types="@uni-helper/vite-plugin-uni-pages/client" />
 import { pages, subPackages } from 'virtual:uni-pages'
-import { buildRefererPath, createAuthLoginRoute, getStoredUserId } from '@/subPages/auth/utils/loginGuard'
+import { buildRefererPath, createAuthLoginRoute, getStoredAuthToken, getStoredUserId } from '@/subPages/auth/utils/loginGuard'
 
 function generateRoutes() {
   const routes = pages.map((page) => {
@@ -101,7 +101,8 @@ router.beforeEach((to, from, next) => {
 
   if (isValuationAuthRequired(to.path || '')) {
     const userId = getStoredUserId()
-    if (!userId) {
+    const token = getStoredAuthToken()
+    if (!userId || !token) {
       const referer = buildRefererPath(to.path || '/subPages/valuation-tool/index', toQuery)
       next(createAuthLoginRoute(referer))
       return

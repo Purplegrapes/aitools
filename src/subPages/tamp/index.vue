@@ -61,9 +61,14 @@ onMounted(async () => {
         const authSession = extractAuthSessionPayload(response)
         if (authSession) {
           applyAuthSession(authSession)
-          const profile = await getCurrentAuthUser()
-          if (profile?.id)
-            applyAuthUserProfile(profile)
+          try {
+            const profile = await getCurrentAuthUser()
+            if (profile?.id)
+              applyAuthUserProfile(profile)
+          }
+          catch {
+            // user/me 失败不阻断 code 换 token 成功后的主流程
+          }
         }
         else {
           throw new Error('code 换 token 未返回有效凭证')

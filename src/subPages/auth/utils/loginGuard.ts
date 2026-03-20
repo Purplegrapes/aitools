@@ -10,6 +10,17 @@ export function getStoredUserId() {
   }
 }
 
+export function getStoredAuthToken() {
+  try {
+    const storedUser = uni.getStorageSync('etfUser')
+    const token = storedUser?.token
+    return typeof token === 'string' ? token.trim() : ''
+  }
+  catch {
+    return ''
+  }
+}
+
 function stringifyQuery(query: Record<string, unknown>) {
   const params = new URLSearchParams()
   Object.entries(query).forEach(([key, value]) => {
