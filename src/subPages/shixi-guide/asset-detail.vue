@@ -44,6 +44,10 @@ const { data: assetDetail, send: fetchAssetDetail } = useRequest(
   () => getAssetDetail(assetCode.value),
   { immediate: false },
 )
+const isIndexAsset = computed(() => {
+  const assetType = (query.value.assetType || assetDetail.value?.asset_type || '').trim()
+  return assetType.toLowerCase() === 'index'
+})
 
 const factorParams = ref<{
   start_date: string
@@ -91,7 +95,7 @@ const monthlyInvestmentText = computed(() => {
 
 const detailRows = computed(() => {
   const detail = (assetDetail.value ?? {}) as Record<string, unknown>
-  if (query.value.assetType === 'INDEX') {
+  if (isIndexAsset.value) {
     const shortName = toText(detail.short_name)
       || toText(assetTitle.value.replace(/指数$/, ''))
       || '--'
@@ -616,7 +620,7 @@ onMounted(async () => {
       </view>
 
       <!-- 数据说明 -->
-      <view v-if="query.assetType === 'INDEX'" class="mt-4 px-1 pb-2 pt-1">
+      <view v-if="isIndexAsset" class="mt-4 px-1 pb-2 pt-1">
         <text class="text-sm text-tertiary font-500">
           数据说明：
         </text>
