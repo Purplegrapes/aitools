@@ -1,3 +1,4 @@
+import cookie from 'js-cookie'
 import { defineStore } from 'pinia'
 
 /**
@@ -58,7 +59,6 @@ export const useEtfUserStore = defineStore('etfUser', {
       this.isLogin = !!token
       // #ifdef H5
       if (typeof window !== 'undefined') {
-        const cookie = (await import('js-cookie')).default
         if (token) {
           cookie.set('ticket', token)
         }
@@ -81,13 +81,12 @@ export const useEtfUserStore = defineStore('etfUser', {
      * 退出登录
      * 同时清理 H5 cookie
      */
-    async logout() {
+    logout() {
       this.userInfo = null
       this.token = ''
       this.isLogin = false
       // #ifdef H5
       if (typeof window !== 'undefined') {
-        const cookie = (await import('js-cookie')).default
         cookie.remove('ticket')
       }
       // #endif
