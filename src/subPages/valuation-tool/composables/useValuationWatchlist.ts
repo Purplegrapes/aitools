@@ -78,9 +78,10 @@ export function useValuationWatchlist() {
   })
 
   async function refreshWatchlist(force = false) {
-    const userId = ensureUserId()
+    const userId = getUserId()
     if (!userId) {
       watchlistItemsState.value = []
+      watchlistHasSnapshotState.value = false
       return
     }
     if (watchlistRefreshModeState.value)
@@ -108,7 +109,7 @@ export function useValuationWatchlist() {
   }
 
   async function refreshWatchlistListOnly() {
-    const userId = ensureUserId()
+    const userId = getUserId()
     if (!userId)
       return false
 
@@ -131,7 +132,7 @@ export function useValuationWatchlist() {
   }
 
   async function addToWatchlist(input: ValuationWatchlistMutationInput) {
-    const userId = ensureUserId()
+    const userId = ensureUserIdOrRedirect()
     if (!userId)
       return false
 
@@ -151,7 +152,7 @@ export function useValuationWatchlist() {
   }
 
   async function removeFromWatchlist(code: string) {
-    const userId = ensureUserId()
+    const userId = ensureUserIdOrRedirect()
     if (!userId)
       return false
 
@@ -173,7 +174,7 @@ export function useValuationWatchlist() {
     return addToWatchlist(input)
   }
 
-  function ensureUserId() {
+  function getUserId() {
     const inMemoryUserId = userStore.userInfo?.id
     if (inMemoryUserId !== null && inMemoryUserId !== undefined && `${inMemoryUserId}`.trim())
       return `${inMemoryUserId}`
@@ -181,6 +182,14 @@ export function useValuationWatchlist() {
     const persistedUserId = getStoredUserId()
     if (persistedUserId)
       return persistedUserId
+
+    return ''
+  }
+
+  function ensureUserIdOrRedirect() {
+    const userId = getUserId()
+    if (userId)
+      return userId
 
     const referer = buildRefererPath(route.path || '/subPages/valuation-tool/index', route.query as Record<string, unknown>)
     router.replace(createAuthLoginRoute(referer))
