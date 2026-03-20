@@ -168,6 +168,7 @@ export interface DetailStateMeta {
 export interface ValuationWatchlistFund {
   code: string
   name: string
+  realtimeNav: number | null
   dailyChange: number | null
   updateTime?: string
   watchlisted: boolean

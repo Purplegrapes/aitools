@@ -195,6 +195,9 @@ function normalizeWatchlistItems(
   return items.map((item) => {
     const realtimeItem = realtimeMap.get(normalizeWatchlistCode(item.code))
     const currentItem = currentItemMap.get(normalizeWatchlistCode(item.code))
+    const realtimeNav = 'realtimeNav' in item
+      ? item.realtimeNav
+      : getRealtimeNav(realtimeItem) ?? currentItem?.realtimeNav
     const dailyChange = 'dailyChange' in item
       ? item.dailyChange
       : getRealtimeYieldChange(realtimeItem) ?? currentItem?.dailyChange
@@ -205,6 +208,7 @@ function normalizeWatchlistItems(
     return {
       code: item.code,
       name: item.name,
+      realtimeNav: normalizeWatchlistRealtimeNav(realtimeNav),
       dailyChange: normalizeWatchlistDailyChange(dailyChange),
       updateTime,
       watchlisted: true,
@@ -217,6 +221,7 @@ function upsertWatchlistItem(input: ValuationWatchlistMutationInput) {
   const nextItem: ValuationWatchlistFund = {
     code: input.code,
     name: input.name || input.code,
+    realtimeNav: null,
     dailyChange: normalizeWatchlistDailyChange(input.dailyChange),
     updateTime: input.updateTime || currentTimeText(),
     watchlisted: true,
@@ -265,6 +270,20 @@ function getRealtimeYieldChange(item?: FavouriteRealtimeItemServiceResponse | nu
   ?? (item as FavouriteRealtimeItemServiceResponse & { yield?: number | null }).yield
 
   return candidate ?? null
+}
+
+function getRealtimeNav(item?: FavouriteRealtimeItemServiceResponse | null) {
+  if (!item)
+    return null
+
+  return item.nav
+}
+
+function normalizeWatchlistRealtimeNav(value?: number | null) {
+  if (value === null || value === undefined || Number.isNaN(Number(value)))
+    return null
+
+  return Number(value)
 }
 
 function normalizeWatchlistDailyChange(value?: number | null) {

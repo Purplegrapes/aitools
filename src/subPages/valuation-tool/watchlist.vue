@@ -144,13 +144,18 @@ function handleBackHome() {
 
       <template v-else>
         <view class="overflow-hidden border border-line/70 rounded-card bg-surface shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
-          <view class="grid grid-cols-[minmax(0,1.5fr)_150rpx_120rpx] items-center gap-[12rpx] bg-surfaceSubtle px-4 py-3">
+          <view class="grid grid-cols-[minmax(0,1.3fr)_140rpx_140rpx_120rpx] items-center gap-[12rpx] bg-surfaceSubtle px-4 py-3">
             <text class="text-xs text-secondary font-600">
               基金
             </text>
             <view class="text-center">
               <text class="block text-xs text-secondary font-600">
                 当日涨幅
+              </text>
+            </view>
+            <view class="text-center">
+              <text class="block text-xs text-secondary font-600">
+                实时净值
               </text>
             </view>
             <text class="text-right text-xs text-secondary font-600">

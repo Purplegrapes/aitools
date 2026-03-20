@@ -338,6 +338,7 @@ const fallbackWatchlistCatalog: Record<string, ValuationWatchlistFund> = {
   '110020': {
     code: '110020',
     name: '易方达沪深300ETF联接A',
+    realtimeNav: 1.1824,
     dailyChange: 1.26,
     updateTime: '14:05',
     watchlisted: true,
@@ -345,6 +346,7 @@ const fallbackWatchlistCatalog: Record<string, ValuationWatchlistFund> = {
   '270042': {
     code: '270042',
     name: '广发纳斯达克100ETF联接',
+    realtimeNav: 1.4386,
     dailyChange: -0.84,
     updateTime: '14:05',
     watchlisted: true,
@@ -352,6 +354,7 @@ const fallbackWatchlistCatalog: Record<string, ValuationWatchlistFund> = {
   '009051': {
     code: '009051',
     name: '易方达中证红利',
+    realtimeNav: 1.0973,
     dailyChange: 0.36,
     updateTime: '14:05',
     watchlisted: true,
@@ -370,6 +373,7 @@ export function saveFallbackWatchlistFund(input: ValuationWatchlistMutationInput
   const nextItem: ValuationWatchlistFund = {
     code: input.code,
     name: input.name || fallbackWatchlistCatalog[input.code]?.name || `基金 ${input.code}`,
+    realtimeNav: fallbackWatchlistCatalog[input.code]?.realtimeNav ?? null,
     dailyChange: input.dailyChange ?? fallbackWatchlistCatalog[input.code]?.dailyChange ?? null,
     updateTime: input.updateTime || fallbackWatchlistCatalog[input.code]?.updateTime || '14:05',
     watchlisted: true,
@@ -398,6 +402,7 @@ function readStoredWatchlist() {
       return {
         code: item.code,
         name: item.name,
+        realtimeNav: typeof item.realtimeNav === 'number' ? item.realtimeNav : null,
         dailyChange: typeof item.dailyChange === 'number' ? item.dailyChange : null,
         updateTime: typeof item.updateTime === 'string' ? item.updateTime : '14:05',
         watchlisted: true,
