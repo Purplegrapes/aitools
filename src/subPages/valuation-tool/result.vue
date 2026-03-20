@@ -198,7 +198,7 @@ function handleToggleWatchlist() {
       <view v-if="loading && !showDetail" class="rounded-card bg-surface p-6 text-center">
         <wd-loading />
         <text class="mt-3 block text-sm text-secondary">
-          正在生成基金说明...
+          加载中...
         </text>
       </view>
 

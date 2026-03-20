@@ -28,16 +28,18 @@ onShow(() => {
   refreshWatchlist(true)
 })
 
-const watchlistSummary = computed(() => {
-  const items = watchlistItems.value
-  const risingCount = items.filter(item => typeof item.dailyChange === 'number' && item.dailyChange > 0).length
-  const fallingCount = items.filter(item => typeof item.dailyChange === 'number' && item.dailyChange < 0).length
-
-  return {
-    total: items.length,
-    risingCount,
-    fallingCount,
-  }
+const sortedWatchlistItems = computed(() => {
+  return [...watchlistItems.value].sort((a, b) => {
+    const aHasValue = typeof a.dailyChange === 'number'
+    const bHasValue = typeof b.dailyChange === 'number'
+    if (aHasValue && bHasValue)
+      return (b.dailyChange as number) - (a.dailyChange as number)
+    if (aHasValue)
+      return -1
+    if (bHasValue)
+      return 1
+    return 0
+  })
 })
 
 function handleSelect(code: string) {
@@ -58,49 +60,6 @@ function handleBackHome() {
     <view class="pointer-events-none absolute inset-x-0 top-0 h-[280rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.14),_transparent_62%)]" />
 
     <view class="relative mx-auto flex flex-col gap-4">
-      <view class="vt-top-card vt-card">
-        <view class="flex items-start justify-between gap-4">
-          <view class="min-w-0 flex-1">
-            <text class="block text-lg text-primary font-600">
-              自选基金
-            </text>
-            <text class="mt-2 block text-sm text-regular leading-6">
-              在这里快速比较你关注基金的当日表现，决定要不要进一步点开查看。
-            </text>
-          </view>
-          <view class="h-[72rpx] w-[72rpx] flex shrink-0 items-center justify-center rounded-[24rpx] bg-brand-muted text-brand">
-            <view class="i-carbon-star text-[34rpx]" />
-          </view>
-        </view>
-
-        <view class="grid grid-cols-3 mt-5 gap-3">
-          <view class="rounded-[24rpx] bg-surfaceSubtle px-3 py-3">
-            <text class="block text-xs text-secondary">
-              已自选
-            </text>
-            <text class="mt-2 block text-lg text-primary font-600">
-              {{ watchlistSummary.total }}
-            </text>
-          </view>
-          <view class="rounded-[24rpx] bg-surfaceSubtle px-3 py-3">
-            <text class="block text-xs text-secondary">
-              今日上涨
-            </text>
-            <text class="mt-2 block text-lg text-danger font-600">
-              {{ watchlistSummary.risingCount }}
-            </text>
-          </view>
-          <view class="rounded-[24rpx] bg-surfaceSubtle px-3 py-3">
-            <text class="block text-xs text-secondary">
-              今日下跌
-            </text>
-            <text class="mt-2 block text-lg text-success font-600">
-              {{ watchlistSummary.fallingCount }}
-            </text>
-          </view>
-        </view>
-      </view>
-
       <view v-if="watchlistLoading" class="border border-line/70 rounded-card bg-surface p-6 text-center shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
         <wd-loading />
         <text class="mt-3 block text-sm text-secondary">
@@ -164,7 +123,7 @@ function handleBackHome() {
           </view>
 
           <WatchlistFundCard
-            v-for="item in watchlistItems"
+            v-for="item in sortedWatchlistItems"
             :key="item.code"
             :item="item"
             @remove="handleRemove"

@@ -62,12 +62,11 @@ function handleOpenFundDetail(code: string) {
     <view class="pointer-events-none absolute inset-x-0 top-[120rpx] h-[220rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.08),_transparent_68%)]" />
 
     <view class="relative mx-auto max-w-[702rpx] flex flex-col gap-[20rpx]">
-      <view class="flex items-center justify-between gap-[20rpx] px-[4rpx] py-[6rpx]">
-        <text class="block text-[34rpx] text-primary font-700">
-          我的持仓
-        </text>
+      <view
+        v-if="!isLoadingState && hasPositions"
+        class="flex justify-end px-[4rpx] py-[6rpx]"
+      >
         <view
-          v-if="!isLoadingState && hasPositions"
           class="shrink-0 rounded-full bg-brand px-[22rpx] py-[14rpx] text-[24rpx] text-white font-600 shadow-[0_12rpx_24rpx_rgba(22,120,255,0.22)]"
           @click="handleOpenSync"
         >
