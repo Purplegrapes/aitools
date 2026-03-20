@@ -79,6 +79,13 @@ export function verifyPhoneCode(params: {
 }
 
 /**
+ * 校验手机号短信验证码响应（Alova 包装后）
+ */
+export interface VerifyPhoneCodeResponse {
+  data: AuthorizeResponseDto
+}
+
+/**
  * 授权码换 token（OAuth）
  */
 export function exchangeToken(params: {

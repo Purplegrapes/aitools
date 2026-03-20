@@ -8,11 +8,13 @@ import { defineStore } from 'pinia'
 
 /**
  * 外部来源信息
+ * 注意：不再通过 URL 传递 token（安全考虑）
+ * - 小程序：通过 code 换取 token
+ * - H5：直接使用同域 cookie 中的 token
  */
 export interface TampExternalInfo {
   source: ExternalSourceType
   appId?: string
-  token?: string
   loginUrl?: string
   shopId?: string
 }
@@ -50,8 +52,9 @@ export const useTampStore = defineStore('tamp', {
 
     /**
      * 获取访问 token
+     * 优先从 cookie 读取（H5 同域存储），返回空字符串表示未登录
      */
-    token: state => state.externalInfo?.token || cookie.get('ticket') || '',
+    token: () => cookie.get('ticket') || '',
 
     /**
      * 获取 AppID

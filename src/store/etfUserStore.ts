@@ -51,10 +51,22 @@ export const useEtfUserStore = defineStore('etfUser', {
 
     /**
      * 设置 Token
+     * 同时同步到 H5 cookie（保证链路一致）
      */
     setToken(token: string) {
       this.token = token
       this.isLogin = !!token
+      // #ifdef H5
+      if (typeof window !== 'undefined') {
+        const cookie = (await import('js-cookie')).default
+        if (token) {
+          cookie.set('ticket', token)
+        }
+        else {
+          cookie.remove('ticket')
+        }
+      }
+      // #endif
     },
 
     /**
@@ -67,11 +79,18 @@ export const useEtfUserStore = defineStore('etfUser', {
 
     /**
      * 退出登录
+     * 同时清理 H5 cookie
      */
     async logout() {
       this.userInfo = null
       this.token = ''
       this.isLogin = false
+      // #ifdef H5
+      if (typeof window !== 'undefined') {
+        const cookie = (await import('js-cookie')).default
+        cookie.remove('ticket')
+      }
+      // #endif
     },
 
     /**

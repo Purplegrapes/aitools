@@ -19,9 +19,52 @@ const smsCode = ref('')
 const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
 
+/**
+ * 登录页允许的 referer 路径前缀白名单
+ * 注意：登录页的白名单比 TAMP 更宽松，因为用户可能从任何内部页面进入登录
+ */
+const LOGIN_REFERER_PREFIXES = [
+  '/pages/',
+  '/subPages/',
+] as const
+
 const referer = computed(() => {
   const value = route.query.referer
-  return typeof value === 'string' && value.trim() ? decodeURIComponent(value) : '/pages/index/index'
+  if (typeof value !== 'string' || !value.trim())
+    return '/pages/index/index'
+
+  const decoded = decodeURIComponent(value).trim()
+
+  // 阻止外部 URL 重定向攻击 - 只允许内部路径
+  if (!decoded.startsWith('/')) {
+    console.warn('Login: 阻止外部 URL referer:', decoded)
+    return '/pages/index/index'
+  }
+
+  // 阻止协议式 URL（如 //evil.com）
+  if (decoded.startsWith('//')) {
+    console.warn('Login: 阻止协议式 URL referer:', decoded)
+    return '/pages/index/index'
+  }
+
+  // 阻止路径遍历攻击 (..)
+  if (decoded.includes('..')) {
+    console.warn('Login: 阻止包含路径遍历的 referer:', decoded)
+    return '/pages/index/index'
+  }
+
+  // 验证是否在允许的路径前缀内
+  const cleanPath = decoded.split('?')[0]
+  const isValidReferer = LOGIN_REFERER_PREFIXES.some(prefix =>
+    cleanPath.startsWith(prefix),
+  )
+
+  if (!isValidReferer) {
+    console.warn('Login: 阻止不在白名单内的 referer:', decoded)
+    return '/pages/index/index'
+  }
+
+  return decoded
 })
 
 const { send: sendCodeRequest, loading: sendingCode } = useRequest(
@@ -30,7 +73,7 @@ const { send: sendCodeRequest, loading: sendingCode } = useRequest(
 )
 
 const { send: sendVerifyRequest, loading: verifyingCode } = useRequest(
-  payload => verifyPhoneCode(payload),
+  (payload: Parameters<typeof verifyPhoneCode>[0]) => verifyPhoneCode(payload),
   { immediate: false },
 )
 
@@ -103,7 +146,8 @@ async function handleSubmit() {
       phone: normalizedMobile,
       code: normalizedCode,
     })
-    const authCode = authorize?.code || authorize?.data?.code
+    // Alova 将响应包装在 data 中
+    const authCode = authorize?.data?.code || authorize?.code
     if (!authCode || typeof authCode !== 'string') {
       toast.error('验证码校验成功，但未返回授权码')
       return

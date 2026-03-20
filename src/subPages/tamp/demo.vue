@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ExternalSourceType } from './utils/sourceDetector'
 import { getShopInfo } from './api'
 
 /**
@@ -46,9 +47,17 @@ const route = useRoute()
 // 从 URL 参数获取 shopId，默认使用测试店铺 ID
 const shopId = computed(() => route.query.shopId as string)
 
-const tampStore = useTampStore()
-// 存储外部来源信息到 tampStore
-tampStore.setExternalInfo(route.query as any)
+// 如果有外部来源参数，安全地存储到 tampStore
+const from = route.query.from as ExternalSourceType | undefined
+if (from === 'miniprogram' || from === 'h5') {
+  const tampStore = useTampStore()
+  tampStore.setExternalInfo({
+    source: from,
+    loginUrl: (route.query.loginUrl as string) || undefined,
+    shopId: (route.query.shopId as string) || undefined,
+    appId: (route.query.appId as string) || undefined,
+  })
+}
 // 获取店铺信息
 const { data, loading, error } = useRequest(
   () => getShopInfo({ params: { shopId: shopId.value } }),
