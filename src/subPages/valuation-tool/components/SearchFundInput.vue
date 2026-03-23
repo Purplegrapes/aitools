@@ -29,15 +29,6 @@ const emit = defineEmits<{
       >
     </view>
 
-    <view v-if="selectedFund" class="mt-[12rpx] rounded-[16rpx] bg-brand-muted px-[18rpx] py-[16rpx]">
-      <text class="block text-[26rpx] text-primary font-600">
-        {{ selectedFund.name }}
-      </text>
-      <text class="mt-[6rpx] block text-[22rpx] text-secondary">
-        {{ selectedFund.code }} · {{ selectedFund.category }}
-      </text>
-    </view>
-
     <view v-if="results.length" class="mt-[12rpx] flex flex-col gap-[10rpx]">
       <view
         v-for="fund in results"

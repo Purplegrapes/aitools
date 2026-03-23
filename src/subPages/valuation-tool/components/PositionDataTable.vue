@@ -15,7 +15,7 @@ const emit = defineEmits<{
 <template>
   <view class="border border-line/70 rounded-[20rpx] bg-surface shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
     <view class="border-b border-line/60 px-[22rpx] py-[18rpx]">
-      <text class="text-[26rpx] text-primary font-600">
+      <text class="text-base text-primary font-600">
         持仓明细
       </text>
     </view>
@@ -39,28 +39,28 @@ const emit = defineEmits<{
       @click="emit('select', item.code)"
     >
       <view class="min-w-0 pr-[12rpx]">
-        <text class="block truncate text-[24rpx] text-primary font-600">
+        <text class="block truncate text-sm text-primary font-600">
           {{ item.name }}
         </text>
-        <text class="mt-[6rpx] block text-[22rpx] text-secondary">
+        <text class="mt-[6rpx] block text-xs text-secondary">
           {{ item.code }}
         </text>
       </view>
 
       <view>
-        <text class="block text-[24rpx] font-600" :class="getPortfolioValueTone(item.cumulativeProfit)">
+        <text class="block text-sm font-600" :class="getPortfolioValueTone(item.cumulativeProfit)">
           {{ formatCurrency(item.cumulativeProfit) }}
         </text>
-        <text class="mt-[4rpx] block text-[20rpx]" :class="getPortfolioValueTone(item.cumulativeProfitRate)">
+        <text class="mt-[4rpx] block text-xs" :class="getPortfolioValueTone(item.cumulativeProfitRate)">
           {{ formatPercent(item.cumulativeProfitRate) }}
         </text>
       </view>
 
       <view>
-        <text class="block text-[24rpx] font-600" :class="todayUnavailable ? 'text-secondary' : getPortfolioValueTone(item.todayProfit)">
+        <text class="block text-sm font-600" :class="todayUnavailable ? 'text-secondary' : getPortfolioValueTone(item.todayProfit)">
           {{ todayUnavailable ? '--' : formatCurrency(item.todayProfit) }}
         </text>
-        <text class="mt-[4rpx] block text-[20rpx]" :class="todayUnavailable ? 'text-secondary' : getPortfolioValueTone(item.dailyChangeRate)">
+        <text class="mt-[4rpx] block text-xs" :class="todayUnavailable ? 'text-secondary' : getPortfolioValueTone(item.dailyChangeRate)">
           {{ todayUnavailable ? '暂无估值' : formatPercent(item.dailyChangeRate) }}
         </text>
       </view>
