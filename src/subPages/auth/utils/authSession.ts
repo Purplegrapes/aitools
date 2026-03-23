@@ -4,6 +4,9 @@ import { useEtfUserStore } from '@/store/etfUserStore'
 
 export interface AuthSessionPayload {
   token: string
+  refreshToken?: string
+  tokenType?: string
+  expiresIn?: number
   userInfo?: Record<string, any> | null
 }
 
@@ -16,13 +19,16 @@ export function extractAuthSessionPayload(response: TokenResponseDto | any): Aut
 
   return {
     token,
+    refreshToken: data?.refresh_token || data?.refreshToken || '',
+    tokenType: data?.token_type || data?.tokenType || '',
+    expiresIn: Number(data?.expires_in || data?.expiresIn || 0) || 0,
     userInfo: data?.userInfo || null,
   }
 }
 
 export function applyAuthSession(payload: AuthSessionPayload) {
   const userStore = useEtfUserStore()
-  userStore.setToken(payload.token)
+  userStore.setAuthTokens(payload.token, payload.refreshToken || '')
   if (payload.userInfo)
     userStore.setUserInfo(payload.userInfo)
 

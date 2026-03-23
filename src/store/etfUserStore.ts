@@ -17,6 +17,7 @@ export interface EtfUserInfo {
 export interface EtfUserState {
   userInfo: EtfUserInfo | null
   token: string
+  refreshToken: string
   isLogin: boolean
 }
 
@@ -27,6 +28,7 @@ export const useEtfUserStore = defineStore('etfUser', {
   state: (): EtfUserState => ({
     userInfo: null,
     token: '',
+    refreshToken: '',
     isLogin: false,
   }),
 
@@ -70,6 +72,23 @@ export const useEtfUserStore = defineStore('etfUser', {
     },
 
     /**
+     * 设置 Refresh Token
+     */
+    setRefreshToken(refreshToken: string) {
+      this.refreshToken = refreshToken
+    },
+
+    /**
+     * 同时设置 Access/Refresh Token
+     */
+    setAuthTokens(token: string, refreshToken?: string) {
+      this.setToken(token)
+      if (typeof refreshToken === 'string') {
+        this.setRefreshToken(refreshToken)
+      }
+    },
+
+    /**
      * 登录成功
      */
     login(userInfo: EtfUserInfo, token: string) {
@@ -84,6 +103,7 @@ export const useEtfUserStore = defineStore('etfUser', {
     logout() {
       this.userInfo = null
       this.token = ''
+      this.refreshToken = ''
       this.isLogin = false
       // #ifdef H5
       if (typeof window !== 'undefined') {

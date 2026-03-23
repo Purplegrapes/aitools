@@ -1,6 +1,6 @@
 /// <reference types="@uni-helper/vite-plugin-uni-pages/client" />
 import { pages, subPackages } from 'virtual:uni-pages'
-import { buildRefererPath, createAuthLoginRoute, getStoredAuthToken, getStoredUserId } from '@/subPages/auth/utils/loginGuard'
+import { buildRefererPath, createAuthLoginRoute, getStoredAuthToken } from '@/subPages/auth/utils/loginGuard'
 
 function generateRoutes() {
   const routes = pages.map((page) => {
@@ -100,9 +100,9 @@ router.beforeEach((to, from, next) => {
   }
 
   if (isValuationAuthRequired(to.path || '')) {
-    const userId = getStoredUserId()
     const token = getStoredAuthToken()
-    if (!userId || !token) {
+    // 只以 token 作为登录态门槛，避免 user/me 回填时序导致登录后被守卫回跳登录页
+    if (!token) {
       const referer = buildRefererPath(to.path || '/subPages/valuation-tool/index', toQuery)
       next(createAuthLoginRoute(referer))
       return

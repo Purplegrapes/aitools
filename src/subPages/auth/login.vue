@@ -196,7 +196,7 @@ onUnmounted(() => {
 
 <template>
   <view class="auth-login-page min-h-screen px-[32rpx] pb-[48rpx] pt-[40rpx]">
-    <view class="mx-auto max-w-[686rpx]">
+    <view class="mx-auto">
       <view class="mb-[28rpx]">
         <text class="block text-lg text-primary font-600">
           手机号登录
@@ -211,18 +211,18 @@ onUnmounted(() => {
           <wd-input
             v-model="mobile"
             label="手机号"
-            label-width="140rpx"
+            label-width="100rpx"
             placeholder="请输入手机号"
             clearable
             type="number"
           />
 
-          <view class="flex items-end gap-[16rpx]">
+          <view class="flex items-center gap-[16rpx]">
             <view class="min-w-0 flex-1">
               <wd-input
                 v-model="smsCode"
                 label="验证码"
-                label-width="140rpx"
+                label-width="100rpx"
                 placeholder="请输入验证码"
                 clearable
                 type="number"

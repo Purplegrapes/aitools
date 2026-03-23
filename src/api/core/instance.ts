@@ -2,6 +2,7 @@ import AdapterUniapp from '@alova/adapter-uniapp'
 import { createAlova } from 'alova'
 import vueHook from 'alova/vue'
 import cookie from 'js-cookie'
+import { useEtfUserStore } from '@/store/etfUserStore'
 import mockAdapter from '../mock/mockAdapter'
 import { handleAlovaError, handleAlovaResponse } from './handlers'
 
@@ -94,6 +95,13 @@ function getValuationBaseURL(): string {
 }
 
 /**
+ * 获取 Auth API 基础 URL
+ */
+function getAuthBaseURL(): string {
+  return 'http://172.16.60.233:3000'
+}
+
+/**
  * 获取存储的 token
  */
 function getToken(): string {
@@ -109,6 +117,113 @@ function getToken(): string {
   return ''
 }
 
+/**
+ * 获取存储的 refresh token
+ */
+function getRefreshToken(): string {
+  try {
+    const etfUserStore = uni.getStorageSync('etfUser')
+    if (etfUserStore) {
+      return etfUserStore.refreshToken || ''
+    }
+  }
+  catch {
+    return ''
+  }
+  return ''
+}
+
+function isAuthOAuthPath(url: string) {
+  return url.includes('/auth-api/oauth/') || url.includes('/api/oauth/')
+}
+
+function isRefreshRetryableError(error: any) {
+  return Boolean(
+    (error && typeof error.code === 'number' && (error.code === 401 || error.code === 403))
+    || (error && typeof error.statusCode === 'number' && (error.statusCode === 401 || error.statusCode === 403)),
+  )
+}
+
+function requestRefreshToken(refreshToken: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (!refreshToken) {
+      reject(new Error('missing refresh token'))
+      return
+    }
+
+    const header: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    let refreshUrl = '/auth-api/oauth/token/refresh'
+    // #ifndef H5
+    refreshUrl = `${getAuthBaseURL()}/api/oauth/token/refresh`
+    // #endif
+
+    uni.request({
+      url: refreshUrl,
+      method: 'POST',
+      data: {
+        refresh_token: refreshToken,
+      },
+      header,
+      success: (response) => {
+        const { statusCode, data } = response as UniNamespace.RequestSuccessCallbackResult
+        if (statusCode < 200 || statusCode >= 300) {
+          reject(new Error(`refresh request failed: ${statusCode}`))
+          return
+        }
+        const payload = (data as any)?.data || data || {}
+        const nextAccessToken = payload?.access_token || payload?.token || ''
+        const nextRefreshToken = payload?.refresh_token || refreshToken
+
+        if (!nextAccessToken || typeof nextAccessToken !== 'string') {
+          reject(new Error('refresh token response missing access_token'))
+          return
+        }
+
+        const userStore = useEtfUserStore()
+        userStore.setAuthTokens(nextAccessToken, nextRefreshToken)
+        resolve(nextAccessToken)
+      },
+      fail: (error) => {
+        reject(error)
+      },
+    })
+  })
+}
+
+async function ensureTokenRefreshed() {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken)
+    throw new Error('missing refresh token')
+
+  if (isRefreshing()) {
+    return new Promise<string>((resolve, reject) => {
+      subscribeTokenRefresh((token) => {
+        if (token)
+          resolve(token)
+        else
+          reject(new Error('refresh token failed'))
+      })
+    })
+  }
+
+  setRefreshing(true)
+  try {
+    const newToken = await requestRefreshToken(refreshToken)
+    onTokenRefreshed(newToken)
+    return newToken
+  }
+  catch (error) {
+    onTokenRefreshed('')
+    throw error
+  }
+  finally {
+    setRefreshing(false)
+  }
+}
+
 export const alovaInstance = createAlova({
   baseURL: getMainBaseURL(),
   ...AdapterUniapp({
@@ -118,11 +233,14 @@ export const alovaInstance = createAlova({
   beforeRequest: (method) => {
     let token = ''
 
-    // 目前只有etf有token
-    if (method.url.startsWith('/api') || method.url.startsWith('/djapi')) {
-      // 从本地存储获取 token
+    const isAuthOAuthRequest = method.url.startsWith('/auth-api/oauth/')
+
+    // ETF/API 鉴权请求走本地 token（auth oauth 公共接口除外）
+    if ((method.url.startsWith('/api') || method.url.startsWith('/djapi') || method.url.startsWith('/auth-api'))
+      && !isAuthOAuthRequest) {
       token = getToken()
     }
+
     // TAMP API 走 tampStore token， 从同一个域名下的cookie中获取
     if (method.url.startsWith('/app-api')) {
       token = cookie.get('ticket')
@@ -178,9 +296,25 @@ export const alovaInstance = createAlova({
       }
     }
 
-    // 添加 token 到请求头
+    // Auth API 固定走独立服务
+    if (method.url.startsWith('/auth-api')) {
+      const authBaseURL = getAuthBaseURL()
+      if (authBaseURL) {
+        // #ifndef H5
+        method.url = `${authBaseURL}${method.url.replace(/^\/auth-api/, '/api')}`
+        // #endif
+        // #ifdef H5
+        // H5 环境由代理处理，保持 URL 不变
+        // #endif
+      }
+    }
+
+    // 添加 token 到请求头（Bearer 认证）
     if (token) {
-      method.config.headers.Authorization = `${token}`
+      const trimmedToken = token.trim()
+      method.config.headers.Authorization = trimmedToken.startsWith('Bearer ')
+        ? trimmedToken
+        : `Bearer ${trimmedToken}`
     }
 
     // Add content type for POST/PUT/PATCH requests
@@ -218,7 +352,29 @@ export const alovaInstance = createAlova({
     onSuccess: handleAlovaResponse,
 
     // Error handler
-    onError: handleAlovaError,
+    onError: async (error, method) => {
+      const methodRef = method as any
+      const requestUrl = `${method?.url || ''}`
+      const alreadyRetried = Boolean(methodRef.__refreshRetried)
+      const shouldTryRefresh = isRefreshRetryableError(error)
+        && !alreadyRetried
+        && !isAuthOAuthPath(requestUrl)
+
+      if (shouldTryRefresh) {
+        try {
+          await ensureTokenRefreshed()
+          methodRef.__refreshRetried = true
+          if (typeof methodRef.send === 'function') {
+            return await methodRef.send()
+          }
+        }
+        catch {
+          // refresh 失败后走统一错误处理（登出/提示/外跳）
+        }
+      }
+
+      return handleAlovaError(error, method)
+    },
 
     // Complete handler - runs after success or error
     onComplete: async () => {

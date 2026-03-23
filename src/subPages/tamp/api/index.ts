@@ -40,7 +40,7 @@ export interface AuthUserProfileDto {
 export function tokenByCode(params: {
   code: string
 }) {
-  return alovaInstance.Post<TokenResponseDto>('/auth-api/token', {
+  return alovaInstance.Post<TokenResponseDto>('/auth-api/oauth/token', {
     code: params.code,
     grant_type: 'authorization_code',
   })
@@ -53,7 +53,7 @@ export function tokenByCode(params: {
 export function tokenBySession(params: {
   sessionId: string
 }) {
-  return alovaInstance.Post<TokenResponseDto>('/auth-api/token', {
+  return alovaInstance.Post<TokenResponseDto>('/auth-api/oauth/token', {
     code: params.sessionId,
     grant_type: 'authorization_code',
   })
@@ -65,7 +65,7 @@ export function tokenBySession(params: {
 export function sendPhoneCode(params: {
   phone: string
 }) {
-  return alovaInstance.Post<SendSmsCodeResponseDto>('/auth-api/sms/send', params)
+  return alovaInstance.Post<SendSmsCodeResponseDto>('/auth-api/oauth/sms/send', params)
 }
 
 /**
@@ -75,7 +75,7 @@ export function verifyPhoneCode(params: {
   phone: string
   code: string
 }) {
-  return alovaInstance.Post<AuthorizeResponseDto>('/auth-api/sms/verify', params)
+  return alovaInstance.Post<AuthorizeResponseDto>('/auth-api/oauth/sms/verify', params)
 }
 
 /**
@@ -92,10 +92,19 @@ export function exchangeToken(params: {
   code: string
   grant_type?: 'authorization_code'
 }) {
-  return alovaInstance.Post<TokenResponseDto>('/auth-api/token', {
+  return alovaInstance.Post<TokenResponseDto>('/auth-api/oauth/token', {
     code: params.code,
     grant_type: params.grant_type || 'authorization_code',
   })
+}
+
+/**
+ * 使用 refresh_token 刷新 token
+ */
+export function refreshAccessToken(params: {
+  refresh_token: string
+}) {
+  return alovaInstance.Post<TokenResponseDto>('/auth-api/oauth/token/refresh', params)
 }
 
 /**

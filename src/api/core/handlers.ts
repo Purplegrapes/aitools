@@ -59,27 +59,17 @@ async function handleEmbeddedUnauthorized(data?: any) {
 export async function handleAlovaResponse(
   response: UniApp.RequestSuccessCallbackResult | UniApp.UploadFileSuccessCallbackResult | UniApp.DownloadSuccessData,
 ) {
-  const globalToast = useGlobalToast()
   // Extract status code and data from UniApp response
   const { statusCode, data } = response as UniNamespace.RequestSuccessCallbackResult
 
-  // 处理401/403错误（单 token 模式不再尝试刷新）
+  // 401/403 统一交由 onError 链路处理（可在上层执行 refresh token 后重试）
   if ((statusCode === 401 || statusCode === 403)) {
-    if (await handleEmbeddedUnauthorized(data))
-      return data as ApiResponse
-
-    const userStore = useEtfUserStore()
-    const tampStore = useTampStore()
-    await userStore.logout()
-    globalToast.error({ msg: '登录已过期，请重新登录！', duration: 500 })
-    if (tampStore.isExternal) {
-      await handleExternalRedirect(tampStore.source, tampStore.loginUrl)
-    }
     throw new ApiError('登录已过期，请重新登录！', statusCode, data)
   }
 
   // Handle HTTP error status codes
   if (statusCode >= 400) {
+    const globalToast = useGlobalToast()
     globalToast.error(`Request failed with status: ${statusCode}`)
     throw new ApiError(`Request failed with status: ${statusCode}`, statusCode, data)
   }
@@ -106,8 +96,17 @@ export async function handleAlovaError(error: any, method: Method) {
 
   // 处理401/403错误（如果不是在handleAlovaResponse中处理的）
   if (error instanceof ApiError && (error.code === 401 || error.code === 403)) {
+    if (await handleEmbeddedUnauthorized(error.data))
+      throw error
+
+    const userStore = useEtfUserStore()
+    const tampStore = useTampStore()
+    await userStore.logout()
     if (!method.url.startsWith('/tools-api') && !method.url.startsWith('/valuation-api')) {
       globalToast.error({ msg: error.message || '登录已过期，请重新登录！', duration: 500 })
+    }
+    if (tampStore.isExternal) {
+      await handleExternalRedirect(tampStore.source, tampStore.loginUrl)
     }
     throw error
   }
