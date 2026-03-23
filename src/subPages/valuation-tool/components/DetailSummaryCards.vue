@@ -226,8 +226,8 @@ function handleShowMetricTip(row: { label: string, tip: string }) {
 <template>
   <view class="flex flex-col gap-4">
     <view class="px-[4rpx]">
-      <view class="max-w-[620rpx]">
-        <text class="block text-2xl text-primary font-500 leading-[1.08] tracking-[1rpx]">
+      <view>
+        <text class="block text-xl text-primary font-500 tracking-[1rpx]">
           {{ result.name }}
         </text>
         <text class="mt-[12rpx] block text-sm text-secondary leading-[36rpx]">

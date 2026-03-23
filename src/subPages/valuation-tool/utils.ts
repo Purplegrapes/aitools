@@ -389,6 +389,13 @@ export function formatCurrency(value?: number | null) {
   return `${sign}${numericValue.toFixed(2)}`
 }
 
+export function formatCurrencyNoSign(value?: number | null) {
+  if (value === null || value === undefined || Number.isNaN(Number(value)))
+    return '--'
+
+  return Number(value).toFixed(2)
+}
+
 export function formatPercent(value?: number | null) {
   if (value === null || value === undefined || Number.isNaN(Number(value)))
     return '--'
@@ -434,13 +441,17 @@ export function buildPortfolioSummary(metrics: PortfolioPositionMetrics[]): Port
   const totalCost = metrics.reduce((sum, item) => sum + item.costAmount, 0)
   const totalTodayProfit = metrics.reduce((sum, item) => sum + (item.todayProfit ?? 0), 0)
   const hasTodayProfit = metrics.some(item => item.todayProfit !== null)
+  const previousAmount = totalAmount - (hasTodayProfit ? totalTodayProfit : 0)
+  const updateTime = metrics.find(item => item.updateTime)?.updateTime || ''
 
   return {
     totalProfit,
     totalProfitRate: totalCost > 0 ? (totalProfit / totalCost) * 100 : null,
     todayProfit: hasTodayProfit ? totalTodayProfit : null,
+    todayChangeRate: hasTodayProfit && previousAmount > 0 ? (totalTodayProfit / previousAmount) * 100 : null,
     totalAmount,
     holdingCount: metrics.length,
+    updateTime,
   }
 }
 

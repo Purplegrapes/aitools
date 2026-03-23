@@ -176,7 +176,7 @@ function handleOpenScreenshotFlow() {
           <text class="min-w-0 flex-1 text-[22rpx] text-secondary leading-[32rpx]">
             批量补录可用「同步持仓」，上传截图后确认即可。
           </text>
-          <view class="flex shrink-0 items-center gap-[4rpx] rounded-full border border-line/80 bg-surface px-[14rpx] py-[6rpx] text-[20rpx] text-primary">
+          <view class="flex shrink-0 items-center gap-[4rpx] border border-line/80 rounded-full bg-surface px-[14rpx] py-[6rpx] text-[20rpx] text-primary">
             去同步
             <view class="i-carbon-chevron-right text-[18rpx]" />
           </view>

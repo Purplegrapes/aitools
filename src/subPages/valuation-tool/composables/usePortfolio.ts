@@ -348,7 +348,9 @@ function mapFundSearchItemToOption(item: FundSearchServiceItem): PortfolioFundOp
   }
 }
 
-function resolveStatusLabel(rate: number) {
+function resolveStatusLabel(rate: number | null) {
+  if (rate === null)
+    return '震荡' as const
   if (rate >= 5)
     return '偏强' as const
   if (rate <= -5)

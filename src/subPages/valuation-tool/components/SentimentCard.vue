@@ -47,7 +47,7 @@ const thumbStyle = computed(() => {
     <view class="flex items-center justify-between gap-[20rpx]">
       <view class="flex items-center gap-[12rpx]">
         <view class="i-carbon-temperature text-[30rpx]" :style="{ color: sentimentTone.color }" />
-        <text class="text-base text-primary font-600 leading-[42rpx]">
+        <text class="text-sm text-primary font-600 leading-[42rpx]">
           今日市场情绪
         </text>
       </view>

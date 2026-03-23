@@ -255,8 +255,10 @@ export interface PortfolioSummary {
   totalProfit: number
   totalProfitRate: number | null
   todayProfit: number | null
+  todayChangeRate: number | null
   totalAmount: number
   holdingCount: number
+  updateTime: string
 }
 
 export interface PortfolioInsight {

@@ -26,7 +26,7 @@ function handleSubmit() {
   <view class="border border-line/70 rounded-card border-solid bg-surface px-[20rpx] py-[18rpx] shadow-[0_12rpx_28rpx_rgba(17,37,62,0.05)]">
     <view class="flex items-center gap-[14rpx]">
       <view class="h-[48rpx] w-[48rpx] flex items-center justify-center text-tertiary">
-        <view class="i-carbon-search text-[34rpx]" />
+        <wd-icon name="search" />
       </view>
       <input
         :value="props.modelValue"

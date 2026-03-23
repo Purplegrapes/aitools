@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { FundSearchServiceItem, SearchResultViewModel } from './types'
 import { searchFunds } from './api/valuationTool'
-import SearchResultTableRow from './components/SearchResultTableRow.vue'
 import ValuationSearchBar from './components/ValuationSearchBar.vue'
 import { useValuationWatchlist } from './composables/useValuationWatchlist'
 import { findFallbackSearchResults, normalizeFundSearchServiceItem } from './mock'
@@ -68,6 +67,16 @@ const isIdle = computed(() => !hasKeyword.value)
 const isEmpty = computed(() => hasKeyword.value && !loading.value && !error.value && !searchResults.value.length)
 const isSuccess = computed(() => hasKeyword.value && !loading.value && !!searchResults.value.length)
 const isError = computed(() => hasKeyword.value && !loading.value && !searchResults.value.length && !!error.value)
+
+// 动画相关
+const staggerDelay = ref(0)
+const resultCount = computed(() => searchResults.value.length)
+
+watch(resultCount, (newCount, oldCount) => {
+  if (newCount > 0 && oldCount === 0) {
+    staggerDelay.value = Date.now()
+  }
+})
 
 const initialKeyword = normalizeKeyword(route.query.q)
 if (initialKeyword) {
@@ -168,77 +177,188 @@ function stringifyNullableField(value: unknown) {
 </script>
 
 <template>
-  <view class="bg-page vt-page-shell pb-8">
-    <view class="mx-auto flex flex-col gap-4">
-      <ValuationSearchBar
-        v-model="searchKeyword"
-        placeholder="输入基金名称或代码"
-        button-text="搜索"
-        @submit="handleSubmit"
-      />
-
-      <view v-if="isIdle" class="vt-top-card p-6">
-        <text class="block text-base text-primary font-600">
-          搜索基金
-        </text>
-        <text class="mt-2 block text-sm text-regular leading-6">
-          输入基金名称或代码，结果会按名称、代码和自选操作直接展示。
-        </text>
+  <view class="min-h-full bg-page vt-page-shell">
+    <!-- 顶部搜索区域 -->
+    <view class="sticky top-0 z-10 bg-page/95 backdrop-blur-sm">
+      <view class="mx-auto py-2">
+        <ValuationSearchBar
+          v-model="searchKeyword"
+          placeholder="输入基金名称或代码"
+          button-text="搜索"
+          @submit="handleSubmit"
+        />
       </view>
+    </view>
 
-      <view v-else-if="loading" class="vt-top-card p-6 text-center">
-        <wd-loading />
-        <text class="mt-3 block text-sm text-secondary">
-          正在搜索相关基金...
-        </text>
-      </view>
+    <!-- 主内容区 -->
+    <view class="mx-auto pb-8">
+      <!-- 空闲状态 -->
+      <transition name="fade">
+        <view v-if="isIdle" class="min-h-[50vh] flex flex-col items-center justify-center py-12">
+          <view class="from-blue-50 shadow-blue-200/50 mb-6 h-20 w-20 flex items-center justify-center rounded-full to-indigo-100 bg-gradient-to-br shadow-lg">
+            <wd-icon name="search" class="text-brand" size="30" />
+          </view>
+          <text class="mb-3 text-base text-primary font-semibold">
+            发现优质基金
+          </text>
+          <text class="max-w-[280rpx] text-center text-sm text-secondary leading-relaxed">
+            输入基金名称或代码，快速找到您关注的基金
+          </text>
 
-      <view v-else-if="isEmpty" class="vt-top-card p-6">
-        <text class="block text-base text-primary font-600">
-          没找到相关基金
-        </text>
-        <text class="mt-2 block text-sm text-regular leading-6">
-          请换一个更短的关键词，或者直接输入基金代码再试。
-        </text>
-      </view>
+          <!-- 热门搜索提示 -->
+          <view class="mt-8 flex flex-wrap justify-center gap-2">
+            <view
+              v-for="hint in ['沪深300', '中证500', '创业板']"
+              :key="hint"
+              class="cursor-pointer rounded-full bg-surface px-4 py-2 text-sm text-secondary transition-all active:scale-95"
+              @click="searchKeyword = hint; handleSubmit()"
+            >
+              {{ hint }}
+            </view>
+          </view>
+        </view>
+      </transition>
 
-      <view v-else-if="isError" class="vt-top-card p-6">
-        <text class="block text-base text-primary font-600">
-          搜索暂时有点忙
-        </text>
-        <text class="mt-2 block text-sm text-regular leading-6">
-          当前没能完成精确搜索，请稍后再试。
-        </text>
-      </view>
+      <!-- 加载状态 -->
+      <transition name="fade">
+        <view v-if="loading" class="min-h-[50vh] flex flex-col items-center justify-center py-12">
+          <view class="relative">
+            <view class="border-blue-100 border-t-blue-500 h-14 w-14 animate-spin border-4 rounded-full" />
+            <view class="absolute inset-0 h-14 w-14 flex items-center justify-center">
+              <view class="i-carbon-time text-blue-500 text-[24rpx]" />
+            </view>
+          </view>
+          <text class="mt-6 text-sm text-secondary">
+            正在搜索基金...
+          </text>
+        </view>
+      </transition>
 
-      <view v-else-if="isSuccess" class="flex flex-col gap-[16rpx]">
-        <text class="px-[4rpx] text-[24rpx] text-secondary">
-          找到 {{ searchResults.length }} 只相关基金，可直接加入或删除自选
-        </text>
+      <!-- 空结果状态 -->
+      <transition name="slide-up">
+        <view v-if="isEmpty" class="min-h-[50vh] flex flex-col items-center justify-center py-12">
+          <view class="mb-6 h-20 w-20 flex items-center justify-center rounded-full from-amber-50 to-orange-100 bg-gradient-to-br shadow-amber-200/50 shadow-lg">
+            <view class="i-carbon-folder-off text-[40rpx] text-amber-500" />
+          </view>
+          <text class="mb-3 text-base text-primary font-semibold">
+            未找到相关基金
+          </text>
+          <text class="max-w-[280rpx] text-center text-sm text-secondary leading-relaxed">
+            试试缩短关键词，或直接输入完整的基金代码
+          </text>
+        </view>
+      </transition>
 
-        <view class="overflow-hidden rounded-card bg-surface shadow-sm">
-          <view class="grid grid-cols-[minmax(0,1.3fr)_150rpx_150rpx] items-center gap-[12rpx] bg-surfaceSubtle px-[24rpx] py-[20rpx]">
-            <text class="text-[22rpx] text-secondary font-600">
-              基金名称
-            </text>
-            <text class="text-center text-[22rpx] text-secondary font-600">
-              代码
-            </text>
-            <text class="text-right text-[22rpx] text-secondary font-600">
-              自选
+      <!-- 错误状态 -->
+      <transition name="slide-up">
+        <view v-if="isError" class="min-h-[50vh] flex flex-col items-center justify-center py-12">
+          <view class="from-red-50 shadow-red-200/50 mb-6 h-20 w-20 flex items-center justify-center rounded-full to-pink-100 bg-gradient-to-br shadow-lg">
+            <view class="i-carbon-warning-alt text-red-500 text-[40rpx]" />
+          </view>
+          <text class="mb-3 text-base text-primary font-semibold">
+            搜索暂时繁忙
+          </text>
+          <text class="max-w-[280rpx] text-center text-sm text-secondary leading-relaxed">
+            服务暂时不可用，请稍后再试
+          </text>
+          <view
+            class="mt-6 cursor-pointer rounded-full bg-primary px-6 py-3 text-sm text-white font-medium transition-all active:scale-95"
+            @click="handleSubmit"
+          >
+            重试
+          </view>
+        </view>
+      </transition>
+
+      <!-- 搜索结果 - 紧凑列表 -->
+      <transition-group name="stagger" tag="view" class="mt-4 flex flex-col gap-2">
+        <template v-if="isSuccess">
+          <!-- 结果计数 -->
+          <view class="mb-2 flex items-center gap-2 px-2">
+            <wd-icon name="check-circle-filled" size="22px" class="text-brand" />
+            <text class="text-sm text-primary">
+              找到 <text class="text-blue-600 text-base font-semibold">
+                {{ searchResults.length }}
+              </text> 只基金
             </text>
           </view>
 
-          <SearchResultTableRow
-            v-for="item in searchResults"
+          <!-- 结果列表 -->
+          <view
+            v-for="(item, index) in searchResults"
             :key="item.code"
-            :item="item"
-            :watchlisted="isWatchlisted(item.code)"
-            @select="handleSelectFund"
-            @toggle="handleToggleWatchlist"
-          />
-        </view>
-      </view>
+            :style="{ animationDelay: `${index * 30}ms` }"
+            class="flex items-center gap-3 rounded-xl bg-surface px-3 py-3 transition-all active:bg-surfaceSubtle"
+            @click="handleSelectFund(item.code)"
+          >
+            <!-- 基金信息 -->
+            <view class="min-w-0 flex-1">
+              <text class="block truncate text-sm text-primary leading-relaxed">
+                {{ item.name }}
+              </text>
+              <view class="mt-1 flex items-center gap-2">
+                <text class="text-xs text-secondary font-mono">
+                  {{ item.code }}
+                </text>
+                <view v-if="item.channel" class="rounded-md bg-surfaceSubtle px-1.5 py-0.5">
+                  <text class="text-[10rpx] text-secondary">
+                    {{ item.channel }}
+                  </text>
+                </view>
+              </view>
+            </view>
+
+            <!-- 自选按钮 -->
+            <view
+              class="h-9 w-9 flex flex-shrink-0 items-center justify-center rounded-full transition-all active:scale-90"
+              :class="isWatchlisted(item.code) ? 'bg-amber-50' : ''"
+              @click.stop="handleToggleWatchlist(item)"
+            >
+              <view
+                class="text-[26rpx] transition-all"
+                :class="isWatchlisted(item.code) ? 'i-carbon-star-filled text-[#FFB800]' : 'i-carbon-star text-secondary'"
+              />
+            </view>
+          </view>
+        </template>
+      </transition-group>
     </view>
   </view>
 </template>
+
+<style scoped>
+/* 淡入淡出动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 滑入动画 */
+.slide-up-enter-active {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* 交错动画 */
+.stagger-enter-active {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stagger-enter-from {
+  opacity: 0;
+  transform: translateY(16px) scale(0.95);
+}
+
+.stagger-move {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+</style>

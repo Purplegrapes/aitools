@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import valuationIcon from '@/assets/valuation.svg'
 /**
  * 首页 - 工具集合
  * 支付宝简约风格设计
@@ -77,7 +78,7 @@ const allTools: ToolItem[] = [
     id: 'valuation-tool',
     name: '宝倍估值',
     description: '宝倍查估值，快速看懂你的基',
-    icon: 'idea',
+    icon: valuationIcon,
     category: 'investment',
     route: { name: 'valuation-tool-home' },
     popular: true,
@@ -226,10 +227,7 @@ function getCategoryIcon(category: ToolCategory): string {
               class="h-10 w-10 flex flex-shrink-0 items-center justify-center rounded-xl"
               :class="getCategoryConfig(category as ToolCategory).color"
             >
-              <wd-icon
-                :name="tool.icon"
-                :custom-class="`${getCategoryConfig(category as ToolCategory).iconColor} text-4!`"
-              />
+              <wd-img :src="tool.icon" class="h-10 w-10" />
             </view>
             <view class="min-w-0 flex-1">
               <text class="block text-sm text-[#1D2129] font-medium">
