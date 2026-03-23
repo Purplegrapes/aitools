@@ -147,17 +147,15 @@ function handleOpenScreenshotFlow() {
         <view class="mb-[20rpx] flex items-start justify-between gap-[16rpx]">
           <view>
             <text class="block text-[30rpx] text-primary font-600">
-              手动录入一只基金
+              手动录入
             </text>
             <text class="mt-[8rpx] block text-[22rpx] text-secondary leading-[34rpx]">
-              适合少量持仓，输入当前金额和累计收益即可。
+              选基金后，填写持有金额和持有收益即可保存。
             </text>
           </view>
-          <view class="rounded-full bg-brand-muted px-[16rpx] py-[8rpx]">
-            <text class="text-[22rpx] text-brand font-600">
-              快速录入
-            </text>
-          </view>
+          <text class="rounded-full bg-brand-muted px-[16rpx] py-[8rpx] text-[22rpx] text-brand font-600">
+            简版
+          </text>
         </view>
 
         <AddPositionForm
@@ -171,31 +169,24 @@ function handleOpenScreenshotFlow() {
           @select-fund="handleSelectFund"
         />
 
-        <view class="mt-[18rpx] rounded-[16rpx] bg-brand-muted/70 px-[18rpx] py-[18rpx]">
-          <text class="block text-[22rpx] text-secondary">
-            填写提示
+        <view
+          class="mt-[18rpx] flex items-center justify-between gap-[14rpx] rounded-[14rpx] bg-surfaceSubtle px-[16rpx] py-[14rpx]"
+          @click="handleOpenScreenshotFlow"
+        >
+          <text class="min-w-0 flex-1 text-[22rpx] text-secondary leading-[32rpx]">
+            批量补录可用「同步持仓」，上传截图后确认即可。
           </text>
-          <text class="mt-[8rpx] block text-[24rpx] text-primary leading-[36rpx]">
-            持有金额填你现在这只基金值多少钱，持有收益填当前累计赚了或亏了多少钱，系统会自动换算底层持仓信息。
-          </text>
-        </view>
-
-        <view class="mt-[18rpx] rounded-[16rpx] bg-surfaceSubtle px-[18rpx] py-[18rpx]">
-          <text class="block text-[22rpx] text-secondary">
-            还有批量录入需求？
-          </text>
-          <text class="mt-[8rpx] block text-[24rpx] text-primary leading-[36rpx]">
-            如果你有多只基金要补录，可以直接去上传持仓截图，系统会先识别，再让你确认后保存。
-          </text>
+          <view class="flex shrink-0 items-center gap-[4rpx] rounded-full border border-line/80 bg-surface px-[14rpx] py-[6rpx] text-[20rpx] text-primary">
+            去同步
+            <view class="i-carbon-chevron-right text-[18rpx]" />
+          </view>
         </view>
       </view>
     </view>
 
     <BottomActionBar
-      secondary-text="同步持仓"
       primary-text="保存持仓"
       @primary="handleSave(false)"
-      @secondary="handleOpenScreenshotFlow"
     />
   </view>
 </template>
