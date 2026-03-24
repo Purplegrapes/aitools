@@ -1,5 +1,6 @@
 /// <reference types="@uni-helper/vite-plugin-uni-pages/client" />
 import { pages, subPackages } from 'virtual:uni-pages'
+import { buildAuthGatewayRouteFromTarget, shouldWrapMiniProgramExternalAccess } from '@/subPages/auth/utils/gateway'
 import { buildRefererPath, createAuthLoginRoute, getStoredAuthToken } from '@/subPages/auth/utils/loginGuard'
 
 function generateRoutes() {
@@ -23,43 +24,6 @@ const router = createRouter({
   routes: generateRoutes(),
 })
 
-function pickQueryValue(value: unknown) {
-  if (Array.isArray(value))
-    return value[0]
-  return typeof value === 'string' ? value : ''
-}
-
-function stringifyQuery(query: Record<string, unknown>) {
-  const params = new URLSearchParams()
-  Object.entries(query).forEach(([key, value]) => {
-    if (value === undefined || value === null || value === '')
-      return
-    if (Array.isArray(value)) {
-      value.forEach((item) => {
-        if (item !== undefined && item !== null)
-          params.append(key, `${item}`)
-      })
-      return
-    }
-    params.append(key, `${value}`)
-  })
-  const search = params.toString()
-  return search ? `?${search}` : ''
-}
-
-function buildTargetFullPath(path: string, query: Record<string, unknown>) {
-  return `${path}${stringifyQuery(query)}`
-}
-
-function isMiniProgramExternalAccess(path: string, query: Record<string, unknown>) {
-  if (!path.startsWith('/subPages/'))
-    return false
-  if (path.startsWith('/subPages/tamp/'))
-    return false
-
-  return pickQueryValue(query.from) === 'miniapp'
-}
-
 const valuationAuthPaths = new Set([
   '/subPages/valuation-tool/watchlist',
   '/subPages/valuation-tool/holdings',
@@ -78,24 +42,8 @@ router.beforeEach((to, from, next) => {
 
   const toQuery = (to.query || {}) as Record<string, unknown>
 
-  if (isMiniProgramExternalAccess(to.path || '', toQuery)) {
-    const referer = buildTargetFullPath(to.path, toQuery)
-    const nextQuery: Record<string, unknown> = {
-      ...toQuery,
-      from: 'miniapp',
-      referer: encodeURIComponent(referer),
-    }
-
-    const targetUrl = to.path.startsWith('/subPages/tools/')
-      ? referer
-      : pickQueryValue(toQuery.targetUrl)
-    if (targetUrl)
-      nextQuery.targetUrl = targetUrl
-
-    next({
-      path: '/subPages/tamp/index',
-      query: nextQuery,
-    })
+  if (shouldWrapMiniProgramExternalAccess(to.path || '', toQuery)) {
+    next(buildAuthGatewayRouteFromTarget(to.path, toQuery))
     return
   }
 

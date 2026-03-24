@@ -1,4 +1,4 @@
-import type { TokenResponseDto } from '../../tamp/api'
+import type { TokenResponseDto } from '../api'
 import cookie from 'js-cookie'
 import { useEtfUserStore } from '@/store/etfUserStore'
 

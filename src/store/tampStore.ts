@@ -2,7 +2,7 @@
  * TAMP 外部来源状态管理
  * 用于存储外部跳入时的认证信息
  */
-import type { ExternalSourceType } from '@/subPages/tamp/utils/sourceDetector'
+import type { ExternalSourceType } from '@/subPages/auth/utils/sourceDetector'
 import cookie from 'js-cookie'
 import { defineStore } from 'pinia'
 
@@ -14,7 +14,6 @@ import { defineStore } from 'pinia'
  */
 export interface TampExternalInfo {
   source: ExternalSourceType
-  appId?: string
   loginUrl?: string
   shopId?: string
 }
@@ -55,11 +54,6 @@ export const useTampStore = defineStore('tamp', {
      * 优先从 cookie 读取（H5 同域存储），返回空字符串表示未登录
      */
     token: () => cookie.get('ticket') || '',
-
-    /**
-     * 获取 AppID
-     */
-    appId: state => state.externalInfo?.appId || '',
 
     /**
      * 获取登录页地址

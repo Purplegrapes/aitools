@@ -10,7 +10,7 @@ import type { Method } from 'alova'
 import { useEmbeddedToolStore } from '@/store/embeddedToolStore'
 import { useEtfUserStore } from '@/store/etfUserStore'
 import { useTampStore } from '@/store/tampStore'
-import { handleExternalRedirect } from '@/subPages/tamp/utils/externalRedirect'
+import { handleExternalRedirect } from '@/subPages/auth/utils/externalRedirect'
 import { useEmbeddedAuth } from '@/subPages/tools/composables/useEmbeddedAuth'
 
 // Custom error class for API errors

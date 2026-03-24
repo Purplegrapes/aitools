@@ -1,14 +1,14 @@
 # 外部小程序嵌入 H5 工具页接入说明
 
 ## 1. 打开方式
-- 外部小程序统一只打开中转入口页：`/subPages/tamp/index`
+- 外部小程序统一只打开认证中转入口页：`/subPages/auth/gateway`
 - 不允许外部直接打开具体工具页
-- 当目标为 `subPages/tools/**` 时，中转页会二跳到 `subPages/tools/entry` 建立 embed 会话，再进入具体工具页
+- 旧的 `/subPages/tamp/index` 仅保留为迁移期兼容别名，会原样透传参数并转发到新的 `auth` 网关
 
 示例：
 
 ```text
-https://your-h5-domain.com/#/subPages/tamp/index?referer=%2FsubPages%2Ftools%2Fdemo&targetUrl=%2FsubPages%2Ftools%2Fdemo&ticket=xxx&timestamp=1741586400&nonce=abc123&sign=sign-value&traceId=trace-demo-001&from=miniapp
+https://your-h5-domain.com/#/subPages/auth/gateway?referer=https%3A%2F%2Fyour-h5-domain.com%2F%23%2FsubPages%2Ftools%2Fdemo&transferH5Ticket=xxx&from=miniapp
 ```
 
 ## 2. 启动参数
@@ -22,18 +22,17 @@ https://your-h5-domain.com/#/subPages/tamp/index?referer=%2FsubPages%2Ftools%2Fd
 - `bizId`: 可选业务 ID
 
 限制：
-- 外部入口必须指向 `/subPages/tamp/index`
-- `targetUrl` 只能是当前 H5 站点的受控内部路径
-- 禁止传完整 URL、协议头、外部域名
-- 禁止传 `/subPages/tools/entry`
+- 外部入口标准路径为 `/subPages/auth/gateway`
+- 迁移期内允许继续使用 `/subPages/tamp/index`，但它只做兼容转发
+- `referer` 可以是当前 H5 内部路径，也可以是完整的站内落地 URL
+- 小程序中转至少需要提供 `referer` 与 `transferH5Ticket`
 
 ## 3. H5 启动流程
-1. 外部小程序拼接统一中转页 URL（`/subPages/tamp/index`）。
-2. TAMP 校验来源和目标路径，识别是否为 tools 目标。
-3. 若目标为 `subPages/tools/**`，TAMP 透传 embed 参数并跳转到 `/subPages/tools/entry`。
-4. tools entry 校验 `targetUrl` 与换票参数、检测小程序 `web-view` 环境。
-5. tools entry 调用后端换票接口建立本域会话，清理敏感参数后跳转 `targetUrl`。
-6. 若目标不是 tools 页面，TAMP 按统一登录与重定向规则直接落目标页。
+1. 外部小程序拼接统一认证中转页 URL（`/subPages/auth/gateway`）。
+2. `auth` 网关识别来源并校验 `referer`、`transferH5Ticket` 等关键参数。
+3. 网关调用换票接口建立登录态，并在必要时补齐当前用户信息。
+4. 换票成功后，网关直接跳转到 `referer` 指向的目标地址。
+5. 若仍使用旧 `/subPages/tamp/index`，兼容页只透传参数并 `replace` 到新的 `auth` 网关。
 
 ## 4. Bridge 协议
 Bridge 在这里是“宿主协作协议”，不要求外部小程序一定额外封装一个独立 SDK。协议可以通过两种方式承载：
@@ -277,8 +276,8 @@ H5 请求宿主关闭当前 web-view：
 - `host_callback_missing`
 
 ## 7. 联调检查项
-- 外部入口是否总是打开 `/subPages/tamp/index`
-- tools 目标是否总是经过 `TAMP -> tools/entry` 二跳链路
+- 外部入口是否优先打开 `/subPages/auth/gateway`
+- 旧 `/subPages/tamp/index` 是否仅作为兼容别名转发到新网关
 - `targetUrl` 是否经过 encodeURIComponent
 - 宿主是否提供 `requestAuthRefresh`
 - 宿主是否实现订阅消息授权后回调本项目后端
@@ -322,7 +321,7 @@ onLoad(async (options) => {
     traceId,
   })
 
-  webviewUrl.value = `https://your-h5-domain.com/#/subPages/tools/entry?${query.toString()}`
+  webviewUrl.value = `https://your-h5-domain.com/#/subPages/auth/gateway?${query.toString()}`
 })
 
 async function createEmbedTicket(payload: {

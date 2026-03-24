@@ -11,13 +11,16 @@
 ---
 
 ## 2. 当前实现概览（基于 tamp 目录）
-- **入口中转页**：`src/subPages/tamp/index.vue`
+- **正式入口中转页**：`src/subPages/auth/gateway.vue`
   - 解析 query
   - 通过 `detectAccessMode` 判断来源
-  - 从 `query.token` 写入 `userStore.setToken()`
-  - 跳转到 `referer`
-- **来源检测**：`src/subPages/tamp/utils/sourceDetector.ts`
-- **外部回跳工具**：`src/subPages/tamp/utils/externalRedirect.ts`
+  - 使用 `transferH5Ticket` 完成换 token
+  - 成功后跳转到 `referer`
+- **兼容别名页**：`src/subPages/tamp/index.vue`
+  - 仅透传 query
+  - `router.replace` 到 `auth` 网关
+- **来源检测**：`src/subPages/auth/utils/sourceDetector.ts`
+- **外部回跳工具**：`src/subPages/auth/utils/externalRedirect.ts`
 - **401/403 处理**：`src/api/core/handlers.ts` 当前仅 logout + toast（未对接外部回跳）
 
 ---
@@ -31,11 +34,13 @@
   - `https://主域名/tamp?from=h5&token=xxx&referer=/subPages/tamp/demo&loginUrl=...`
 
 ### 3.2 Token 落地
-- `tamp/index.vue`：
-  - 读取 `token` → `userStore.setToken(token)`
-  - 记录 `source/loginUrl/referer` 到 `tampStore`
-  - 清理 URL token
+- `auth/gateway.vue`：
+  - 读取 `transferH5Ticket` 并换取登录态
+  - 记录 `source/loginUrl/shopId` 到 `tampStore`
+  - 成功后清理敏感 query
   - `router.replace(referer)`
+- `tamp/index.vue`：
+  - 仅保留兼容转发，不再执行认证或写入登录态
 
 ### 3.3 401/403 处理
 - `src/api/core/handlers.ts`：
@@ -79,11 +84,9 @@
 ---
 
 ## 5. TODO 清单（与当前实现差距）
-1. `handlers.ts` 中对接 `handleExternalRedirect`。
-2. `tampStore` 保存 `loginUrl / referer / timestamp`。
-3. `tamp/index.vue` 保存 `loginUrl / referer` 到 store。
-4. 规范 `from=miniapp|h5` 的 URL 参数。
-5. 补充 Token 清理逻辑（生产也可清理）。
+1. 评估何时下线旧 `/subPages/tamp/index` 兼容别名。
+2. 为新 `auth` 网关补充更多端到端回归验证。
+3. 继续清理历史设计文档里对旧 `tamp` 入口的描述。
 
 ---
 

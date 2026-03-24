@@ -50,6 +50,7 @@
     "build:quickapp-webview-huawei": "uni build -p quickapp-webview-huawei",
     "build:quickapp-webview-union": "uni build -p quickapp-webview-union",
     "type-check": "vue-tsc --noEmit",
+    "test:auth-gateway": "rm -rf tests-dist && pnpm exec tsc -p tsconfig.node-tests.json && node --test tests-dist/tests/auth/*.test.js",
     "lint": "pnpm lint:eslint && pnpm lint:alova",
     "lint:eslint": "eslint .",
     "lint:fix": "eslint . --fix && pnpm lint:alova",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ExternalSourceType } from './utils/sourceDetector'
+import type { ExternalSourceType } from '../auth/utils/sourceDetector'
 import { getShopInfo } from './api'
 
 /**
@@ -55,7 +55,6 @@ if (from === 'miniprogram' || from === 'h5') {
     source: from,
     loginUrl: (route.query.loginUrl as string) || undefined,
     shopId: (route.query.shopId as string) || undefined,
-    appId: (route.query.appId as string) || undefined,
   })
 }
 // 获取店铺信息

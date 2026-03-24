@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { exchangeToken, getCurrentAuthUser, sendPhoneCode, verifyPhoneCode } from '../tamp/api'
+import { exchangeToken, getCurrentAuthUser, sendPhoneCode, verifyPhoneCode } from './api'
 import { applyAuthSession, applyAuthUserProfile, extractAuthSessionPayload } from './utils/authSession'
 
 definePage({
@@ -154,8 +154,8 @@ async function handleSubmit() {
       phone: normalizedMobile,
       code: normalizedCode,
     })
-    // Alova 将响应包装在 data 中
-    const authCode = authorize?.data?.code || authorize?.code
+    const authorizePayload = authorize as { data?: { code?: string }, code?: string }
+    const authCode = authorizePayload.data?.code || authorizePayload.code
     if (!authCode || typeof authCode !== 'string') {
       toast.error('验证码校验成功，但未返回授权码')
       return
