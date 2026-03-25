@@ -104,14 +104,14 @@ export function usePortfolio() {
   }
 
   async function refreshPositions() {
-    await refreshPortfolioState({ includeRealtime: true })
+    await refreshPortfolioState({ includeRealtime: true, fallbackOnError: true })
   }
 
   async function refreshPositionsListOnly() {
-    await refreshPortfolioState({ includeRealtime: false })
+    await refreshPortfolioState({ includeRealtime: false, fallbackOnError: false })
   }
 
-  async function refreshPortfolioState(options: { includeRealtime: boolean }) {
+  async function refreshPortfolioState(options: { includeRealtime: boolean, fallbackOnError: boolean }) {
     if (portfolioRefreshingState.value)
       return
 
@@ -134,12 +134,18 @@ export function usePortfolio() {
       if (Array.isArray(items)) {
         applyPortfolioFromService(items, Array.isArray(realtimeItems) ? realtimeItems : [])
       }
-      else {
+      else if (options.fallbackOnError) {
         applyFallbackPortfolio()
+      }
+      else {
+        clearPortfolioState()
       }
     }
     catch {
-      applyFallbackPortfolio()
+      if (options.fallbackOnError)
+        applyFallbackPortfolio()
+      else
+        clearPortfolioState()
     }
     finally {
       portfolioRefreshingState.value = false
@@ -275,6 +281,11 @@ export function usePortfolio() {
   function applyFallbackPortfolio() {
     portfolioPositionsState.value = getFallbackPortfolioPositions()
     portfolioMetricsState.value = getFallbackPortfolioMetrics(portfolioPositionsState.value)
+  }
+
+  function clearPortfolioState() {
+    portfolioPositionsState.value = []
+    portfolioMetricsState.value = []
   }
 
   function applyPortfolioFromService(
