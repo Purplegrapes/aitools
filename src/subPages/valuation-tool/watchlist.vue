@@ -2,7 +2,7 @@
 import ValuationBottomNav from './components/ValuationBottomNav.vue'
 import WatchlistFundCard from './components/WatchlistFundCard.vue'
 import { useValuationWatchlist } from './composables/useValuationWatchlist'
-import { createResultPath, createValuationHomePath } from './utils'
+import { createResultPath, createSearchPath } from './utils'
 
 definePage({
   name: 'valuation-tool-watchlist',
@@ -46,7 +46,7 @@ function handleSelect(code: string) {
 }
 
 function handleBackHome() {
-  router.replace(createValuationHomePath())
+  router.replace(createSearchPath())
 }
 </script>
 

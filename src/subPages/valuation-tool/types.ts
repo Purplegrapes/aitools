@@ -41,7 +41,7 @@ export interface FundSearchServiceItem {
   code: string
   name: string
   channel?: string | null
-  subCategoryId?: string | null
+  subCategoryName?: string | null
 }
 
 export interface FavouriteItemServiceResponse {
@@ -94,7 +94,7 @@ export interface FundDetailServiceResponse {
   code: string
   foundDate?: string | null
   name: string
-  subCategoryId?: string | null
+  subCategoryName?: string | null
 }
 
 export interface FundMetricsServiceResponse {

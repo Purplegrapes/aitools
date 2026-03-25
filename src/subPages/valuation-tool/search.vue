@@ -163,7 +163,7 @@ function normalizeSearchItem(item: unknown): FundSearchServiceItem | null {
     code,
     name: name || code,
     channel: stringifyNullableField(payload.channel ?? payload.saleChannel ?? payload.source),
-    subCategoryId: stringifyNullableField(payload.subCategoryId ?? payload.categoryId ?? payload.subCategory),
+    subCategoryName: stringifyNullableField(payload.subCategoryName ?? payload.categoryId ?? payload.subCategory),
   }
 }
 

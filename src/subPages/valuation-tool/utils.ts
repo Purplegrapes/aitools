@@ -31,8 +31,8 @@ export function normalizeKeyword(value: unknown) {
   }
 }
 
-export function createSearchPath(keyword: string) {
-  return `/subPages/valuation-tool/search?q=${encodeURIComponent(keyword.trim())}`
+export function createSearchPath() {
+  return `/subPages/valuation-tool/search`
 }
 
 export function createValuationHomePath() {
@@ -220,7 +220,7 @@ export function mapFundDetailToResult(
     tags: buildFundTags(detail),
     foundDate: detail.foundDate || undefined,
     channelLabel: detail.channel === 'EXCHANGE' ? '场内基金' : '场外基金',
-    subCategoryLabel: normalizeSubCategoryLabel(detail.subCategoryId),
+    subCategoryLabel: normalizeSubCategoryLabel(detail.subCategoryName),
     intraday: mapFundRealtimeDataToIntraday(realtimeData),
     quickFacts: metrics
       ? {
@@ -495,7 +495,7 @@ function buildFundTags(detail: FundDetailServiceResponse) {
 
   tags.add(detail.channel === 'EXCHANGE' ? '场内基金' : '场外基金')
 
-  const subCategoryLabel = normalizeSubCategoryLabel(detail.subCategoryId)
+  const subCategoryLabel = normalizeSubCategoryLabel(detail.subCategoryName)
   if (subCategoryLabel)
     tags.add(subCategoryLabel)
 

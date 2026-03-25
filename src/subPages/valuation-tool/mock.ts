@@ -119,7 +119,7 @@ export function findFallbackSearchResults(keyword: string) {
 }
 
 export function normalizeFundSearchServiceItem(item: FundSearchServiceItem): SearchResultViewModel {
-  const categoryTag = inferCategoryTag(item.subCategoryId)
+  const categoryTag = inferCategoryTag(item.subCategoryName)
   const channelTag = item.channel?.trim()
 
   const tags = [categoryTag, channelTag].filter(Boolean) as string[]
@@ -297,8 +297,8 @@ function formatHotFundChange(yieldValue?: number | null) {
   return `${sign}${Number(yieldValue).toFixed(2)}%`
 }
 
-function inferCategoryTag(subCategoryId?: string | null) {
-  const rawValue = subCategoryId?.trim()
+function inferCategoryTag(subCategoryName?: string | null) {
+  const rawValue = subCategoryName?.trim()
   if (!rawValue)
     return '基金'
 
@@ -320,7 +320,7 @@ function inferCategoryTag(subCategoryId?: string | null) {
 
 function buildSearchSummary(item: FundSearchServiceItem) {
   const channelText = item.channel?.trim()
-  const categoryText = inferCategoryTag(item.subCategoryId)
+  const categoryText = inferCategoryTag(item.subCategoryName)
 
   if (channelText && categoryText !== '基金')
     return `这是一只${categoryText}基金，当前可在${channelText}等渠道看到相关资料。`

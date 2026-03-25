@@ -13,8 +13,8 @@ import {
   normalizeGatewayReferer,
   shouldExchangeTransferTicket,
 } from './utils/gateway'
-import { getStoredAuthToken } from './utils/loginGuard'
 import { resolveGatewayFailureAction, resolveGatewaySuccessTarget } from './utils/gateway-flow'
+import { getStoredAuthToken } from './utils/loginGuard'
 import { detectAccessMode } from './utils/sourceDetector'
 
 definePage({
