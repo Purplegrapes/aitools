@@ -5,7 +5,7 @@ import type {
   MarketSentiment,
   MarketSentimentServiceResponse,
 } from './types'
-import valuationIcon from '@/assets/valuation.svg'
+import valuationHeader from '@/assets/header.png'
 import { getHotSearchFunds, getMarketSentiment } from './api/valuationTool'
 import HotSearchList from './components/HotSearchList.vue'
 import RiskNoteCard from './components/RiskNoteCard.vue'
@@ -89,7 +89,7 @@ function handleOpenSearch() {
 
           <view class="relative mt-[-6rpx]">
             <image
-              :src="valuationIcon"
+              :src="valuationHeader"
               class="h-[136rpx] w-[136rpx]"
               mode="aspectFit"
             />
