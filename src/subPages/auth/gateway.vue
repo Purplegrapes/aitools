@@ -13,6 +13,7 @@ import {
   normalizeGatewayReferer,
   shouldExchangeTransferTicket,
 } from './utils/gateway'
+import { getStoredAuthToken } from './utils/loginGuard'
 import { resolveGatewayFailureAction, resolveGatewaySuccessTarget } from './utils/gateway-flow'
 import { detectAccessMode } from './utils/sourceDetector'
 
@@ -53,6 +54,7 @@ onMounted(async () => {
   const transferH5Ticket = decodeQueryValue(query.transferH5Ticket)
   const loginUrl = decodeQueryValue(query.loginUrl)
   const shopId = decodeQueryValue(query.shopId)
+  const storedAuthToken = getStoredAuthToken()
 
   if (mode === 'external') {
     if (source === 'miniprogram' && !hasRequiredGatewayParams(query)) {
@@ -67,7 +69,7 @@ onMounted(async () => {
       shopId,
     })
 
-    if (shouldExchangeTransferTicket(source)) {
+    if (shouldExchangeTransferTicket(source, storedAuthToken)) {
       try {
         const response = await sendTransferH5TicketExchange({ transferH5Ticket })
         const authSession = extractAuthSessionPayload(response)
@@ -115,6 +117,15 @@ function cleanupSensitiveQuery() {
   // #endif
 }
 
+function replaceBrowserLocation(url: string) {
+  // #ifdef H5
+  if (typeof window === 'undefined')
+    return
+
+  window.location.replace(url)
+  // #endif
+}
+
 async function handleAuthFailure(
   source: 'miniprogram' | 'h5' | 'internal',
   loginUrl: string,
@@ -127,9 +138,7 @@ async function handleAuthFailure(
   })
 
   if (action.type === 'external-h5') {
-    // #ifdef H5
-    window.location.href = action.url
-    // #endif
+    replaceBrowserLocation(action.url)
     return
   }
 
@@ -147,7 +156,7 @@ async function redirectToTarget(referrer: string) {
 
   // #ifdef H5
   if (target.type === 'browser') {
-    window.location.href = target.url
+    replaceBrowserLocation(target.url)
     return
   }
   // #endif

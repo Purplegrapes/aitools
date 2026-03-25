@@ -45,6 +45,7 @@ export function buildRefererPath(path: string, query: Record<string, unknown>) {
 
 export function createAuthLoginRoute(referrer: string) {
   return {
+    navType: 'replace',
     path: '/subPages/auth/login',
     query: {
       referrer: encodeURIComponent(referrer),

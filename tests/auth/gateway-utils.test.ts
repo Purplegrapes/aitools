@@ -48,6 +48,7 @@ test('legacy tamp gateway redirect only forwards passthrough query to auth gatew
   })
 
   assert.deepEqual(result, {
+    navType: 'replace',
     path: AUTH_GATEWAY_PATH,
     query: {
       from: 'miniapp',
@@ -66,11 +67,12 @@ test('miniapp external subPages target builds auth gateway route with encoded re
   })
 
   assert.deepEqual(result, {
+    navType: 'replace',
     path: AUTH_GATEWAY_PATH,
     query: {
       from: 'miniapp',
       foo: 'bar',
-      referrer: encodeURIComponent('/subPages/valuation-tool/index?from=miniapp&foo=bar'),
+      referrer: encodeURIComponent('/subPages/valuation-tool/index?foo=bar'),
     },
   })
 })
@@ -82,14 +84,28 @@ test('tools targets keep targetUrl when wrapped by auth gateway route builder', 
   })
 
   assert.deepEqual(result, {
+    navType: 'replace',
     path: AUTH_GATEWAY_PATH,
     query: {
       from: 'miniapp',
       traceId: 'trace-1',
-      referrer: encodeURIComponent('/subPages/tools/demo?from=miniapp&traceId=trace-1'),
-      targetUrl: '/subPages/tools/demo?from=miniapp&traceId=trace-1',
+      referrer: encodeURIComponent('/subPages/tools/demo?traceId=trace-1'),
+      targetUrl: '/subPages/tools/demo?traceId=trace-1',
     },
   })
+})
+
+test('auth gateway target referrer strips transient auth handoff query fields', () => {
+  const result = buildAuthGatewayRouteFromTarget('/subPages/valuation-tool/holdings', {
+    from: 'miniapp',
+    transferH5Ticket: 'ticket-1',
+    loginUrl: encodeURIComponent('https://example.com/login'),
+    shopId: 'shop-1',
+    appId: 'wx123',
+    foo: 'bar',
+  })
+
+  assert.deepEqual(result.query.referrer, encodeURIComponent('/subPages/valuation-tool/holdings?foo=bar'))
 })
 
 test('gateway referrer accepts full website urls without project-page validation', () => {
@@ -130,6 +146,7 @@ test('miniapp wrapper skips auth gateway itself to avoid redirect loops', () => 
 
 test('transferH5Ticket exchange is only required for miniapp external flow', () => {
   assert.equal(shouldExchangeTransferTicket('miniprogram'), true)
+  assert.equal(shouldExchangeTransferTicket('miniprogram', 'token-1'), false)
   assert.equal(shouldExchangeTransferTicket('h5'), false)
   assert.equal(shouldExchangeTransferTicket('internal'), false)
 })

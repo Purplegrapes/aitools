@@ -30,6 +30,7 @@ test('internal unauthenticated flow redirects to auth login with encoded referre
   })
 
   assert.deepEqual(createAuthLoginRoute(referrer), {
+    navType: 'replace',
     path: '/subPages/auth/login',
     query: {
       referrer: encodeURIComponent('/subPages/valuation-tool/watchlist?foo=bar'),
@@ -45,6 +46,7 @@ test('internal unauthenticated flow redirects to auth login with encoded referre
   assert.deepEqual(result, {
     type: 'auth-login',
     route: {
+      navType: 'replace',
       path: '/subPages/auth/login',
       query: {
         referrer: encodeURIComponent('/subPages/valuation-tool/watchlist?foo=bar'),

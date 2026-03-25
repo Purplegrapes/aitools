@@ -11,6 +11,16 @@ const GATEWAY_PASSTHROUGH_KEYS = [
   'ticket',
 ] as const
 
+const GATEWAY_TRANSIENT_TARGET_KEYS = [
+  'from',
+  'referrer',
+  'transferH5Ticket',
+  'loginUrl',
+  'shopId',
+  'ticket',
+  'appId',
+] as const
+
 function pickQueryValue(value: unknown) {
   if (Array.isArray(value))
     return value[0]
@@ -39,6 +49,12 @@ function buildTargetFullPath(path: string, query: Record<string, unknown>) {
   return `${path}${stringifyQuery(query)}`
 }
 
+function stripGatewayTransientTargetQuery(query: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(query).filter(([key]) => !GATEWAY_TRANSIENT_TARGET_KEYS.includes(key as typeof GATEWAY_TRANSIENT_TARGET_KEYS[number])),
+  )
+}
+
 export function decodeQueryValue(input: unknown) {
   if (Array.isArray(input))
     input = input[0]
@@ -65,8 +81,11 @@ export function hasRequiredGatewayParams(query: Record<string, unknown>) {
   return !!(decodeQueryValue(query.referrer) && decodeQueryValue(query.transferH5Ticket))
 }
 
-export function shouldExchangeTransferTicket(source: 'miniprogram' | 'h5' | 'internal') {
-  return source === 'miniprogram'
+export function shouldExchangeTransferTicket(
+  source: 'miniprogram' | 'h5' | 'internal',
+  authToken = '',
+) {
+  return source === 'miniprogram' && !authToken.trim()
 }
 
 export function shouldWrapMiniProgramExternalAccess(path: string, query: Record<string, unknown>) {
@@ -94,13 +113,15 @@ export function buildGatewayPassthroughQuery(query: Record<string, unknown>) {
 
 export function buildLegacyGatewayRedirectRoute(query: Record<string, unknown>) {
   return {
+    navType: 'replace',
     path: AUTH_GATEWAY_PATH,
     query: buildGatewayPassthroughQuery(query),
   }
 }
 
 export function buildAuthGatewayRouteFromTarget(path: string, query: Record<string, unknown>) {
-  const referrer = buildTargetFullPath(path, query)
+  const targetQuery = stripGatewayTransientTargetQuery(query)
+  const referrer = buildTargetFullPath(path, targetQuery)
   const nextQuery: Record<string, string> = {
     ...Object.fromEntries(
       Object.entries(query).filter(([, value]) => typeof value === 'string'),
@@ -116,6 +137,7 @@ export function buildAuthGatewayRouteFromTarget(path: string, query: Record<stri
     nextQuery.targetUrl = targetUrl
 
   return {
+    navType: 'replace',
     path: AUTH_GATEWAY_PATH,
     query: nextQuery,
   }
