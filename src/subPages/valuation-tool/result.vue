@@ -7,7 +7,6 @@ import type {
   FundRealtimeDataServiceResponse,
   FundResult,
 } from './types'
-import { getStoredAuthToken } from '../auth/utils/loginGuard'
 import { getFundDetail, getFundMetrics, getFundRealtimeData } from './api/valuationTool'
 import DetailActionBar from './components/DetailActionBar.vue'
 import DetailStateCard from './components/DetailStateCard.vue'
@@ -63,7 +62,8 @@ const {
   refreshPositionsListOnly,
   removePosition,
 } = usePortfolio()
-const hasAuthToken = shallowRef(false)
+const userStore = useEtfUserStore()
+const hasAuthToken = computed(() => Boolean(userStore.token))
 
 const {
   data: detailResponse,
@@ -168,12 +168,7 @@ watch(
   { immediate: true },
 )
 
-function syncAuthState() {
-  hasAuthToken.value = Boolean(getStoredAuthToken())
-}
-
 onShow(() => {
-  syncAuthState()
   if (!hasAuthToken.value)
     return
   void refreshPositionsListOnly()
