@@ -21,7 +21,6 @@ const {
   watchlistLoading,
   watchlistError,
   refreshWatchlist,
-  removeFromWatchlist,
 } = useValuationWatchlist()
 
 onShow(() => {
@@ -44,10 +43,6 @@ const sortedWatchlistItems = computed(() => {
 
 function handleSelect(code: string) {
   router.push(createResultPath(code))
-}
-
-function handleRemove(code: string) {
-  removeFromWatchlist(code)
 }
 
 function handleBackHome() {
@@ -103,7 +98,7 @@ function handleBackHome() {
 
       <template v-else>
         <view class="overflow-hidden border border-line/70 rounded-card bg-surface shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
-          <view class="grid grid-cols-[minmax(0,1.3fr)_140rpx_140rpx_120rpx] items-center gap-[12rpx] bg-surfaceSubtle px-4 py-3">
+          <view class="grid grid-cols-[minmax(0,1.5fr)_140rpx_140rpx] items-center gap-[12rpx] bg-surfaceSubtle px-4 py-3">
             <text class="text-xs text-secondary font-600">
               基金
             </text>
@@ -117,16 +112,12 @@ function handleBackHome() {
                 实时净值
               </text>
             </view>
-            <text class="text-right text-xs text-secondary font-600">
-              操作
-            </text>
           </view>
 
           <WatchlistFundCard
             v-for="item in sortedWatchlistItems"
             :key="item.code"
             :item="item"
-            @remove="handleRemove"
             @select="handleSelect"
           />
         </view>
