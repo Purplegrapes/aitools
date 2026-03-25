@@ -15,7 +15,6 @@ import RiskNoteCard from './components/RiskNoteCard.vue'
 import { useValuationWatchlist } from './composables/useValuationWatchlist'
 import { detailStateMetaMap } from './mock'
 import {
-  createMineScanPath,
   createSearchPath,
   createValuationHomePath,
   createWatchlistPath,
@@ -40,6 +39,7 @@ definePage({
 })
 
 const router = useRouter()
+const toast = useToast()
 const route = useRoute()
 const fundCode = computed(() => normalizeKeyword(route.query.code))
 const requestError = shallowRef(false)
@@ -158,8 +158,9 @@ function handleOpenWatchlist() {
 function handleOpenMineScan() {
   if (!fundCode.value)
     return
+  toast.info('敬请期待')
 
-  router.push(createMineScanPath(fundCode.value))
+  // router.push(createMineScanPath(fundCode.value))
 }
 
 function handleToggleWatchlist() {
