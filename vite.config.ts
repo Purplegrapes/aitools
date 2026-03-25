@@ -35,7 +35,7 @@ export default defineConfig({
       },
       // 资产 API 代理
       '/shixi-api': {
-        target: 'http://172.16.60.233:300',
+        target: 'http://172.16.60.233:3000',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/shixi-api/, '/api'),
       },

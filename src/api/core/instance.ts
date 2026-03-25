@@ -52,12 +52,12 @@ function getMainBaseURL(): string {
 /**
  * 获取资产 API 基础 URL
  */
-function getAssetBaseURL(): string {
+function getCommonBaseURL(): string {
   // #ifdef H5
   return '' // H5 环境使用 Vite 代理
   // #endif
   // #ifndef H5
-  return import.meta.env.VITE_ASSET_API_BASE_URL
+  return import.meta.env.VITE_COMMON_API_BASE_URL
   // #endif
 }
 
@@ -90,15 +90,8 @@ function getValuationBaseURL(): string {
   return ''
   // #endif
   // #ifndef H5
-  return import.meta.env.VITE_TOOLS_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'https://etf-insight.betalpha.com'
+  return import.meta.env.VITE_TOOLS_API_BASE_URL
   // #endif
-}
-
-/**
- * 获取 Auth API 基础 URL
- */
-function getAuthBaseURL(): string {
-  return 'http://172.16.60.233:3000'
 }
 
 /**
@@ -157,7 +150,7 @@ function requestRefreshToken(refreshToken: string): Promise<string> {
 
     let refreshUrl = '/shixi-api/oauth/token/refresh'
     // #ifndef H5
-    refreshUrl = `${getAuthBaseURL()}/api/oauth/token/refresh`
+    refreshUrl = `${getCommonBaseURL()}/api/oauth/token/refresh`
     // #endif
 
     uni.request({
@@ -246,7 +239,7 @@ export const alovaInstance = createAlova({
       token = cookie.get('ticket')
     }
     if (method.url.startsWith('/shixi-api')) {
-      const assetBaseURL = getAssetBaseURL()
+      const assetBaseURL = getCommonBaseURL()
       if (assetBaseURL) {
         // 在非 H5 环境，需要设置完整 URL 来覆盖 Alova 的 baseURL
         // #ifndef H5
@@ -298,7 +291,7 @@ export const alovaInstance = createAlova({
 
     // Auth API 固定走独立服务
     if (method.url.startsWith('/shixi-api')) {
-      const authBaseURL = getAuthBaseURL()
+      const authBaseURL = getCommonBaseURL()
       if (authBaseURL) {
         // #ifndef H5
         method.url = `${authBaseURL}${method.url.replace(/^\/shixi-api/, '/api')}`
