@@ -222,7 +222,7 @@
           "layout": "default",
           "style": {
             "backgroundColor": "#F5F7FA",
-            "navigationBarTitleText": "确认持仓信息",
+            "navigationBarTitleText": "同步持仓",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
           }

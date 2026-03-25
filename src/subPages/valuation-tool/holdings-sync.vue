@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { recognizePortfolioScreenshots } from './api/valuationTool'
-import { setPortfolioRecognitionSession } from './composables/usePortfolioRecognitionSession'
-import { createHoldingsAddPath, createHoldingsUploadPath, getRecognitionDraftStatusMeta } from './utils'
+import { importPortfolioPositionsFromImage } from './api/valuationTool'
+import { usePortfolio } from './composables/usePortfolio'
+import {
+  getPortfolioImportImageErrorMessage,
+  isPortfolioImportImageSuccess,
+  pickPortfolioImportImage,
+} from './image-import'
+import {
+  createHoldingsAddPath,
+  createHoldingsPath,
+} from './utils'
 
 definePage({
   name: 'valuation-tool-holdings-sync',
@@ -16,12 +24,17 @@ definePage({
 
 const router = useRouter()
 const globalToast = useGlobalToast()
+const { refreshPositions } = usePortfolio()
+const isUploading = shallowRef(false)
 
 function handleOpenManualEntry() {
   router.push(createHoldingsAddPath())
 }
 
 async function handleOpenScreenshotEntry() {
+  if (isUploading.value)
+    return
+
   const chooseImage = uni.chooseImage
   if (!chooseImage) {
     globalToast.error('当前环境暂不支持选择图片，请稍后再试。')
@@ -30,44 +43,36 @@ async function handleOpenScreenshotEntry() {
 
   try {
     const result = await chooseImage({
-      count: 6,
+      count: 1,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
     })
 
-    const fileNames = (result.tempFiles || []).map((item, index) => {
-      if ('name' in item && item.name)
-        return item.name
-      return `持仓截图-${index + 1}.png`
-    })
+    const selectedImage = pickPortfolioImportImage(result)
+    if (!selectedImage) {
+      globalToast.error('当前未读取到可上传的截图，请重新选择后再试。')
+      return
+    }
 
-    const response = await recognizePortfolioScreenshots({
-      fileNames,
-    })
+    isUploading.value = true
+    const response = await importPortfolioPositionsFromImage(selectedImage.filePath)
+    if (!isPortfolioImportImageSuccess(response)) {
+      globalToast.error(getPortfolioImportImageErrorMessage(response))
+      return
+    }
 
-    const drafts = response.data.items.map((item) => {
-      const meta = getRecognitionDraftStatusMeta(item)
-      return {
-        ...item,
-        status: meta.status,
-        issue: meta.issue,
-      }
-    }).filter(item => item.status === 'ready')
-
-    setPortfolioRecognitionSession({
-      selectedImageNames: fileNames,
-      drafts,
-      recognitionState: drafts.length ? 'ready' : 'empty',
-      recognitionError: drafts.length ? '' : '暂未识别到可导入的持仓信息，请重新上传或改为手动录入。',
-    })
-    router.push(createHoldingsUploadPath())
+    await refreshPositions()
+    globalToast.success('持仓截图解析成功')
+    router.replace(createHoldingsPath())
   }
   catch (error) {
     const errorMessage = `${error}`
-    if (errorMessage.toLowerCase().includes('cancel'))
-      return
-
-    globalToast.error('截图识别失败，请重新上传或改为手动录入。')
+    if (!errorMessage.toLowerCase().includes('cancel')) {
+      globalToast.error(getPortfolioImportImageErrorMessage(error))
+    }
+  }
+  finally {
+    isUploading.value = false
   }
 }
 </script>
@@ -105,13 +110,15 @@ async function handleOpenScreenshotEntry() {
           @click="handleOpenScreenshotEntry"
         >
           <view class="h-[72rpx] w-[72rpx] flex items-center justify-center rounded-[24rpx] bg-brand-muted text-brand">
-            <view class="i-carbon-image-search text-[30rpx]" />
+            <view
+              :class="isUploading ? 'i-carbon-circle-dash animate-spin text-[30rpx]' : 'i-carbon-image-search text-[30rpx]'"
+            />
           </view>
           <text class="mt-[18rpx] block text-[30rpx] text-primary font-600">
-            上传截图
+            {{ isUploading ? '正在解析截图' : '上传截图' }}
           </text>
           <text class="mt-[10rpx] block text-[24rpx] text-secondary leading-[36rpx]">
-            适合一次录入多只基金。点击后会直接打开图片选择，选完就进入待确认的识别列表页。
+            {{ isUploading ? '请稍候，系统正在上传并解析持仓截图。解析成功后会直接回到持仓页。' : '适合一次录入多只基金。点击后直接选图上传，解析成功会回到持仓页并重新拉取最新持仓。' }}
           </text>
         </view>
       </view>

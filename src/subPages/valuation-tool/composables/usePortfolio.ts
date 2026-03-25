@@ -14,8 +14,10 @@ import {
   addPortfolioPosition,
   getPortfolioPositions,
   getPortfolioPositionsRealtime,
+  removePortfolioPosition as removePortfolioPositionRequest,
   searchFunds as searchFundsRequest,
 } from '../api/valuationTool'
+import { getPortfolioDeleteErrorMessage, isPortfolioDeleteSuccess } from '../position-actions.js'
 import {
   fallbackPortfolioFundCatalog,
   getFallbackPortfolioInsight,
@@ -81,6 +83,14 @@ export function usePortfolio() {
 
   const { send: sendFundSearchRequest } = useRequest(
     (keyword: string) => searchFundsRequest({ keyword }),
+    {
+      immediate: false,
+      onError: () => undefined,
+    },
+  )
+
+  const { send: sendRemovePortfolioPositionRequest } = useRequest(
+    (fundCode: string) => removePortfolioPositionRequest(fundCode),
     {
       immediate: false,
       onError: () => undefined,
@@ -162,9 +172,14 @@ export function usePortfolio() {
     return position
   }
 
-  function removePosition(id: string) {
-    removeFallbackPortfolioPosition(id)
-    void refreshPositions()
+  async function removePosition(input: { id: string, code: string }) {
+    const response = await sendRemovePortfolioPositionRequest(input.code)
+    if (!isPortfolioDeleteSuccess(response)) {
+      throw new Error(getPortfolioDeleteErrorMessage(response))
+    }
+
+    removeFallbackPortfolioPosition(input.id)
+    await refreshPositions()
   }
 
   function searchFunds(keyword: string) {

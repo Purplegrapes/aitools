@@ -2,6 +2,7 @@
 import BottomActionBar from './components/BottomActionBar.vue'
 import EditPositionSheet from './components/EditPositionSheet.vue'
 import { usePortfolio } from './composables/usePortfolio'
+import { getPortfolioDeleteErrorMessage } from './position-actions.js'
 import { createHoldingsPath, formatCurrency, normalizeKeyword } from './utils'
 
 definePage({
@@ -78,12 +79,20 @@ function handleSave() {
   router.replace(createHoldingsPath())
 }
 
-function handleRemove() {
+async function handleRemove() {
   if (!currentPosition.value)
     return
-  removePosition(currentPosition.value.id)
-  globalToast.success('持仓已删除')
-  router.replace(createHoldingsPath())
+  try {
+    await removePosition({
+      id: currentPosition.value.id,
+      code: currentPosition.value.code,
+    })
+    globalToast.success('持仓已删除')
+    router.replace(createHoldingsPath())
+  }
+  catch (error) {
+    globalToast.error(getPortfolioDeleteErrorMessage(error))
+  }
 }
 
 function toEditableNumber(value: number) {

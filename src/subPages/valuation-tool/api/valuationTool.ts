@@ -18,6 +18,7 @@ import { alovaInstance } from '@/api/core/instance'
 import { getStoredUserId } from '@/subPages/auth/utils/loginGuard'
 import { realtime } from '@/subPages/etf/api'
 import { getFallbackPortfolioRecognitionResult } from '../mock'
+import { parsePortfolioImportImageResponse } from '../image-import.js'
 
 export function getMarketSentiment() {
   return alovaInstance.Get<ApiEnvelope<MarketSentimentServiceResponse>>('/valuation-api/market-pulse/sentiment')
@@ -102,6 +103,45 @@ export function addPortfolioPosition(params: {
   })
 }
 
+export function removePortfolioPosition(fundCode: string) {
+  return alovaInstance.Delete<ApiEnvelope<string>>(
+    `/valuation-api/positions/${encodeURIComponent(fundCode)}`,
+    undefined,
+    {
+      headers: {
+        uid: getStoredUserId(),
+      },
+    },
+  )
+}
+
+export function importPortfolioPositionsFromImage(filePath: string) {
+  const uid = getStoredUserId()
+  if (!uid)
+    throw new Error('当前缺少用户信息，请重新登录后再试。')
+
+  return new Promise<ApiEnvelope<string>>((resolve, reject) => {
+    uni.uploadFile({
+      url: getPortfolioImportImageUrl(),
+      filePath,
+      name: 'image',
+      header: {
+        uid,
+      },
+      success: (response) => {
+        const parsed = parsePortfolioImportImageResponse(response.data)
+        if (!parsed) {
+          reject(new Error('截图上传结果解析失败，请稍后再试。'))
+          return
+        }
+
+        resolve(parsed)
+      },
+      fail: reject,
+    })
+  })
+}
+
 export function addValuationWatchlist(params: {
   uid: string
   code: string
@@ -155,4 +195,14 @@ export async function confirmRecognizedPortfolioPositions(params: {
       importedCount: params.items.length,
     },
   }
+}
+
+function getPortfolioImportImageUrl() {
+  // #ifdef H5
+  return '/valuation-api/positions/import-image'
+  // #endif
+  // #ifndef H5
+  const baseURL = import.meta.env.VITE_TOOLS_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'https://etf-insight.betalpha.com'
+  return `${baseURL}/api/positions/import-image`
+  // #endif
 }

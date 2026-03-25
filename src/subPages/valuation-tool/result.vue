@@ -12,8 +12,13 @@ import DetailActionBar from './components/DetailActionBar.vue'
 import DetailStateCard from './components/DetailStateCard.vue'
 import DetailSummaryCards from './components/DetailSummaryCards.vue'
 import RiskNoteCard from './components/RiskNoteCard.vue'
+import { usePortfolio } from './composables/usePortfolio'
 import { useValuationWatchlist } from './composables/useValuationWatchlist'
 import { detailStateMetaMap } from './mock'
+import {
+  buildPortfolioDeleteConfirmMessage,
+  getPortfolioDeleteErrorMessage,
+} from './position-actions.js'
 import {
   createSearchPath,
   createValuationHomePath,
@@ -41,14 +46,22 @@ definePage({
 const router = useRouter()
 const toast = useToast()
 const route = useRoute()
+const globalToast = useGlobalToast()
+const { confirm: showConfirm } = useGlobalMessage()
 const fundCode = computed(() => normalizeKeyword(route.query.code))
 const requestError = shallowRef(false)
 const realtimeDataError = shallowRef(false)
+const deletingHolding = shallowRef(false)
 const {
   refreshWatchlist,
   toggleWatchlist,
   isWatchlisted,
 } = useValuationWatchlist()
+const {
+  positions,
+  refreshPositions,
+  removePosition,
+} = usePortfolio()
 
 const {
   data: detailResponse,
@@ -126,6 +139,13 @@ const valuation = computed<DiscoveryFundValuation | undefined>(() => mapFundReal
 const stateMeta = computed(() => detailStateMetaMap[displayStatus.value])
 const showDetail = computed(() => displayStatus.value === 'ok')
 const watchlisted = computed(() => isWatchlisted(fundCode.value))
+const holdingPosition = computed(() => {
+  const currentCode = fundCode.value.trim().toUpperCase()
+  if (!currentCode)
+    return null
+  return positions.value.find(item => item.code.trim().toUpperCase() === currentCode) || null
+})
+const isHolding = computed(() => Boolean(holdingPosition.value))
 
 watch(
   fundCode,
@@ -143,6 +163,10 @@ watch(
   },
   { immediate: true },
 )
+
+onShow(() => {
+  void refreshPositions()
+})
 
 function handlePrimaryAction() {
   if (displayStatus.value === 'not_found')
@@ -176,6 +200,37 @@ function handleToggleWatchlist() {
     updateTime: marketType.value === 'exchange'
       ? exchangeQuote.value?.updateTime
       : result.value.intraday?.updateTime,
+  })
+}
+
+function handleRemoveHolding() {
+  if (!holdingPosition.value || deletingHolding.value)
+    return
+
+  showConfirm({
+    title: '删除持有',
+    msg: buildPortfolioDeleteConfirmMessage(holdingPosition.value.name),
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
+    success: async (actionResult) => {
+      if (actionResult.action !== 'confirm' || !holdingPosition.value || deletingHolding.value)
+        return
+
+      deletingHolding.value = true
+      try {
+        await removePosition({
+          id: holdingPosition.value.id,
+          code: holdingPosition.value.code,
+        })
+        globalToast.success('持仓已删除')
+      }
+      catch (error) {
+        globalToast.error(getPortfolioDeleteErrorMessage(error))
+      }
+      finally {
+        deletingHolding.value = false
+      }
+    },
   })
 }
 </script>
@@ -227,7 +282,10 @@ function handleToggleWatchlist() {
 
     <DetailActionBar
       v-if="showDetail"
+      :deleting-holding="deletingHolding"
+      :holding="isHolding"
       :watchlisted="watchlisted"
+      @remove-holding="handleRemoveHolding"
       @open-mine-scan="handleOpenMineScan"
       @open-watchlist="handleOpenWatchlist"
       @toggle="handleToggleWatchlist"
