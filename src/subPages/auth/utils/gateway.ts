@@ -3,7 +3,7 @@ export const LEGACY_TAMP_GATEWAY_PATH = '/subPages/tamp/index'
 
 const GATEWAY_PASSTHROUGH_KEYS = [
   'from',
-  'referer',
+  'referrer',
   'transferH5Ticket',
   'loginUrl',
   'shopId',
@@ -62,7 +62,7 @@ export function normalizeGatewayReferer(input: unknown) {
 }
 
 export function hasRequiredGatewayParams(query: Record<string, unknown>) {
-  return !!(decodeQueryValue(query.referer) && decodeQueryValue(query.transferH5Ticket))
+  return !!(decodeQueryValue(query.referrer) && decodeQueryValue(query.transferH5Ticket))
 }
 
 export function shouldExchangeTransferTicket(source: 'miniprogram' | 'h5' | 'internal') {
@@ -100,17 +100,17 @@ export function buildLegacyGatewayRedirectRoute(query: Record<string, unknown>) 
 }
 
 export function buildAuthGatewayRouteFromTarget(path: string, query: Record<string, unknown>) {
-  const referer = buildTargetFullPath(path, query)
+  const referrer = buildTargetFullPath(path, query)
   const nextQuery: Record<string, string> = {
     ...Object.fromEntries(
       Object.entries(query).filter(([, value]) => typeof value === 'string'),
     ),
     from: 'miniapp',
-    referer: encodeURIComponent(referer),
+    referrer: encodeURIComponent(referrer),
   }
 
   const targetUrl = path.startsWith('/subPages/tools/')
-    ? referer
+    ? referrer
     : pickQueryValue(query.targetUrl)
   if (targetUrl)
     nextQuery.targetUrl = targetUrl

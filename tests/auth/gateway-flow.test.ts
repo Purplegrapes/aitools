@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import test from 'node:test'
+import test from 'vitest'
 
 import {
   resolveGatewayFailureAction,
@@ -15,7 +15,7 @@ test('h5 external access is detected and failed auth redirects to loginUrl', () 
   const result = resolveGatewayFailureAction({
     source: detection.source,
     loginUrl: 'https://example.com/login',
-    referer: 'https://example.com/tools/demo',
+    referrer: 'https://example.com/tools/demo',
   })
 
   assert.deepEqual(result, {
@@ -24,22 +24,22 @@ test('h5 external access is detected and failed auth redirects to loginUrl', () 
   })
 })
 
-test('internal unauthenticated flow redirects to auth login with encoded referer', () => {
-  const referer = buildRefererPath('/subPages/valuation-tool/watchlist', {
+test('internal unauthenticated flow redirects to auth login with encoded referrer', () => {
+  const referrer = buildRefererPath('/subPages/valuation-tool/watchlist', {
     foo: 'bar',
   })
 
-  assert.deepEqual(createAuthLoginRoute(referer), {
+  assert.deepEqual(createAuthLoginRoute(referrer), {
     path: '/subPages/auth/login',
     query: {
-      referer: encodeURIComponent('/subPages/valuation-tool/watchlist?foo=bar'),
+      referrer: encodeURIComponent('/subPages/valuation-tool/watchlist?foo=bar'),
     },
   })
 
   const result = resolveGatewayFailureAction({
     source: 'internal',
     loginUrl: '',
-    referer,
+    referrer,
   })
 
   assert.deepEqual(result, {
@@ -47,14 +47,14 @@ test('internal unauthenticated flow redirects to auth login with encoded referer
     route: {
       path: '/subPages/auth/login',
       query: {
-        referer: encodeURIComponent('/subPages/valuation-tool/watchlist?foo=bar'),
+        referrer: encodeURIComponent('/subPages/valuation-tool/watchlist?foo=bar'),
       },
     },
     toastMessage: '登录状态校验失败，请重新登录',
   })
 })
 
-test('gateway success target prefers external url when referer is a full website url', () => {
+test('gateway success target prefers external url when referrer is a full website url', () => {
   const result = resolveGatewaySuccessTarget('https://example.com/tools/demo?foo=1')
 
   assert.deepEqual(result, {
@@ -63,7 +63,7 @@ test('gateway success target prefers external url when referer is a full website
   })
 })
 
-test('gateway success target falls back to index page when referer is empty', () => {
+test('gateway success target falls back to index page when referrer is empty', () => {
   const result = resolveGatewaySuccessTarget('')
 
   assert.deepEqual(result, {

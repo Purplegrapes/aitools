@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict'
-import test from 'node:test'
+import test from 'vitest'
 
 import {
   AUTH_GATEWAY_PATH,
-  LEGACY_TAMP_GATEWAY_PATH,
   buildAuthGatewayRouteFromTarget,
-  buildLegacyGatewayRedirectRoute,
   buildGatewayPassthroughQuery,
+  buildLegacyGatewayRedirectRoute,
   hasRequiredGatewayParams,
+  LEGACY_TAMP_GATEWAY_PATH,
   normalizeGatewayReferer,
   shouldExchangeTransferTicket,
   shouldWrapMiniProgramExternalAccess,
@@ -21,7 +21,7 @@ test('auth gateway constants expose the new and legacy entry paths', () => {
 test('gateway passthrough query strips appId while preserving required parameters', () => {
   const result = buildGatewayPassthroughQuery({
     from: 'miniapp',
-    referer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
+    referrer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
     loginUrl: encodeURIComponent('https://example.com/login'),
     shopId: 'shop-1',
     transferH5Ticket: 'transfer-ticket',
@@ -30,7 +30,7 @@ test('gateway passthrough query strips appId while preserving required parameter
 
   assert.deepEqual(result, {
     from: 'miniapp',
-    referer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
+    referrer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
     loginUrl: encodeURIComponent('https://example.com/login'),
     shopId: 'shop-1',
     transferH5Ticket: 'transfer-ticket',
@@ -40,7 +40,7 @@ test('gateway passthrough query strips appId while preserving required parameter
 test('legacy tamp gateway redirect only forwards passthrough query to auth gateway', () => {
   const result = buildLegacyGatewayRedirectRoute({
     from: 'miniapp',
-    referer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
+    referrer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
     loginUrl: encodeURIComponent('https://example.com/login'),
     shopId: 'shop-1',
     transferH5Ticket: 'transfer-ticket',
@@ -51,7 +51,7 @@ test('legacy tamp gateway redirect only forwards passthrough query to auth gatew
     path: AUTH_GATEWAY_PATH,
     query: {
       from: 'miniapp',
-      referer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
+      referrer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
       loginUrl: encodeURIComponent('https://example.com/login'),
       shopId: 'shop-1',
       transferH5Ticket: 'transfer-ticket',
@@ -59,7 +59,7 @@ test('legacy tamp gateway redirect only forwards passthrough query to auth gatew
   })
 })
 
-test('miniapp external subPages target builds auth gateway route with encoded referer', () => {
+test('miniapp external subPages target builds auth gateway route with encoded referrer', () => {
   const result = buildAuthGatewayRouteFromTarget('/subPages/valuation-tool/index', {
     from: 'miniapp',
     foo: 'bar',
@@ -70,7 +70,7 @@ test('miniapp external subPages target builds auth gateway route with encoded re
     query: {
       from: 'miniapp',
       foo: 'bar',
-      referer: encodeURIComponent('/subPages/valuation-tool/index?from=miniapp&foo=bar'),
+      referrer: encodeURIComponent('/subPages/valuation-tool/index?from=miniapp&foo=bar'),
     },
   })
 })
@@ -86,27 +86,27 @@ test('tools targets keep targetUrl when wrapped by auth gateway route builder', 
     query: {
       from: 'miniapp',
       traceId: 'trace-1',
-      referer: encodeURIComponent('/subPages/tools/demo?from=miniapp&traceId=trace-1'),
+      referrer: encodeURIComponent('/subPages/tools/demo?from=miniapp&traceId=trace-1'),
       targetUrl: '/subPages/tools/demo?from=miniapp&traceId=trace-1',
     },
   })
 })
 
-test('gateway referer accepts full website urls without project-page validation', () => {
+test('gateway referrer accepts full website urls without project-page validation', () => {
   assert.equal(
     normalizeGatewayReferer(encodeURIComponent('https://example.com/tools/demo?foo=1')),
     'https://example.com/tools/demo?foo=1',
   )
 })
 
-test('gateway requires referer and transferH5Ticket', () => {
+test('gateway requires referrer and transferH5Ticket', () => {
   assert.equal(hasRequiredGatewayParams({
-    referer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
+    referrer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
     transferH5Ticket: 'transfer-ticket',
   }), true)
 
   assert.equal(hasRequiredGatewayParams({
-    referer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
+    referrer: encodeURIComponent('https://example.com/tools/demo?foo=1'),
   }), false)
 
   assert.equal(hasRequiredGatewayParams({

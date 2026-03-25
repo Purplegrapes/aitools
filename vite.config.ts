@@ -35,7 +35,7 @@ export default defineConfig({
       },
       // 资产 API 代理
       '/shixi-api': {
-        target: 'https://shixi.betalpha.com',
+        target: 'http://172.16.60.233:300',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/shixi-api/, '/api'),
       },
@@ -43,12 +43,6 @@ export default defineConfig({
       '/app-api': {
         target: 'https://tamp-cd-3.betalpha.com',
         changeOrigin: true,
-      },
-      // Auth API 代理（本地联调）
-      '/auth-api': {
-        target: 'http://172.16.60.233:3000',
-        changeOrigin: true,
-        rewrite: path => path.replace(/^\/auth-api/, '/api'),
       },
       '/tools-api': {
         target: 'https://cngz.yhlsd.com',

@@ -44,15 +44,15 @@ onMounted(async () => {
   const query = route.query as Record<string, unknown>
   const { mode, source } = detectAccessMode(query)
   console.log(route.query)
-  const referer = normalizeGatewayReferer(query.referer)
+  const referrer = normalizeGatewayReferer(query.referrer)
   const transferH5Ticket = decodeQueryValue(query.transferH5Ticket)
   const loginUrl = decodeQueryValue(query.loginUrl)
   const shopId = decodeQueryValue(query.shopId)
 
   if (mode === 'external') {
     if (source === 'miniprogram' && !hasRequiredGatewayParams(query)) {
-      console.warn('AuthGateway: 缺少必传参数 referer 或 transferH5Ticket')
-      await handleAuthFailure(source, loginUrl, referer)
+      console.warn('AuthGateway: 缺少必传参数 referrer 或 transferH5Ticket')
+      await handleAuthFailure(source, loginUrl, referrer)
       return
     }
 
@@ -81,7 +81,7 @@ onMounted(async () => {
       }
       catch (error) {
         console.error('AuthGateway transferH5Ticket 换 token 失败:', error)
-        await handleAuthFailure(source, loginUrl, referer)
+        await handleAuthFailure(source, loginUrl, referrer)
         return
       }
     }
@@ -90,7 +90,7 @@ onMounted(async () => {
       cleanupSensitiveQuery()
   }
 
-  await redirectToTarget(referer || '/pages/index/index')
+  await redirectToTarget(referrer || '/pages/index/index')
 })
 
 function cleanupSensitiveQuery() {
@@ -107,12 +107,12 @@ function cleanupSensitiveQuery() {
 async function handleAuthFailure(
   source: 'miniprogram' | 'h5' | 'internal',
   loginUrl: string,
-  referer: string,
+  referrer: string,
 ) {
   const action = resolveGatewayFailureAction({
     source,
     loginUrl,
-    referer,
+    referrer,
   })
 
   if (action.type === 'external-h5') {
@@ -130,9 +130,9 @@ async function handleAuthFailure(
   toast.error(action.toastMessage)
 }
 
-async function redirectToTarget(referer: string) {
+async function redirectToTarget(referrer: string) {
   tampStore.clearExternalInfo()
-  const target = resolveGatewaySuccessTarget(referer)
+  const target = resolveGatewaySuccessTarget(referrer)
 
   // #ifdef H5
   if (target.type === 'browser') {

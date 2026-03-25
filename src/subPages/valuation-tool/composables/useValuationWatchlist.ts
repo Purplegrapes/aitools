@@ -191,8 +191,8 @@ export function useValuationWatchlist() {
     if (userId)
       return userId
 
-    const referer = buildRefererPath(route.path || '/subPages/valuation-tool/index', route.query as Record<string, unknown>)
-    router.replace(createAuthLoginRoute(referer))
+    const referrer = buildRefererPath(route.path || '/subPages/valuation-tool/index', route.query as Record<string, unknown>)
+    router.replace(createAuthLoginRoute(referrer))
     globalToast.warning('请先登录后再使用该功能')
     return ''
   }

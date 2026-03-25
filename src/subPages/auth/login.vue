@@ -20,7 +20,7 @@ const countdown = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
 
 /**
- * 登录页允许的 referer 路径前缀白名单
+ * 登录页允许的 referrer 路径前缀白名单
  * 注意：登录页的白名单比 TAMP 更宽松，因为用户可能从任何内部页面进入登录
  */
 const LOGIN_REFERER_PREFIXES = [
@@ -28,8 +28,8 @@ const LOGIN_REFERER_PREFIXES = [
   '/subPages/',
 ] as const
 
-const referer = computed(() => {
-  const value = route.query.referer
+const referrer = computed(() => {
+  const value = route.query.referrer
   if (typeof value !== 'string' || !value.trim())
     return '/pages/index/index'
 
@@ -37,19 +37,19 @@ const referer = computed(() => {
 
   // 阻止外部 URL 重定向攻击 - 只允许内部路径
   if (!decoded.startsWith('/')) {
-    console.warn('Login: 阻止外部 URL referer:', decoded)
+    console.warn('Login: 阻止外部 URL referrer:', decoded)
     return '/pages/index/index'
   }
 
   // 阻止协议式 URL（如 //evil.com）
   if (decoded.startsWith('//')) {
-    console.warn('Login: 阻止协议式 URL referer:', decoded)
+    console.warn('Login: 阻止协议式 URL referrer:', decoded)
     return '/pages/index/index'
   }
 
   // 阻止路径遍历攻击 (..)
   if (decoded.includes('..')) {
-    console.warn('Login: 阻止包含路径遍历的 referer:', decoded)
+    console.warn('Login: 阻止包含路径遍历的 referrer:', decoded)
     return '/pages/index/index'
   }
 
@@ -60,7 +60,7 @@ const referer = computed(() => {
   )
 
   if (!isValidReferer) {
-    console.warn('Login: 阻止不在白名单内的 referer:', decoded)
+    console.warn('Login: 阻止不在白名单内的 referrer:', decoded)
     return '/pages/index/index'
   }
 
@@ -181,7 +181,7 @@ async function handleSubmit() {
       // user/me 失败不阻断登录成功与回跳
     }
     toast.success('登录成功')
-    router.replace(referer.value)
+    router.replace(referrer.value)
   }
   catch {
     // 全局错误处理中已提示，这里不重复抛错

@@ -20,7 +20,7 @@
 - **WHEN** 用户输入合法手机号与正确验证码并提交
 - **THEN** 系统 SHALL 调用手机号验证码登录接口
 - **AND** 登录成功后 SHALL 写入 token 与登录状态
-- **AND** 系统 SHALL 跳转到 referer 或默认首页
+- **AND** 系统 SHALL 跳转到 referrer 或默认首页
 
 #### Scenario: Phone login fails
 - **WHEN** 登录接口返回验证码错误、验证码过期或其他失败

@@ -4,7 +4,7 @@
 
 ## What Changes
 
-- 将小程序外部来源进入应用的认证中转页从 `tamp` 子包迁移到 `auth` 子包，由 `auth` 统一承接来源识别、`transferH5Ticket` 换 token、完成换票后的 referer 直跳和失败分流。
+- 将小程序外部来源进入应用的认证中转页从 `tamp` 子包迁移到 `auth` 子包，由 `auth` 统一承接来源识别、`transferH5Ticket` 换 token、完成换票后的 referrer 直跳和失败分流。
 - 抽离与中转页强绑定的工具函数和类型，使外部入口构造、来源检测、回跳处理不再依赖 `tamp` 业务目录。
 - 更新路由守卫与登录跳转链路，统一改为指向新的 `auth` 中转入口。
 - 保留旧的 `/subPages/tamp/index` 兼容入口，用于过渡期转发到新的 `auth` 中转页，避免外部接入立即失效。
@@ -29,7 +29,7 @@
 - Affected APIs:
 - 继续复用现有小程序 `transferH5Ticket` 换 token、`getCurrentAuthUser` 等认证接口，不新增后端接口
 - Dependencies/constraints:
-  - 小程序中转页入参中仅 `transferH5Ticket` 与 `referer` 为必传字段，其余字段均为可选
+  - 小程序中转页入参中仅 `transferH5Ticket` 与 `referrer` 为必传字段，其余字段均为可选
   - `appId` 不再作为网关透传参数参与迁移范围
-  - `referer` 可以是完整网站 URL，换票完成后应直接跳转到该地址
+  - `referrer` 可以是完整网站 URL，换票完成后应直接跳转到该地址
   - 需要控制迁移风险，避免外部小程序已配置的旧入口链接失效

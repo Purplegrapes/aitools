@@ -96,10 +96,10 @@ TAMP 子包处理小程序/H5 外部跳转认证：
     - `from=miniapp` - 小程序来源
     - `from=h5` - H5 来源
     - `token` - 认证 token（URL 编码）
-    - `referer` - 跳转目标页面
+    - `referrer` - 跳转目标页面
     - `appId` - 目标小程序 ID（小程序来源时）
 4. **状态存储**: `tampStore` 存储来源信息（source, appId）
-5. **跳转**: 认证成功后跳转到 `referer` 指定的页面
+5. **跳转**: 认证成功后跳转到 `referrer` 指定的页面
 
 ### 返回逻辑
 根据 `tampStore` 中的来源信息判断返回方式：

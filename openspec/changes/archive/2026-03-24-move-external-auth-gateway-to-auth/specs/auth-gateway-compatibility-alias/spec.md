@@ -6,13 +6,13 @@
 #### Scenario: Legacy tamp gateway URL is opened
 - **WHEN** 用户或外部接入方访问 `/subPages/tamp/index`
 - **THEN** 系统 SHALL 将请求重定向到新的 `auth` 网关路径
-- **AND** `transferH5Ticket` 与 `referer` SHALL 被原样保留
+- **AND** `transferH5Ticket` 与 `referrer` SHALL 被原样保留
 - **AND** `from`、`loginUrl`、`shopId` 及其他可选参数 SHALL 在存在时被原样保留
 - **AND** 系统 SHALL 不要求传递 `appId`
 
-#### Scenario: Legacy gateway keeps a full referer url unchanged
-- **WHEN** 旧入口收到的 `referer` 是完整网站 URL
-- **THEN** 兼容转发 SHALL 原样保留该 `referer`
+#### Scenario: Legacy gateway keeps a full referrer url unchanged
+- **WHEN** 旧入口收到的 `referrer` 是完整网站 URL
+- **THEN** 兼容转发 SHALL 原样保留该 `referrer`
 - **AND** 最终仍 SHALL 由新的 `auth` 网关直接跳转到该目标地址
 
 ### Requirement: Compatibility Alias SHALL Not Duplicate Auth Side Effects

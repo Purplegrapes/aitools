@@ -43,11 +43,11 @@ export function buildRefererPath(path: string, query: Record<string, unknown>) {
   return `${path}${stringifyQuery(query)}`
 }
 
-export function createAuthLoginRoute(referer: string) {
+export function createAuthLoginRoute(referrer: string) {
   return {
     path: '/subPages/auth/login',
     query: {
-      referer: encodeURIComponent(referer),
+      referrer: encodeURIComponent(referrer),
     },
   }
 }

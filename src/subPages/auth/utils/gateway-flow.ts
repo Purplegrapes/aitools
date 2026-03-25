@@ -1,5 +1,5 @@
-import { createAuthLoginRoute } from './loginGuard.js'
 import type { ExternalSourceType } from './sourceDetector.js'
+import { createAuthLoginRoute } from './loginGuard.js'
 
 export type GatewayFailureAction
   = | { type: 'external-h5', url: string }
@@ -13,9 +13,9 @@ export type GatewaySuccessTarget
 export function resolveGatewayFailureAction(params: {
   source: ExternalSourceType
   loginUrl: string
-  referer: string
+  referrer: string
 }): GatewayFailureAction {
-  const { source, loginUrl, referer } = params
+  const { source, loginUrl, referrer } = params
 
   if (source === 'h5' && loginUrl) {
     return {
@@ -33,13 +33,13 @@ export function resolveGatewayFailureAction(params: {
 
   return {
     type: 'auth-login',
-    route: createAuthLoginRoute(referer || '/pages/index/index'),
+    route: createAuthLoginRoute(referrer || '/pages/index/index'),
     toastMessage: '登录状态校验失败，请重新登录',
   }
 }
 
-export function resolveGatewaySuccessTarget(referer: string): GatewaySuccessTarget {
-  const nextReferer = referer || '/pages/index/index'
+export function resolveGatewaySuccessTarget(referrer: string): GatewaySuccessTarget {
+  const nextReferer = referrer || '/pages/index/index'
 
   if (/^https?:\/\//.test(nextReferer)) {
     return {

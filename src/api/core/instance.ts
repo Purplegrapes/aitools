@@ -134,7 +134,7 @@ function getRefreshToken(): string {
 }
 
 function isAuthOAuthPath(url: string) {
-  return url.includes('/auth-api/oauth/') || url.includes('/api/oauth/')
+  return url.includes('/shixi-api/oauth/') || url.includes('/api/oauth/')
 }
 
 function isRefreshRetryableError(error: any) {
@@ -155,7 +155,7 @@ function requestRefreshToken(refreshToken: string): Promise<string> {
       'Content-Type': 'application/json',
     }
 
-    let refreshUrl = '/auth-api/oauth/token/refresh'
+    let refreshUrl = '/shixi-api/oauth/token/refresh'
     // #ifndef H5
     refreshUrl = `${getAuthBaseURL()}/api/oauth/token/refresh`
     // #endif
@@ -233,10 +233,10 @@ export const alovaInstance = createAlova({
   beforeRequest: (method) => {
     let token = ''
 
-    const isAuthOAuthRequest = method.url.startsWith('/auth-api/oauth/')
+    const isAuthOAuthRequest = method.url.startsWith('/shixi-api/oauth/')
 
     // ETF/API 鉴权请求走本地 token（auth oauth 公共接口除外）
-    if ((method.url.startsWith('/api') || method.url.startsWith('/djapi') || method.url.startsWith('/auth-api'))
+    if ((method.url.startsWith('/api') || method.url.startsWith('/djapi') || method.url.startsWith('/shixi-api'))
       && !isAuthOAuthRequest) {
       token = getToken()
     }
@@ -297,11 +297,11 @@ export const alovaInstance = createAlova({
     }
 
     // Auth API 固定走独立服务
-    if (method.url.startsWith('/auth-api')) {
+    if (method.url.startsWith('/shixi-api')) {
       const authBaseURL = getAuthBaseURL()
       if (authBaseURL) {
         // #ifndef H5
-        method.url = `${authBaseURL}${method.url.replace(/^\/auth-api/, '/api')}`
+        method.url = `${authBaseURL}${method.url.replace(/^\/shixi-api/, '/api')}`
         // #endif
         // #ifdef H5
         // H5 环境由代理处理，保持 URL 不变
@@ -334,7 +334,7 @@ export const alovaInstance = createAlova({
         apiType = '[Asset API]'
       else if (method.url.startsWith('/tamp-api') || method.url.startsWith('/app-api'))
         apiType = '[TAMP API]'
-      else if (method.url.startsWith('/auth-api'))
+      else if (method.url.startsWith('/shixi-api'))
         apiType = '[Auth API]'
       else if (method.url.startsWith('/tools-api'))
         apiType = '[Tools API]'

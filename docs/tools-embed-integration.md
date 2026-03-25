@@ -8,11 +8,11 @@
 示例：
 
 ```text
-https://your-h5-domain.com/#/subPages/auth/gateway?referer=https%3A%2F%2Fyour-h5-domain.com%2F%23%2FsubPages%2Ftools%2Fdemo&transferH5Ticket=xxx&from=miniapp
+https://your-h5-domain.com/#/subPages/auth/gateway?referrer=https%3A%2F%2Fyour-h5-domain.com%2F%23%2FsubPages%2Ftools%2Fdemo&transferH5Ticket=xxx&from=miniapp
 ```
 
 ## 2. 启动参数
-- `referer`: 目标 H5 内部路径（统一中转参数，建议与 `targetUrl` 一致）
+- `referrer`: 目标 H5 内部路径（统一中转参数，建议与 `targetUrl` 一致）
 - `targetUrl`: 目标 H5 内部路径，必须以 `/subPages/tools/` 开头
 - `ticket`: 一次性换票凭证
 - `timestamp`: 时间戳
@@ -24,14 +24,14 @@ https://your-h5-domain.com/#/subPages/auth/gateway?referer=https%3A%2F%2Fyour-h5
 限制：
 - 外部入口标准路径为 `/subPages/auth/gateway`
 - 迁移期内允许继续使用 `/subPages/tamp/index`，但它只做兼容转发
-- `referer` 可以是当前 H5 内部路径，也可以是完整的站内落地 URL
-- 小程序中转至少需要提供 `referer` 与 `transferH5Ticket`
+- `referrer` 可以是当前 H5 内部路径，也可以是完整的站内落地 URL
+- 小程序中转至少需要提供 `referrer` 与 `transferH5Ticket`
 
 ## 3. H5 启动流程
 1. 外部小程序拼接统一认证中转页 URL（`/subPages/auth/gateway`）。
-2. `auth` 网关识别来源并校验 `referer`、`transferH5Ticket` 等关键参数。
+2. `auth` 网关识别来源并校验 `referrer`、`transferH5Ticket` 等关键参数。
 3. 网关调用换票接口建立登录态，并在必要时补齐当前用户信息。
-4. 换票成功后，网关直接跳转到 `referer` 指向的目标地址。
+4. 换票成功后，网关直接跳转到 `referrer` 指向的目标地址。
 5. 若仍使用旧 `/subPages/tamp/index`，兼容页只透传参数并 `replace` 到新的 `auth` 网关。
 
 ## 4. Bridge 协议

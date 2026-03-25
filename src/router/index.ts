@@ -51,8 +51,8 @@ router.beforeEach((to, from, next) => {
     const token = getStoredAuthToken()
     // 只以 token 作为登录态门槛，避免 user/me 回填时序导致登录后被守卫回跳登录页
     if (!token) {
-      const referer = buildRefererPath(to.path || '/subPages/valuation-tool/index', toQuery)
-      next(createAuthLoginRoute(referer))
+      const referrer = buildRefererPath(to.path || '/subPages/valuation-tool/index', toQuery)
+      next(createAuthLoginRoute(referrer))
       return
     }
   }

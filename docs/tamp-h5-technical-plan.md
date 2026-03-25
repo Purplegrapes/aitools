@@ -15,7 +15,7 @@
   - 解析 query
   - 通过 `detectAccessMode` 判断来源
   - 使用 `transferH5Ticket` 完成换 token
-  - 成功后跳转到 `referer`
+  - 成功后跳转到 `referrer`
 - **兼容别名页**：`src/subPages/tamp/index.vue`
   - 仅透传 query
   - `router.replace` 到 `auth` 网关
@@ -29,16 +29,16 @@
 
 ### 3.1 入口 URL 规范
 - 小程序 → H5（WebView）
-  - `https://主域名/tamp?from=miniapp&token=xxx&referer=/subPages/tamp/demo`
+  - `https://主域名/tamp?from=miniapp&token=xxx&referrer=/subPages/tamp/demo`
 - H5 → H5（外部来源）
-  - `https://主域名/tamp?from=h5&token=xxx&referer=/subPages/tamp/demo&loginUrl=...`
+  - `https://主域名/tamp?from=h5&token=xxx&referrer=/subPages/tamp/demo&loginUrl=...`
 
 ### 3.2 Token 落地
 - `auth/gateway.vue`：
   - 读取 `transferH5Ticket` 并换取登录态
   - 记录 `source/loginUrl/shopId` 到 `tampStore`
   - 成功后清理敏感 query
-  - `router.replace(referer)`
+  - `router.replace(referrer)`
 - `tamp/index.vue`：
   - 仅保留兼容转发，不再执行认证或写入登录态
 
@@ -79,7 +79,7 @@
 
 ### 4.5 来源回跳支持
 - 服务端需提供**小程序登录页路径** / **H5 登录页 URL**。
-- 401/403 回跳时，前端可携带 `referer` 作为回跳参数。
+- 401/403 回跳时，前端可携带 `referrer` 作为回跳参数。
 
 ---
 
