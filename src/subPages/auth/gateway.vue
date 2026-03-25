@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { getCurrentAuthUser, transferH5TicketForToken } from './api'
-import { applyAuthSession, applyAuthUserProfile, extractAuthSessionPayload } from './utils/authSession'
+import {
+  applyAuthSession,
+  applyAuthUserProfile,
+  extractAuthSessionPayload,
+  extractAuthUserProfile,
+} from './utils/authSession'
 import { handleExternalRedirect } from './utils/externalRedirect'
 import {
   decodeQueryValue,
@@ -66,17 +71,23 @@ onMounted(async () => {
       try {
         const response = await sendTransferH5TicketExchange({ transferH5Ticket })
         const authSession = extractAuthSessionPayload(response)
-        if (!authSession)
-          throw new Error('transferH5Ticket 换 token 未返回有效凭证')
-
-        applyAuthSession(authSession)
-        try {
-          const profile = await getCurrentAuthUser()
-          if (profile?.id)
-            applyAuthUserProfile(profile)
+        if (authSession) {
+          applyAuthSession(authSession)
+          try {
+            const profile = await getCurrentAuthUser()
+            if (profile?.id)
+              applyAuthUserProfile(profile)
+          }
+          catch {
+            // user/me 失败不阻断 transferH5Ticket 校验成功后的主流程
+          }
         }
-        catch {
-          // user/me 失败不阻断 transferH5Ticket 换 token 成功后的主流程
+        else {
+          const profile = extractAuthUserProfile(response)
+          if (!profile)
+            throw new Error('transferH5Ticket 校验未返回有效登录信息')
+
+          applyAuthUserProfile(profile)
         }
       }
       catch (error) {

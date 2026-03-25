@@ -7,13 +7,17 @@
     "outDir": "tests-dist",
     "noEmit": false,
     "types": ["node"],
-    "rootDir": "."
+    "rootDir": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": [
     "tests/**/*.ts",
     "tests/**/*.d.ts",
     "src/subPages/auth/utils/gateway.ts",
     "src/subPages/auth/utils/gateway-flow.ts",
+    "src/subPages/auth/utils/authSession.ts",
     "src/subPages/auth/utils/loginGuard.ts",
     "src/subPages/auth/utils/sourceDetector.ts",
     "src/store/etfUserStore.ts"

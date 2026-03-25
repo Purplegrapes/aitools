@@ -1,41 +1,25 @@
-import { alovaInstance } from '@/api/core/instance'
-
-export interface AuthorizeResponseDto {
-  code: string
-  expires_in: number
-}
-
-export interface TokenResponseDto {
-  access_token: string
-  refresh_token: string
-  token_type: string
-  expires_in: number
-}
-
-export interface SendSmsCodeResponseDto {
-  success: boolean
-  expires_in: number
-}
-
-export interface AuthUserProfileDto {
-  id: string
-  open_id: string
-  nickname: string
-  avatar_url: string
-  created_at: string
-  updated_at: string
-}
-
-export interface VerifyPhoneCodeResponse {
-  data: AuthorizeResponseDto
-}
+import { alovaInstance } from '../../../api/core/instance.js'
+export type {
+  AuthorizeResponseDto,
+  AuthUserProfileDto,
+  SendSmsCodeResponseDto,
+  TokenResponseDto,
+  TransformTicketVerifyResponseDto,
+  VerifyPhoneCodeResponse,
+} from './types.js'
+import type {
+  AuthorizeResponseDto,
+  AuthUserProfileDto,
+  SendSmsCodeResponseDto,
+  TokenResponseDto,
+  TransformTicketVerifyResponseDto,
+} from './types.js'
 
 export function transferH5TicketForToken(params: {
   transferH5Ticket: string
 }) {
-  return alovaInstance.Post<TokenResponseDto>('/shixi-api/oauth/token', {
-    code: params.transferH5Ticket,
-    grant_type: 'authorization_code',
+  return alovaInstance.Post<TransformTicketVerifyResponseDto>('/shixi-api/oauth/h5/transform-ticket/verify', {
+    transform_h5_ticket: params.transferH5Ticket,
   })
 }
 
