@@ -12,6 +12,7 @@ import { useEtfUserStore } from '@/store/etfUserStore'
 import { useTampStore } from '@/store/tampStore'
 import { handleExternalRedirect } from '@/subPages/auth/utils/externalRedirect'
 import { useEmbeddedAuth } from '@/subPages/tools/composables/useEmbeddedAuth'
+import { resolveUnauthorizedFollowUp } from './unauthorized-flow'
 
 // Custom error class for API errors
 export class ApiError extends Error {
@@ -101,12 +102,19 @@ export async function handleAlovaError(error: any, method: Method) {
 
     const userStore = useEtfUserStore()
     const tampStore = useTampStore()
+    const followUp = resolveUnauthorizedFollowUp({
+      methodUrl: method.url || '',
+      errorMessage: error.message || '登录已过期，请重新登录！',
+      isExternal: tampStore.isExternal,
+      source: tampStore.source,
+      loginUrl: tampStore.loginUrl,
+    })
     await userStore.logout()
-    if (!method.url.startsWith('/tools-api') && !method.url.startsWith('/valuation-api')) {
+    if (followUp.shouldToast) {
       globalToast.error({ msg: error.message || '登录已过期，请重新登录！', duration: 500 })
     }
-    if (tampStore.isExternal) {
-      await handleExternalRedirect(tampStore.source, tampStore.loginUrl)
+    if (followUp.externalRedirect) {
+      await handleExternalRedirect(followUp.externalRedirect.source, followUp.externalRedirect.loginUrl)
     }
     throw error
   }

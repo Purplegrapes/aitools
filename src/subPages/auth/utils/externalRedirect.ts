@@ -1,4 +1,4 @@
-import type { ExternalSourceType } from './sourceDetector'
+import type { ExternalSourceType } from './sourceDetector.js'
 
 /**
  * 处理外部跳转（token失效或认证失败时调用）
