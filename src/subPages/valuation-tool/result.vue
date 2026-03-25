@@ -7,6 +7,7 @@ import type {
   FundRealtimeDataServiceResponse,
   FundResult,
 } from './types'
+import { getStoredAuthToken } from '../auth/utils/loginGuard'
 import { getFundDetail, getFundMetrics, getFundRealtimeData } from './api/valuationTool'
 import DetailActionBar from './components/DetailActionBar.vue'
 import DetailStateCard from './components/DetailStateCard.vue'
@@ -59,9 +60,10 @@ const {
 } = useValuationWatchlist()
 const {
   positions,
-  refreshPositions,
+  refreshPositionsListOnly,
   removePosition,
 } = usePortfolio()
+const hasAuthToken = shallowRef(false)
 
 const {
   data: detailResponse,
@@ -140,6 +142,8 @@ const stateMeta = computed(() => detailStateMetaMap[displayStatus.value])
 const showDetail = computed(() => displayStatus.value === 'ok')
 const watchlisted = computed(() => isWatchlisted(fundCode.value))
 const holdingPosition = computed(() => {
+  if (!hasAuthToken.value)
+    return null
   const currentCode = fundCode.value.trim().toUpperCase()
   if (!currentCode)
     return null
@@ -164,8 +168,15 @@ watch(
   { immediate: true },
 )
 
+function syncAuthState() {
+  hasAuthToken.value = Boolean(getStoredAuthToken())
+}
+
 onShow(() => {
-  void refreshPositions()
+  syncAuthState()
+  if (!hasAuthToken.value)
+    return
+  void refreshPositionsListOnly()
 })
 
 function handlePrimaryAction() {

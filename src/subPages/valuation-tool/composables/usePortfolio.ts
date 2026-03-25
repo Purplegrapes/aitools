@@ -17,7 +17,6 @@ import {
   removePortfolioPosition as removePortfolioPositionRequest,
   searchFunds as searchFundsRequest,
 } from '../api/valuationTool'
-import { getPortfolioDeleteErrorMessage, isPortfolioDeleteSuccess } from '../position-actions.js'
 import {
   fallbackPortfolioFundCatalog,
   getFallbackPortfolioInsight,
@@ -29,6 +28,7 @@ import {
   searchFallbackPortfolioFunds,
   updateFallbackPortfolioPosition,
 } from '../mock'
+import { getPortfolioDeleteErrorMessage, isPortfolioDeleteSuccess } from '../position-actions.js'
 import {
   buildPortfolioSummary,
   createPositionId,
@@ -104,16 +104,27 @@ export function usePortfolio() {
   }
 
   async function refreshPositions() {
+    await refreshPortfolioState({ includeRealtime: true })
+  }
+
+  async function refreshPositionsListOnly() {
+    await refreshPortfolioState({ includeRealtime: false })
+  }
+
+  async function refreshPortfolioState(options: { includeRealtime: boolean }) {
     if (portfolioRefreshingState.value)
       return
 
     portfolioRefreshingState.value = true
     try {
-      const [positionsResult, realtimeResult] = await Promise.allSettled([
+      const requests: PromiseSettledResult<any>[] = await Promise.allSettled([
         sendPortfolioPositionsRequest(),
-        sendPortfolioRealtimeRequest(),
+        options.includeRealtime
+          ? sendPortfolioRealtimeRequest()
+          : Promise.resolve({ data: [] as PositionRealtimeItemServiceResponse[] }),
       ])
 
+      const [positionsResult, realtimeResult] = requests
       const positionsResponse = positionsResult.status === 'fulfilled' ? positionsResult.value : undefined
       const realtimeResponse = realtimeResult.status === 'fulfilled' ? realtimeResult.value : undefined
 
@@ -246,6 +257,7 @@ export function usePortfolio() {
     unavailableState,
     ensureLoaded,
     refreshPositions,
+    refreshPositionsListOnly,
     getPositionById,
     addPosition,
     addManualPosition,
