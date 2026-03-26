@@ -28,14 +28,14 @@ const emit = defineEmits<{
     </view>
 
     <view class="table-head grid grid-cols-[300rpx_1fr_1fr] border-b border-[#E1EAF6] bg-[#F4F8FE] px-[22rpx] py-[16rpx]">
-      <text class="text-[22rpx] text-secondary">
+      <text class="text-xs text-secondary">
         基金
       </text>
-      <text class="text-[22rpx] text-secondary">
-        持有收益
-      </text>
-      <text class="text-[22rpx] text-secondary">
+      <text class="text-xs text-secondary">
         当日收益
+      </text>
+      <text class="text-xs text-secondary">
+        持有收益
       </text>
     </view>
 
@@ -53,22 +53,20 @@ const emit = defineEmits<{
           {{ item.code }}
         </text>
       </view>
-
-      <view>
-        <text class="block text-sm font-600" :class="getPortfolioValueTone(item.cumulativeProfit)">
-          {{ formatCurrency(item.cumulativeProfit) }}
-        </text>
-        <text class="mt-[4rpx] block text-xs" :class="getPortfolioValueTone(item.cumulativeProfitRate)">
-          {{ formatPercent(item.cumulativeProfitRate) }}
-        </text>
-      </view>
-
       <view>
         <text class="block text-sm font-600" :class="todayUnavailable ? 'text-secondary' : getPortfolioValueTone(item.todayProfit)">
           {{ todayUnavailable ? '--' : formatCurrency(item.todayProfit) }}
         </text>
         <text class="mt-[4rpx] block text-xs" :class="todayUnavailable ? 'text-secondary' : getPortfolioValueTone(item.dailyChangeRate)">
           {{ todayUnavailable ? '暂无估值' : formatPercent(item.dailyChangeRate) }}
+        </text>
+      </view>
+      <view>
+        <text class="block text-sm font-600" :class="getPortfolioValueTone(item.cumulativeProfit)">
+          {{ formatCurrency(item.cumulativeProfit) }}
+        </text>
+        <text class="mt-[4rpx] block text-xs" :class="getPortfolioValueTone(item.cumulativeProfitRate)">
+          {{ formatPercent(item.cumulativeProfitRate) }}
         </text>
       </view>
     </view>

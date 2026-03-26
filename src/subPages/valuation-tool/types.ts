@@ -109,7 +109,7 @@ export interface FundMetricsServiceResponse {
 export interface FundRealtimeDataExchangeResponse {
   channel: 'EXCHANGE'
   nav: number
-  premium_rate: number
+  premiumRate: number
   yield_change?: number | null
   yieldChange?: number | null
 }

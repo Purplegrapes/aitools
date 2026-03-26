@@ -286,7 +286,7 @@ export function mapFundRealtimeDataToExchangeQuote(
     return undefined
 
   const currentPrice = toFiniteNumber(realtimeData.nav)
-  const premiumRate = toFiniteNumber(realtimeData.premium_rate)
+  const premiumRate = toFiniteNumber(realtimeData.premiumRate)
   const priceChangeRatio = readRealtimeDataYieldChange(realtimeData)
 
   if (currentPrice === null && premiumRate === null && priceChangeRatio === null)
