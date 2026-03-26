@@ -31,8 +31,8 @@ export function normalizeKeyword(value: unknown) {
   }
 }
 
-export function createSearchPath(keyword: string) {
-  return `/subPages/valuation-tool/search?q=${encodeURIComponent(keyword.trim())}`
+export function createSearchPath() {
+  return `/subPages/valuation-tool/search`
 }
 
 export function createValuationHomePath() {
@@ -220,7 +220,7 @@ export function mapFundDetailToResult(
     tags: buildFundTags(detail),
     foundDate: detail.foundDate || undefined,
     channelLabel: detail.channel === 'EXCHANGE' ? '场内基金' : '场外基金',
-    subCategoryLabel: normalizeSubCategoryLabel(detail.subCategoryId),
+    subCategoryLabel: normalizeSubCategoryLabel(detail.subCategoryName),
     intraday: mapFundRealtimeDataToIntraday(realtimeData),
     quickFacts: metrics
       ? {
@@ -286,7 +286,7 @@ export function mapFundRealtimeDataToExchangeQuote(
     return undefined
 
   const currentPrice = toFiniteNumber(realtimeData.nav)
-  const premiumRate = toFiniteNumber(realtimeData.premium_rate)
+  const premiumRate = toFiniteNumber(realtimeData.premiumRate)
   const priceChangeRatio = readRealtimeDataYieldChange(realtimeData)
 
   if (currentPrice === null && premiumRate === null && priceChangeRatio === null)
@@ -389,6 +389,13 @@ export function formatCurrency(value?: number | null) {
   return `${sign}${numericValue.toFixed(2)}`
 }
 
+export function formatCurrencyNoSign(value?: number | null) {
+  if (value === null || value === undefined || Number.isNaN(Number(value)))
+    return '--'
+
+  return Number(value).toFixed(2)
+}
+
 export function formatPercent(value?: number | null) {
   if (value === null || value === undefined || Number.isNaN(Number(value)))
     return '--'
@@ -434,13 +441,17 @@ export function buildPortfolioSummary(metrics: PortfolioPositionMetrics[]): Port
   const totalCost = metrics.reduce((sum, item) => sum + item.costAmount, 0)
   const totalTodayProfit = metrics.reduce((sum, item) => sum + (item.todayProfit ?? 0), 0)
   const hasTodayProfit = metrics.some(item => item.todayProfit !== null)
+  const previousAmount = totalAmount - (hasTodayProfit ? totalTodayProfit : 0)
+  const updateTime = metrics.find(item => item.updateTime)?.updateTime || ''
 
   return {
     totalProfit,
     totalProfitRate: totalCost > 0 ? (totalProfit / totalCost) * 100 : null,
     todayProfit: hasTodayProfit ? totalTodayProfit : null,
+    todayChangeRate: hasTodayProfit && previousAmount > 0 ? (totalTodayProfit / previousAmount) * 100 : null,
     totalAmount,
     holdingCount: metrics.length,
+    updateTime,
   }
 }
 
@@ -484,7 +495,7 @@ function buildFundTags(detail: FundDetailServiceResponse) {
 
   tags.add(detail.channel === 'EXCHANGE' ? '场内基金' : '场外基金')
 
-  const subCategoryLabel = normalizeSubCategoryLabel(detail.subCategoryId)
+  const subCategoryLabel = normalizeSubCategoryLabel(detail.subCategoryName)
   if (subCategoryLabel)
     tags.add(subCategoryLabel)
 

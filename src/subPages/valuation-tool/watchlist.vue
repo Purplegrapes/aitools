@@ -2,7 +2,7 @@
 import ValuationBottomNav from './components/ValuationBottomNav.vue'
 import WatchlistFundCard from './components/WatchlistFundCard.vue'
 import { useValuationWatchlist } from './composables/useValuationWatchlist'
-import { createResultPath, createValuationHomePath } from './utils'
+import { createResultPath, createSearchPath } from './utils'
 
 definePage({
   name: 'valuation-tool-watchlist',
@@ -21,7 +21,6 @@ const {
   watchlistLoading,
   watchlistError,
   refreshWatchlist,
-  removeFromWatchlist,
 } = useValuationWatchlist()
 
 onShow(() => {
@@ -42,16 +41,57 @@ const sortedWatchlistItems = computed(() => {
   })
 })
 
+const watchlistUpdatedAtText = computed(() => {
+  const updateValues = watchlistItems.value
+    .map(item => item.updateAt || item.updateTime || '')
+    .filter(Boolean)
+
+  if (!updateValues.length)
+    return ''
+
+  const latestValue = updateValues.reduce((latest, current) => {
+    const latestTimestamp = parseWatchlistUpdateTimestamp(latest)
+    const currentTimestamp = parseWatchlistUpdateTimestamp(current)
+
+    if (latestTimestamp === null)
+      return current
+    if (currentTimestamp === null)
+      return latest
+    return currentTimestamp > latestTimestamp ? current : latest
+  })
+
+  return formatWatchlistUpdatedAt(latestValue)
+})
+
 function handleSelect(code: string) {
   router.push(createResultPath(code))
 }
 
-function handleRemove(code: string) {
-  removeFromWatchlist(code)
+function handleBackHome() {
+  router.replace(createSearchPath())
 }
 
-function handleBackHome() {
-  router.replace(createValuationHomePath())
+function parseWatchlistUpdateTimestamp(value: string) {
+  if (!value)
+    return null
+
+  if (/^\d{2}:\d{2}$/.test(value)) {
+    const today = new Date()
+    const [hours, minutes] = value.split(':')
+    today.setHours(Number(hours), Number(minutes), 0, 0)
+    return today.getTime()
+  }
+
+  const normalizedValue = value.includes('T') ? value : value.replace(' ', 'T')
+  const timestamp = Date.parse(normalizedValue)
+  return Number.isNaN(timestamp) ? null : timestamp
+}
+
+function formatWatchlistUpdatedAt(value: string) {
+  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(value))
+    return value.replace('T', ' ').slice(0, 16)
+
+  return value
 }
 </script>
 
@@ -103,7 +143,17 @@ function handleBackHome() {
 
       <template v-else>
         <view class="overflow-hidden border border-line/70 rounded-card bg-surface shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
-          <view class="grid grid-cols-[minmax(0,1.3fr)_140rpx_140rpx_120rpx] items-center gap-[12rpx] bg-surfaceSubtle px-4 py-3">
+          <view
+            v-if="watchlistUpdatedAtText"
+            class="flex items-center justify-end px-4 py-3"
+          >
+            <text class="text-xs text-secondary">
+              <wd-icon name="info-circle" size="small" />
+              数据更新时间： {{ watchlistUpdatedAtText }}
+            </text>
+          </view>
+
+          <view class="grid grid-cols-[minmax(0,1.5fr)_140rpx_140rpx] items-center gap-[12rpx] bg-surfaceSubtle px-4 py-3">
             <text class="text-xs text-secondary font-600">
               基金
             </text>
@@ -117,16 +167,12 @@ function handleBackHome() {
                 实时净值
               </text>
             </view>
-            <text class="text-right text-xs text-secondary font-600">
-              操作
-            </text>
           </view>
 
           <WatchlistFundCard
             v-for="item in sortedWatchlistItems"
             :key="item.code"
             :item="item"
-            @remove="handleRemove"
             @select="handleSelect"
           />
         </view>

@@ -15,8 +15,10 @@ import type {
   PositionRealtimeItemServiceResponse,
 } from '../types'
 import { alovaInstance } from '@/api/core/instance'
+import { getStoredUserId } from '@/subPages/auth/utils/loginGuard'
 import { realtime } from '@/subPages/etf/api'
 import { getFallbackPortfolioRecognitionResult } from '../mock'
+import { parsePortfolioImportImageResponse } from '../image-import.js'
 
 export function getMarketSentiment() {
   return alovaInstance.Get<ApiEnvelope<MarketSentimentServiceResponse>>('/valuation-api/market-pulse/sentiment')
@@ -57,26 +59,18 @@ export function getExchangeFundQuote(code: string) {
   })
 }
 
-function getFavouriteUid() {
-  return '1'
-}
-
-function getPositionUid() {
-  return '1'
-}
-
-export function getValuationWatchlist() {
+export function getValuationWatchlist(uid: string) {
   return alovaInstance.Get<ApiEnvelope<FavouriteItemServiceResponse[]>>('/valuation-api/favourites', {
     headers: {
-      uid: getFavouriteUid(),
+      uid,
     },
   })
 }
 
-export function getValuationWatchlistRealtime() {
+export function getValuationWatchlistRealtime(uid: string) {
   return alovaInstance.Get<ApiEnvelope<FavouriteRealtimeItemServiceResponse[]>>('/valuation-api/favourites/realtime', {
     headers: {
-      uid: getFavouriteUid(),
+      uid,
     },
   })
 }
@@ -84,7 +78,7 @@ export function getValuationWatchlistRealtime() {
 export function getPortfolioPositions() {
   return alovaInstance.Get<ApiEnvelope<PositionItemServiceResponse[]>>('/valuation-api/positions', {
     headers: {
-      uid: getPositionUid(),
+      uid: getStoredUserId(),
     },
   })
 }
@@ -92,7 +86,7 @@ export function getPortfolioPositions() {
 export function getPortfolioPositionsRealtime() {
   return alovaInstance.Get<ApiEnvelope<PositionRealtimeItemServiceResponse[]>>('/valuation-api/positions/realtime', {
     headers: {
-      uid: getPositionUid(),
+      uid: getStoredUserId(),
     },
   })
 }
@@ -104,12 +98,52 @@ export function addPortfolioPosition(params: {
 }) {
   return alovaInstance.Post<ApiEnvelope<string>>('/valuation-api/positions', params, {
     headers: {
-      uid: getPositionUid(),
+      uid: getStoredUserId(),
     },
   })
 }
 
+export function removePortfolioPosition(fundCode: string) {
+  return alovaInstance.Delete<ApiEnvelope<string>>(
+    `/valuation-api/positions/${encodeURIComponent(fundCode)}`,
+    undefined,
+    {
+      headers: {
+        uid: getStoredUserId(),
+      },
+    },
+  )
+}
+
+export function importPortfolioPositionsFromImage(filePath: string) {
+  const uid = getStoredUserId()
+  if (!uid)
+    throw new Error('当前缺少用户信息，请重新登录后再试。')
+
+  return new Promise<ApiEnvelope<string>>((resolve, reject) => {
+    uni.uploadFile({
+      url: getPortfolioImportImageUrl(),
+      filePath,
+      name: 'image',
+      header: {
+        uid,
+      },
+      success: (response) => {
+        const parsed = parsePortfolioImportImageResponse(response.data)
+        if (!parsed) {
+          reject(new Error('截图上传结果解析失败，请稍后再试。'))
+          return
+        }
+
+        resolve(parsed)
+      },
+      fail: reject,
+    })
+  })
+}
+
 export function addValuationWatchlist(params: {
+  uid: string
   code: string
   name?: string
   dailyChange?: number | null
@@ -119,18 +153,18 @@ export function addValuationWatchlist(params: {
     code: params.code,
   }, {
     headers: {
-      uid: getFavouriteUid(),
+      uid: params.uid,
     },
   })
 }
 
-export function removeValuationWatchlist(code: string) {
+export function removeValuationWatchlist(code: string, uid: string) {
   return alovaInstance.Delete<ApiEnvelope<string>>(
     `/valuation-api/favourites/${code}`,
     undefined,
     {
       headers: {
-        uid: getFavouriteUid(),
+        uid,
       },
     },
   )
@@ -161,4 +195,14 @@ export async function confirmRecognizedPortfolioPositions(params: {
       importedCount: params.items.length,
     },
   }
+}
+
+function getPortfolioImportImageUrl() {
+  // #ifdef H5
+  return '/valuation-api/positions/import-image'
+  // #endif
+  // #ifndef H5
+  const baseURL = import.meta.env.VITE_TOOLS_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'https://etf-insight.betalpha.com'
+  return `${baseURL}/api/positions/import-image`
+  // #endif
 }

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 defineProps<{
   watchlisted: boolean
+  holding?: boolean
+  deletingHolding?: boolean
 }>()
 
 const emit = defineEmits<{
   toggle: []
   openWatchlist: []
   openMineScan: []
+  removeHolding: []
 }>()
 </script>
 
@@ -31,6 +34,17 @@ const emit = defineEmits<{
           <view class="i-carbon-warning-hex-filled text-[26rpx] text-secondary" />
           <text class="whitespace-nowrap leading-[1.2]">
             基金诊断
+          </text>
+        </view>
+
+        <view
+          v-if="holding"
+          class="vt-action-secondary-weak w-[132rpx] shrink-0 text-danger"
+          @click="emit('removeHolding')"
+        >
+          <view class="i-carbon-trash-can text-[26rpx] text-danger" />
+          <text class="whitespace-nowrap leading-[1.2]">
+            {{ deletingHolding ? '删除中' : '删除持有' }}
           </text>
         </view>
 

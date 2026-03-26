@@ -14,6 +14,7 @@ import {
   addPortfolioPosition,
   getPortfolioPositions,
   getPortfolioPositionsRealtime,
+  removePortfolioPosition as removePortfolioPositionRequest,
   searchFunds as searchFundsRequest,
 } from '../api/valuationTool'
 import {
@@ -27,6 +28,7 @@ import {
   searchFallbackPortfolioFunds,
   updateFallbackPortfolioPosition,
 } from '../mock'
+import { getPortfolioDeleteErrorMessage, isPortfolioDeleteSuccess } from '../position-actions.js'
 import {
   buildPortfolioSummary,
   createPositionId,
@@ -87,6 +89,14 @@ export function usePortfolio() {
     },
   )
 
+  const { send: sendRemovePortfolioPositionRequest } = useRequest(
+    (fundCode: string) => removePortfolioPositionRequest(fundCode),
+    {
+      immediate: false,
+      onError: () => undefined,
+    },
+  )
+
   function ensureLoaded() {
     if (portfolioLoadedState.value)
       return
@@ -94,16 +104,27 @@ export function usePortfolio() {
   }
 
   async function refreshPositions() {
+    await refreshPortfolioState({ includeRealtime: true, fallbackOnError: true })
+  }
+
+  async function refreshPositionsListOnly() {
+    await refreshPortfolioState({ includeRealtime: false, fallbackOnError: false })
+  }
+
+  async function refreshPortfolioState(options: { includeRealtime: boolean, fallbackOnError: boolean }) {
     if (portfolioRefreshingState.value)
       return
 
     portfolioRefreshingState.value = true
     try {
-      const [positionsResult, realtimeResult] = await Promise.allSettled([
+      const requests: PromiseSettledResult<any>[] = await Promise.allSettled([
         sendPortfolioPositionsRequest(),
-        sendPortfolioRealtimeRequest(),
+        options.includeRealtime
+          ? sendPortfolioRealtimeRequest()
+          : Promise.resolve({ data: [] as PositionRealtimeItemServiceResponse[] }),
       ])
 
+      const [positionsResult, realtimeResult] = requests
       const positionsResponse = positionsResult.status === 'fulfilled' ? positionsResult.value : undefined
       const realtimeResponse = realtimeResult.status === 'fulfilled' ? realtimeResult.value : undefined
 
@@ -113,12 +134,18 @@ export function usePortfolio() {
       if (Array.isArray(items)) {
         applyPortfolioFromService(items, Array.isArray(realtimeItems) ? realtimeItems : [])
       }
-      else {
+      else if (options.fallbackOnError) {
         applyFallbackPortfolio()
+      }
+      else {
+        clearPortfolioState()
       }
     }
     catch {
-      applyFallbackPortfolio()
+      if (options.fallbackOnError)
+        applyFallbackPortfolio()
+      else
+        clearPortfolioState()
     }
     finally {
       portfolioRefreshingState.value = false
@@ -162,9 +189,14 @@ export function usePortfolio() {
     return position
   }
 
-  function removePosition(id: string) {
-    removeFallbackPortfolioPosition(id)
-    void refreshPositions()
+  async function removePosition(input: { id: string, code: string }) {
+    const response = await sendRemovePortfolioPositionRequest(input.code)
+    if (!isPortfolioDeleteSuccess(response)) {
+      throw new Error(getPortfolioDeleteErrorMessage(response))
+    }
+
+    removeFallbackPortfolioPosition(input.id)
+    await refreshPositions()
   }
 
   function searchFunds(keyword: string) {
@@ -231,6 +263,7 @@ export function usePortfolio() {
     unavailableState,
     ensureLoaded,
     refreshPositions,
+    refreshPositionsListOnly,
     getPositionById,
     addPosition,
     addManualPosition,
@@ -248,6 +281,11 @@ export function usePortfolio() {
   function applyFallbackPortfolio() {
     portfolioPositionsState.value = getFallbackPortfolioPositions()
     portfolioMetricsState.value = getFallbackPortfolioMetrics(portfolioPositionsState.value)
+  }
+
+  function clearPortfolioState() {
+    portfolioPositionsState.value = []
+    portfolioMetricsState.value = []
   }
 
   function applyPortfolioFromService(
@@ -348,7 +386,9 @@ function mapFundSearchItemToOption(item: FundSearchServiceItem): PortfolioFundOp
   }
 }
 
-function resolveStatusLabel(rate: number) {
+function resolveStatusLabel(rate: number | null) {
+  if (rate === null)
+    return '震荡' as const
   if (rate >= 5)
     return '偏强' as const
   if (rate <= -5)

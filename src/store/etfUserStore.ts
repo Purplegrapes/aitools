@@ -1,3 +1,4 @@
+import cookie from 'js-cookie'
 import { defineStore } from 'pinia'
 
 /**
@@ -16,6 +17,7 @@ export interface EtfUserInfo {
 export interface EtfUserState {
   userInfo: EtfUserInfo | null
   token: string
+  refreshToken: string
   isLogin: boolean
 }
 
@@ -26,6 +28,7 @@ export const useEtfUserStore = defineStore('etfUser', {
   state: (): EtfUserState => ({
     userInfo: null,
     token: '',
+    refreshToken: '',
     isLogin: false,
   }),
 
@@ -51,10 +54,38 @@ export const useEtfUserStore = defineStore('etfUser', {
 
     /**
      * 设置 Token
+     * 同时同步到 H5 cookie（保证链路一致）
      */
     setToken(token: string) {
       this.token = token
       this.isLogin = !!token
+      // #ifdef H5
+      if (typeof window !== 'undefined') {
+        if (token) {
+          cookie.set('ticket', token)
+        }
+        else {
+          cookie.remove('ticket')
+        }
+      }
+      // #endif
+    },
+
+    /**
+     * 设置 Refresh Token
+     */
+    setRefreshToken(refreshToken: string) {
+      this.refreshToken = refreshToken
+    },
+
+    /**
+     * 同时设置 Access/Refresh Token
+     */
+    setAuthTokens(token: string, refreshToken?: string) {
+      this.setToken(token)
+      if (typeof refreshToken === 'string') {
+        this.setRefreshToken(refreshToken)
+      }
     },
 
     /**
@@ -67,11 +98,18 @@ export const useEtfUserStore = defineStore('etfUser', {
 
     /**
      * 退出登录
+     * 同时清理 H5 cookie
      */
-    async logout() {
+    logout() {
       this.userInfo = null
       this.token = ''
+      this.refreshToken = ''
       this.isLogin = false
+      // #ifdef H5
+      if (typeof window !== 'undefined') {
+        cookie.remove('ticket')
+      }
+      // #endif
     },
 
     /**

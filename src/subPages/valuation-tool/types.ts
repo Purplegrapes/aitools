@@ -41,7 +41,7 @@ export interface FundSearchServiceItem {
   code: string
   name: string
   channel?: string | null
-  subCategoryId?: string | null
+  subCategoryName?: string | null
 }
 
 export interface FavouriteItemServiceResponse {
@@ -54,6 +54,9 @@ export interface FavouriteRealtimeItemServiceResponse {
   nav: number
   navChange: number
   yieldChange: number
+  updateAt?: string | null
+  updatedAt?: string | null
+  updateTime?: string | null
 }
 
 export interface PositionItemServiceResponse {
@@ -94,7 +97,7 @@ export interface FundDetailServiceResponse {
   code: string
   foundDate?: string | null
   name: string
-  subCategoryId?: string | null
+  subCategoryName?: string | null
 }
 
 export interface FundMetricsServiceResponse {
@@ -106,7 +109,7 @@ export interface FundMetricsServiceResponse {
 export interface FundRealtimeDataExchangeResponse {
   channel: 'EXCHANGE'
   nav: number
-  premium_rate: number
+  premiumRate: number
   yield_change?: number | null
   yieldChange?: number | null
 }
@@ -184,6 +187,7 @@ export interface ValuationWatchlistFund {
   name: string
   realtimeNav: number | null
   dailyChange: number | null
+  updateAt?: string
   updateTime?: string
   watchlisted: boolean
 }
@@ -192,6 +196,7 @@ export interface ValuationWatchlistMutationInput {
   code: string
   name?: string
   dailyChange?: number | null
+  updateAt?: string
   updateTime?: string
 }
 
@@ -255,8 +260,10 @@ export interface PortfolioSummary {
   totalProfit: number
   totalProfitRate: number | null
   todayProfit: number | null
+  todayChangeRate: number | null
   totalAmount: number
   holdingCount: number
+  updateTime: string
 }
 
 export interface PortfolioInsight {

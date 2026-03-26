@@ -180,7 +180,7 @@
 | `code` | string | 是 | 基金代码 |
 | `name` | string | 是 | 基金名称 |
 | `channel` | string | 否 | 渠道信息，如 `支付宝`、`天天基金` |
-| `subCategoryId` | string | 否 | 基金子分类 ID，供前端或聚合层做分类映射 |
+| `subCategoryName` | string | 否 | 基金子分类 ID，供前端或聚合层做分类映射 |
 
 ### 成功返回示例
 
@@ -193,7 +193,7 @@
       "code": "110020",
       "name": "易方达沪深300ETF联接A",
       "channel": "天天基金",
-      "subCategoryId": "broad-index"
+      "subCategoryName": "broad-index"
     }
   ]
 }
@@ -250,7 +250,7 @@ GET /api/funds/110020
 | `benchmark` | string | 否 | 业绩比较基准 |
 | `channel` | string | 否 | 渠道信息 |
 | `foundDate` | string | 否 | 成立日期 |
-| `subCategoryId` | string | 否 | 基金子分类 ID |
+| `subCategoryName` | string | 否 | 基金子分类 ID |
 
 ### 成功返回示例
 
@@ -264,7 +264,7 @@ GET /api/funds/110020
     "benchmark": "沪深300指数收益率*95%+活期存款利率(税后)*5%",
     "channel": "天天基金",
     "foundDate": "2012-08-21",
-    "subCategoryId": "broad-index"
+    "subCategoryName": "broad-index"
   }
 }
 ```
@@ -272,7 +272,7 @@ GET /api/funds/110020
 ### 当前可支撑的前端能力
 
 - 结果页顶部基础身份信息：基金名称、基金代码
-- 基金分类映射：通过 `subCategoryId` 反推标签或类型
+- 基金分类映射：通过 `subCategoryName` 反推标签或类型
 - 白话定义、跟踪方向等基础文案：可结合 `benchmark` 和本地规则生成
 
 ### 当前缺失的结果页字段

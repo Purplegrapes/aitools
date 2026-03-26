@@ -132,29 +132,25 @@ function handleOpenScreenshotFlow() {
 </script>
 
 <template>
-  <view class="relative overflow-hidden bg-page pb-[220rpx] pt-[24rpx]">
+  <view class="relative overflow-x-hidden bg-page vt-page-shell pb-[calc(env(safe-area-inset-bottom)+156rpx)]">
     <view
       class="pointer-events-none absolute inset-x-0 top-0 h-[320rpx]"
-      style="background: linear-gradient(180deg, rgba(232,241,255,0.96), rgba(248,250,253,0.72) 58%, transparent);"
-    />
-    <view
-      class="pointer-events-none absolute right-[-120rpx] top-[88rpx] h-[240rpx] w-[240rpx] rounded-full opacity-70"
-      style="background: radial-gradient(circle, rgba(120,161,255,0.18), transparent 68%);"
+      style="background: linear-gradient(180deg, rgba(232,241,255,0.92), rgba(245,247,250,0) 72%);"
     />
 
-    <view class="relative mx-auto box-border max-w-[750rpx] w-full px-[24rpx]">
+    <view class="relative mx-auto flex flex-col">
       <view class="vt-top-card px-[24rpx] py-[24rpx]">
         <view class="mb-[20rpx] flex items-start justify-between gap-[16rpx]">
           <view>
-            <text class="block text-[30rpx] text-primary font-600">
-              手动录入
+            <text class="block text-[32rpx] text-primary font-600">
+              手动录入持仓
             </text>
             <text class="mt-[8rpx] block text-[22rpx] text-secondary leading-[34rpx]">
               选基金后，填写持有金额和持有收益即可保存。
             </text>
           </view>
-          <text class="rounded-full bg-brand-muted px-[16rpx] py-[8rpx] text-[22rpx] text-brand font-600">
-            简版
+          <text class="rounded-full bg-brand-muted px-[14rpx] py-[6rpx] text-[20rpx] text-brand font-600">
+            逐条添加
           </text>
         </view>
 
@@ -169,16 +165,27 @@ function handleOpenScreenshotFlow() {
           @select-fund="handleSelectFund"
         />
 
-        <view
-          class="mt-[18rpx] flex items-center justify-between gap-[14rpx] rounded-[14rpx] bg-surfaceSubtle px-[16rpx] py-[14rpx]"
-          @click="handleOpenScreenshotFlow"
-        >
-          <text class="min-w-0 flex-1 text-[22rpx] text-secondary leading-[32rpx]">
-            批量补录可用「同步持仓」，上传截图后确认即可。
+        <view class="mt-[24rpx] border-t border-line/70 pt-[20rpx]">
+          <text class="block text-[22rpx] text-secondary">
+            其他方式
           </text>
-          <view class="flex shrink-0 items-center gap-[4rpx] rounded-full border border-line/80 bg-surface px-[14rpx] py-[6rpx] text-[20rpx] text-primary">
-            去同步
-            <view class="i-carbon-chevron-right text-[18rpx]" />
+          <view
+            class="mt-[10rpx] flex items-center justify-between gap-[12rpx] rounded-[16rpx] bg-surfaceSubtle px-[18rpx] py-[16rpx]"
+            hover-class="opacity-88"
+            @click="handleOpenScreenshotFlow"
+          >
+            <view class="min-w-0 flex-1">
+              <text class="block text-[24rpx] text-primary font-500">
+                同步持仓
+              </text>
+              <text class="mt-[6rpx] block text-[21rpx] text-secondary leading-[32rpx]">
+                批量补录时更省事，上传截图后确认即可。
+              </text>
+            </view>
+            <view class="flex shrink-0 items-center gap-[4rpx] text-[22rpx] text-brand font-600">
+              去同步
+              <view class="i-carbon-chevron-right text-[18rpx]" />
+            </view>
           </view>
         </view>
       </view>

@@ -1,16 +1,18 @@
 # 外部小程序嵌入 H5 工具页接入说明
 
 ## 1. 打开方式
-- 外部小程序只能打开统一入口页：`/subPages/tools/entry`
-- 不允许直接打开具体工具页
+- 外部小程序统一只打开认证中转入口页：`/subPages/auth/gateway`
+- 不允许外部直接打开具体工具页
+- 旧的 `/subPages/tamp/index` 仅保留为迁移期兼容别名，会原样透传参数并转发到新的 `auth` 网关
 
 示例：
 
 ```text
-https://your-h5-domain.com/#/subPages/tools/entry?targetUrl=%2FsubPages%2Ftools%2Fdemo&ticket=xxx&timestamp=1741586400&nonce=abc123&sign=sign-value&traceId=trace-demo-001
+https://your-h5-domain.com/#/subPages/auth/gateway?referrer=https%3A%2F%2Fyour-h5-domain.com%2F%23%2FsubPages%2Ftools%2Fdemo&transferH5Ticket=xxx&from=miniapp
 ```
 
 ## 2. 启动参数
+- `referrer`: 目标 H5 内部路径（统一中转参数，建议与 `targetUrl` 一致）
 - `targetUrl`: 目标 H5 内部路径，必须以 `/subPages/tools/` 开头
 - `ticket`: 一次性换票凭证
 - `timestamp`: 时间戳
@@ -20,16 +22,17 @@ https://your-h5-domain.com/#/subPages/tools/entry?targetUrl=%2FsubPages%2Ftools%
 - `bizId`: 可选业务 ID
 
 限制：
-- `targetUrl` 只能是当前 H5 站点的受控内部路径
-- 禁止传完整 URL、协议头、外部域名
-- 禁止传 `/subPages/tools/entry`
+- 外部入口标准路径为 `/subPages/auth/gateway`
+- 迁移期内允许继续使用 `/subPages/tamp/index`，但它只做兼容转发
+- `referrer` 可以是当前 H5 内部路径，也可以是完整的站内落地 URL
+- 小程序中转至少需要提供 `referrer` 与 `transferH5Ticket`
 
 ## 3. H5 启动流程
-1. 外部小程序拼接统一入口页 URL。
-2. H5 入口页校验 `targetUrl` 和换票参数。
-3. H5 检测当前是否运行在小程序 `web-view`。
-4. H5 调用后端换票接口，建立本域会话。
-5. H5 清理敏感参数，跳转到 `targetUrl`。
+1. 外部小程序拼接统一认证中转页 URL（`/subPages/auth/gateway`）。
+2. `auth` 网关识别来源并校验 `referrer`、`transferH5Ticket` 等关键参数。
+3. 网关调用换票接口建立登录态，并在必要时补齐当前用户信息。
+4. 换票成功后，网关直接跳转到 `referrer` 指向的目标地址。
+5. 若仍使用旧 `/subPages/tamp/index`，兼容页只透传参数并 `replace` 到新的 `auth` 网关。
 
 ## 4. Bridge 协议
 Bridge 在这里是“宿主协作协议”，不要求外部小程序一定额外封装一个独立 SDK。协议可以通过两种方式承载：
@@ -273,7 +276,8 @@ H5 请求宿主关闭当前 web-view：
 - `host_callback_missing`
 
 ## 7. 联调检查项
-- 入口页是否总是作为唯一打开地址
+- 外部入口是否优先打开 `/subPages/auth/gateway`
+- 旧 `/subPages/tamp/index` 是否仅作为兼容别名转发到新网关
 - `targetUrl` 是否经过 encodeURIComponent
 - 宿主是否提供 `requestAuthRefresh`
 - 宿主是否实现订阅消息授权后回调本项目后端
@@ -317,7 +321,7 @@ onLoad(async (options) => {
     traceId,
   })
 
-  webviewUrl.value = `https://your-h5-domain.com/#/subPages/tools/entry?${query.toString()}`
+  webviewUrl.value = `https://your-h5-domain.com/#/subPages/auth/gateway?${query.toString()}`
 })
 
 async function createEmbedTicket(payload: {

@@ -25,7 +25,7 @@ function getChangeClass(value?: number | null) {
   <view class="vt-card bg-surface">
     <view class="flex items-center gap-[14rpx]">
       <view class="i-carbon-chart-line text-[32rpx] text-danger" />
-      <text class="text-[34rpx] text-primary font-600 leading-[48rpx]">
+      <text class="text-sm text-primary font-600 leading-[48rpx]">
         涨幅榜
       </text>
     </view>

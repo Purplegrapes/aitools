@@ -75,6 +75,24 @@
           }
         },
         {
+          "path": "auth/gateway",
+          "type": "page",
+          "name": "auth-gateway",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "认证跳转"
+          }
+        },
+        {
+          "path": "auth/login",
+          "type": "page",
+          "name": "auth-login",
+          "layout": "default",
+          "style": {
+            "navigationBarTitleText": "手机号登录"
+          }
+        },
+        {
           "path": "etf/index",
           "type": "page",
           "name": "etf",
@@ -140,7 +158,7 @@
           "name": "tamp",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "TAMP"
+            "navigationBarTitleText": "认证跳转"
           }
         },
         {
@@ -204,7 +222,7 @@
           "layout": "default",
           "style": {
             "backgroundColor": "#F5F7FA",
-            "navigationBarTitleText": "确认持仓信息",
+            "navigationBarTitleText": "同步持仓",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
           }

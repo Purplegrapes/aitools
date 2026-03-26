@@ -1,40 +1,19 @@
 import AdapterUniapp from '@alova/adapter-uniapp'
 import { createAlova } from 'alova'
+import { createServerTokenAuthentication } from 'alova/client'
 import vueHook from 'alova/vue'
 import cookie from 'js-cookie'
+import { useEtfUserStore } from '@/store/etfUserStore'
+import type { TokenResponseDto } from '@/subPages/auth/api/types'
 import mockAdapter from '../mock/mockAdapter'
 import { handleAlovaError, handleAlovaResponse } from './handlers'
-
-// ========== Token刷新锁机制 ==========
-// 刷新请求锁，防止并发刷新
-const _refreshLock = { isRefreshing: false }
-
-export function isRefreshing() {
-  return _refreshLock.isRefreshing
-}
-
-export function setRefreshing(value: boolean) {
-  _refreshLock.isRefreshing = value
-}
-
-// 等待刷新的请求队列
-let refreshSubscribers: Array<(token: string) => void> = []
-
-/**
- * 将请求加入刷新等待队列
- */
-export function subscribeTokenRefresh(callback: (token: string) => void) {
-  refreshSubscribers.push(callback)
-}
-
-/**
- * 通知队列中的请求token已刷新
- */
-export function onTokenRefreshed(token: string) {
-  refreshSubscribers.forEach(callback => callback(token))
-  refreshSubscribers = []
-}
-// ========== Token刷新锁机制结束 ==========
+import {
+  applyBearerToken,
+  AUTH_REFRESH_META,
+  AUTH_VISITOR_META,
+  shouldRefreshTokenOnSuccess,
+  shouldRefreshTokenOnError,
+} from './token-auth'
 
 /**
  * 获取主 API 基础 URL
@@ -51,12 +30,12 @@ function getMainBaseURL(): string {
 /**
  * 获取资产 API 基础 URL
  */
-function getAssetBaseURL(): string {
+function getCommonBaseURL(): string {
   // #ifdef H5
   return '' // H5 环境使用 Vite 代理
   // #endif
   // #ifndef H5
-  return import.meta.env.VITE_ASSET_API_BASE_URL
+  return import.meta.env.VITE_COMMON_API_BASE_URL
   // #endif
 }
 
@@ -89,7 +68,7 @@ function getValuationBaseURL(): string {
   return ''
   // #endif
   // #ifndef H5
-  return import.meta.env.VITE_TOOLS_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'https://etf-insight.betalpha.com'
+  return import.meta.env.VITE_TOOLS_API_BASE_URL
   // #endif
 }
 
@@ -109,79 +88,197 @@ function getToken(): string {
   return ''
 }
 
+/**
+ * 获取存储的 refresh token
+ */
+function getRefreshToken(): string {
+  try {
+    const etfUserStore = uni.getStorageSync('etfUser')
+    if (etfUserStore) {
+      return etfUserStore.refreshToken || ''
+    }
+  }
+  catch {
+    return ''
+  }
+  return ''
+}
+
+function ensureMethodHeaders(method: {
+  config: {
+    headers?: Record<string, unknown>
+    params?: Record<string, unknown> | string
+  }
+}) {
+  if (!method.config.headers) {
+    method.config.headers = {}
+  }
+
+  return method.config.headers
+}
+
+function requestRefreshToken(refreshToken: string): Promise<TokenResponseDto> {
+  return new Promise((resolve, reject) => {
+    if (!refreshToken) {
+      reject(new Error('missing refresh token'))
+      return
+    }
+
+    const header: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    let refreshUrl = '/shixi-api/oauth/token/refresh'
+    // #ifndef H5
+    refreshUrl = `${getCommonBaseURL()}/api/oauth/token/refresh`
+    // #endif
+
+    uni.request({
+      url: refreshUrl,
+      method: 'POST',
+      data: {
+        refresh_token: refreshToken,
+      },
+      header,
+      success: (response) => {
+        const { statusCode, data } = response as UniNamespace.RequestSuccessCallbackResult
+        if (statusCode < 200 || statusCode >= 300) {
+          reject(new Error(`refresh request failed: ${statusCode}`))
+          return
+        }
+        const payload = (data as any)?.data || data || {}
+        const nextAccessToken = payload?.access_token || payload?.token || ''
+
+        if (!nextAccessToken || typeof nextAccessToken !== 'string') {
+          reject(new Error('refresh token response missing access_token'))
+          return
+        }
+        resolve({
+          access_token: nextAccessToken,
+          refresh_token: payload?.refresh_token || refreshToken,
+          token_type: payload?.token_type || 'Bearer',
+          expires_in: payload?.expires_in || 0,
+        })
+      },
+      fail: (error) => {
+        reject(error)
+      },
+    })
+  })
+}
+
+function resolveRequestToken(url: string) {
+  if (url.startsWith('/app-api')) {
+    return cookie.get('ticket') || ''
+  }
+
+  if ((url.startsWith('/api') || url.startsWith('/djapi') || url.startsWith('/shixi-api'))) {
+    return getToken()
+  }
+
+  return ''
+}
+
+function rewriteRequestUrl(method: {
+  url: string
+}) {
+  if (method.url.startsWith('/app-api')) {
+    const tampBaseURL = getTampBaseURL()
+    if (tampBaseURL) {
+      // #ifndef H5
+      method.url = `${tampBaseURL}${method.url}`
+      // #endif
+    }
+    return
+  }
+
+  if (method.url.startsWith('/tools-api')) {
+    const toolsBaseURL = getToolsBaseURL()
+    if (toolsBaseURL) {
+      // #ifndef H5
+      method.url = `${toolsBaseURL}${method.url}`
+      // #endif
+    }
+    return
+  }
+
+  if (method.url.startsWith('/valuation-api')) {
+    const valuationBaseURL = getValuationBaseURL()
+    if (valuationBaseURL) {
+      // #ifndef H5
+      method.url = `${valuationBaseURL}${method.url.replace(/^\/valuation-api/, '')}`
+      // #endif
+    }
+    return
+  }
+
+  if (method.url.startsWith('/shixi-api')) {
+    const authBaseURL = getCommonBaseURL()
+    if (authBaseURL) {
+      // #ifndef H5
+      method.url = `${authBaseURL}${method.url.replace(/^\/shixi-api/, '/api')}`
+      // #endif
+    }
+  }
+}
+
+const { onAuthRequired, onResponseRefreshToken } = createServerTokenAuthentication({
+  visitorMeta: AUTH_VISITOR_META,
+  assignToken(method) {
+    const token = resolveRequestToken(method.url)
+    if (!token)
+      return
+
+    applyBearerToken(ensureMethodHeaders(method), token)
+  },
+  refreshTokenOnError: {
+    metaMatches: AUTH_REFRESH_META,
+    isExpired(error, method) {
+      return shouldRefreshTokenOnError(error, `${method?.url || ''}`)
+    },
+    async handler(error, method) {
+      const refreshToken = getRefreshToken()
+      if (!refreshToken) {
+        return handleAlovaError(error, method)
+      }
+
+      try {
+        const refreshedToken = await requestRefreshToken(refreshToken)
+        const userStore = useEtfUserStore()
+        userStore.setAuthTokens(refreshedToken.access_token, refreshedToken.refresh_token)
+      }
+      catch {
+        return handleAlovaError(error, method)
+      }
+    },
+  },
+  refreshTokenOnSuccess: {
+    metaMatches: AUTH_REFRESH_META,
+    isExpired(response, method) {
+      return shouldRefreshTokenOnSuccess(response as { statusCode?: number }, `${method?.url || ''}`)
+    },
+    async handler(_response, method) {
+      const refreshToken = getRefreshToken()
+      if (!refreshToken) {
+        throw new Error('missing refresh token')
+      }
+
+      const refreshedToken = await requestRefreshToken(refreshToken)
+      const userStore = useEtfUserStore()
+      userStore.setAuthTokens(refreshedToken.access_token, refreshedToken.refresh_token)
+    },
+  },
+})
+
 export const alovaInstance = createAlova({
   baseURL: getMainBaseURL(),
   ...AdapterUniapp({
     mockRequest: mockAdapter,
   }),
   statesHook: vueHook,
-  beforeRequest: (method) => {
-    let token = ''
-
-    // 目前只有etf有token
-    if (method.url.startsWith('/api') || method.url.startsWith('/djapi')) {
-      // 从本地存储获取 token
-      token = getToken()
-    }
-    // TAMP API 走 tampStore token， 从同一个域名下的cookie中获取
-    if (method.url.startsWith('/app-api')) {
-      token = cookie.get('ticket')
-    }
-    if (method.url.startsWith('/shixi-api')) {
-      const assetBaseURL = getAssetBaseURL()
-      if (assetBaseURL) {
-        // 在非 H5 环境，需要设置完整 URL 来覆盖 Alova 的 baseURL
-        // #ifndef H5
-        const path = method.url.replace('/shixi-api', '/api')
-        method.url = `${assetBaseURL}${path}`
-        // #endif
-        // #ifdef H5
-        // H5 环境由代理处理，保持 URL 不变
-        // #endif
-      }
-    }
-
-    // TAMP API 使用不同的 baseURL
-    if (method.url.startsWith('/app-api')) {
-      const tampBaseURL = getTampBaseURL()
-      if (tampBaseURL) {
-        // #ifndef H5
-        method.url = `${tampBaseURL}${method.url}`
-        // #endif
-        // #ifdef H5
-        // H5 环境由代理处理，保持 URL 不变
-        // #endif
-      }
-    }
-
-    if (method.url.startsWith('/tools-api')) {
-      const toolsBaseURL = getToolsBaseURL()
-      if (toolsBaseURL) {
-        // #ifndef H5
-        method.url = `${toolsBaseURL}${method.url}`
-        // #endif
-        // #ifdef H5
-        // H5 环境由代理处理，保持 URL 不变
-        // #endif
-      }
-    }
-
-    if (method.url.startsWith('/valuation-api')) {
-      const valuationBaseURL = getValuationBaseURL()
-      if (valuationBaseURL) {
-        // #ifndef H5
-        method.url = `${valuationBaseURL}${method.url.replace(/^\/valuation-api/, '')}`
-        // #endif
-        // #ifdef H5
-        // H5 环境由代理处理，保持 URL 不变
-        // #endif
-      }
-    }
-
-    // 添加 token 到请求头
-    if (token) {
-      method.config.headers.Authorization = `${token}`
-    }
+  beforeRequest: onAuthRequired((method) => {
+    ensureMethodHeaders(method)
+    rewriteRequestUrl(method)
 
     // Add content type for POST/PUT/PATCH requests
     if (['POST', 'PUT', 'PATCH'].includes(method.type)) {
@@ -200,6 +297,8 @@ export const alovaInstance = createAlova({
         apiType = '[Asset API]'
       else if (method.url.startsWith('/tamp-api') || method.url.startsWith('/app-api'))
         apiType = '[TAMP API]'
+      else if (method.url.startsWith('/shixi-api'))
+        apiType = '[Auth API]'
       else if (method.url.startsWith('/tools-api'))
         apiType = '[Tools API]'
       else if (method.url.startsWith('/valuation-api'))
@@ -208,10 +307,10 @@ export const alovaInstance = createAlova({
       console.log(`${apiType} Request] ${method.type} ${method.url}`, method.data || method.config.params)
       console.log(`[Environment] ${import.meta.env.VITE_ENV_NAME}`)
     }
-  },
+  }),
 
   // Response handlers
-  responded: {
+  responded: onResponseRefreshToken({
     // Success handler
     onSuccess: handleAlovaResponse,
 
@@ -222,7 +321,7 @@ export const alovaInstance = createAlova({
     onComplete: async () => {
       // Any cleanup or logging can be done here
     },
-  },
+  }),
 
   // Default request timeout (60 seconds)
   timeout: 60000,

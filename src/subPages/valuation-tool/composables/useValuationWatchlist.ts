@@ -4,6 +4,8 @@ import type {
   ValuationWatchlistFund,
   ValuationWatchlistMutationInput,
 } from '../types'
+import { useEtfUserStore } from '@/store/etfUserStore'
+import { buildRefererPath, createAuthLoginRoute, getStoredUserId } from '@/subPages/auth/utils/loginGuard'
 import {
   addValuationWatchlist,
   getValuationWatchlist,
@@ -16,7 +18,10 @@ const watchlistHasSnapshotState = shallowRef(false)
 const watchlistRefreshModeState = shallowRef<'full' | 'list-only' | null>(null)
 
 export function useValuationWatchlist() {
+  const router = useRouter()
+  const route = useRoute()
   const globalToast = useGlobalToast()
+  const userStore = useEtfUserStore()
 
   const watchlistItems = computed(() => watchlistItemsState.value)
 
@@ -25,7 +30,7 @@ export function useValuationWatchlist() {
   }
 
   const { error: watchlistListRequestError, loading: watchlistListLoading, send: sendWatchlistListRequest } = useRequest(
-    () => getValuationWatchlist(),
+    (uid: string) => getValuationWatchlist(uid),
     {
       immediate: false,
       onError: () => undefined,
@@ -33,7 +38,7 @@ export function useValuationWatchlist() {
   )
 
   const { error: watchlistRealtimeRequestError, loading: watchlistRealtimeLoading, send: sendWatchlistRealtimeRequest } = useRequest(
-    () => getValuationWatchlistRealtime(),
+    (uid: string) => getValuationWatchlistRealtime(uid),
     {
       immediate: false,
       onError: () => undefined,
@@ -41,7 +46,7 @@ export function useValuationWatchlist() {
   )
 
   const { send: sendAddWatchlistRequest } = useRequest(
-    (input: ValuationWatchlistMutationInput) => addValuationWatchlist(input),
+    (input: ValuationWatchlistMutationInput & { uid: string }) => addValuationWatchlist(input),
     {
       immediate: false,
       onError: () => undefined,
@@ -49,7 +54,7 @@ export function useValuationWatchlist() {
   )
 
   const { send: sendRemoveWatchlistRequest } = useRequest(
-    (code: string) => removeValuationWatchlist(code),
+    ({ code, uid }: { code: string, uid: string }) => removeValuationWatchlist(code, uid),
     {
       immediate: false,
       onError: () => undefined,
@@ -73,6 +78,12 @@ export function useValuationWatchlist() {
   })
 
   async function refreshWatchlist(force = false) {
+    const userId = getUserId()
+    if (!userId) {
+      watchlistItemsState.value = []
+      watchlistHasSnapshotState.value = false
+      return
+    }
     if (watchlistRefreshModeState.value)
       return
     if (!force && watchlistHasSnapshotState.value)
@@ -81,8 +92,8 @@ export function useValuationWatchlist() {
     watchlistRefreshModeState.value = 'full'
     try {
       const [listResponse, realtimeResponse] = await Promise.all([
-        sendWatchlistListRequest(),
-        sendWatchlistRealtimeRequest(),
+        sendWatchlistListRequest(userId),
+        sendWatchlistRealtimeRequest(userId),
       ])
       applyWatchlistItems(
         (listResponse as { data?: FavouriteItemServiceResponse[] } | undefined)?.data,
@@ -98,13 +109,17 @@ export function useValuationWatchlist() {
   }
 
   async function refreshWatchlistListOnly() {
+    const userId = getUserId()
+    if (!userId)
+      return false
+
     if (watchlistRefreshModeState.value)
       return false
 
     watchlistRefreshModeState.value = 'list-only'
 
     try {
-      const listResponse = await sendWatchlistListRequest()
+      const listResponse = await sendWatchlistListRequest(userId)
       applyWatchlistItems((listResponse as { data?: FavouriteItemServiceResponse[] } | undefined)?.data)
       return true
     }
@@ -117,8 +132,15 @@ export function useValuationWatchlist() {
   }
 
   async function addToWatchlist(input: ValuationWatchlistMutationInput) {
+    const userId = ensureUserIdOrRedirect()
+    if (!userId)
+      return false
+
     try {
-      await sendAddWatchlistRequest(input)
+      await sendAddWatchlistRequest({
+        ...input,
+        uid: userId,
+      })
       await syncWatchlistListAfterMutation(() => upsertWatchlistItem(input))
       globalToast.success('加入自选成功')
       return true
@@ -130,8 +152,12 @@ export function useValuationWatchlist() {
   }
 
   async function removeFromWatchlist(code: string) {
+    const userId = ensureUserIdOrRedirect()
+    if (!userId)
+      return false
+
     try {
-      await sendRemoveWatchlistRequest(code)
+      await sendRemoveWatchlistRequest({ code, uid: userId })
       await syncWatchlistListAfterMutation(() => removeLocalWatchlistItem(code))
       globalToast.success('取消自选成功')
       return true
@@ -146,6 +172,29 @@ export function useValuationWatchlist() {
     if (isWatchlisted(input.code))
       return removeFromWatchlist(input.code)
     return addToWatchlist(input)
+  }
+
+  function getUserId() {
+    const inMemoryUserId = userStore.userInfo?.id
+    if (inMemoryUserId !== null && inMemoryUserId !== undefined && `${inMemoryUserId}`.trim())
+      return `${inMemoryUserId}`
+
+    const persistedUserId = getStoredUserId()
+    if (persistedUserId)
+      return persistedUserId
+
+    return ''
+  }
+
+  function ensureUserIdOrRedirect() {
+    const userId = getUserId()
+    if (userId)
+      return userId
+
+    const referrer = buildRefererPath(route.path || '/subPages/valuation-tool/index', route.query as Record<string, unknown>)
+    router.replace(createAuthLoginRoute(referrer))
+    globalToast.warning('请先登录后再使用该功能')
+    return ''
   }
 
   return {
@@ -201,15 +250,19 @@ function normalizeWatchlistItems(
     const dailyChange = 'dailyChange' in item
       ? item.dailyChange
       : getRealtimeYieldChange(realtimeItem) ?? currentItem?.dailyChange
+    const updateAt = getWatchlistUpdateAt(item)
+      || getWatchlistUpdateAt(realtimeItem)
+      || currentItem?.updateAt
     const updateTime = 'updateTime' in item
-      ? item.updateTime || currentTimeText()
-      : currentItem?.updateTime || currentTimeText()
+      ? item.updateTime || formatWatchlistUpdateTime(updateAt) || currentTimeText()
+      : currentItem?.updateTime || formatWatchlistUpdateTime(updateAt) || currentTimeText()
 
     return {
       code: item.code,
       name: item.name,
       realtimeNav: normalizeWatchlistRealtimeNav(realtimeNav),
       dailyChange: normalizeWatchlistDailyChange(dailyChange),
+      updateAt,
       updateTime,
       watchlisted: true,
     } satisfies ValuationWatchlistFund
@@ -223,7 +276,8 @@ function upsertWatchlistItem(input: ValuationWatchlistMutationInput) {
     name: input.name || input.code,
     realtimeNav: null,
     dailyChange: normalizeWatchlistDailyChange(input.dailyChange),
-    updateTime: input.updateTime || currentTimeText(),
+    updateAt: input.updateAt,
+    updateTime: input.updateTime || formatWatchlistUpdateTime(input.updateAt) || currentTimeText(),
     watchlisted: true,
   }
 
@@ -279,6 +333,15 @@ function getRealtimeNav(item?: FavouriteRealtimeItemServiceResponse | null) {
   return item.nav
 }
 
+function getWatchlistUpdateAt(
+  item?: Partial<ValuationWatchlistFund | FavouriteRealtimeItemServiceResponse> | null,
+) {
+  if (!item)
+    return ''
+
+  return item.updateAt || item.updatedAt || item.updateTime || ''
+}
+
 function normalizeWatchlistRealtimeNav(value?: number | null) {
   if (value === null || value === undefined || Number.isNaN(Number(value)))
     return null
@@ -302,4 +365,18 @@ function currentTimeText() {
   const hours = `${currentDate.getHours()}`.padStart(2, '0')
   const minutes = `${currentDate.getMinutes()}`.padStart(2, '0')
   return `${hours}:${minutes}`
+}
+
+function formatWatchlistUpdateTime(value?: string | null) {
+  if (!value)
+    return ''
+
+  if (/^\d{2}:\d{2}$/.test(value))
+    return value
+
+  const normalizedValue = value.replace('T', ' ').trim()
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(normalizedValue))
+    return normalizedValue.slice(0, 16)
+
+  return normalizedValue
 }

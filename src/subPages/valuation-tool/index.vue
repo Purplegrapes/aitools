@@ -5,6 +5,7 @@ import type {
   MarketSentiment,
   MarketSentimentServiceResponse,
 } from './types'
+import valuationHeader from '@/assets/header.png'
 import { getHotSearchFunds, getMarketSentiment } from './api/valuationTool'
 import HotSearchList from './components/HotSearchList.vue'
 import RiskNoteCard from './components/RiskNoteCard.vue'
@@ -75,14 +76,24 @@ function handleOpenSearch() {
     <view class="pointer-events-none absolute left-[-36rpx] top-[126rpx] h-[120rpx] w-[120rpx] rounded-full bg-[radial-gradient(circle,_rgba(24,144,255,0.08)_0%,_rgba(24,144,255,0)_72%)]" />
 
     <view class="relative mx-auto box-border vt-page-x pb-[220rpx] pt-[28rpx]">
-      <view class="px-[4rpx] pt-[72rpx]">
-        <view class="max-w-[460rpx]">
-          <text class="block text-[56rpx] text-primary font-700 leading-[1.08] tracking-[1rpx]">
-            宝倍估值
-          </text>
-          <text class="mt-[14rpx] block text-[26rpx] text-secondary leading-[38rpx]">
-            一键查估值，快速看懂你的基
-          </text>
+      <view class="px-[4rpx] pt-[40rpx]">
+        <view class="relative flex items-start justify-between gap-[24rpx]">
+          <view class="max-w-[460rpx] pt-[10rpx]">
+            <text class="block text-2xl text-primary font-700 leading-[1.08] tracking-[1rpx]">
+              宝倍估值
+            </text>
+            <text class="mt-[14rpx] block text-xs text-secondary leading-[38rpx]">
+              一键查估值，快速看懂你的基
+            </text>
+          </view>
+
+          <view class="relative mt-[-6rpx]">
+            <image
+              :src="valuationHeader"
+              class="h-[136rpx] w-[136rpx]"
+              mode="aspectFit"
+            />
+          </view>
         </view>
 
         <view
@@ -95,7 +106,7 @@ function handleOpenSearch() {
               <view class="i-carbon-search text-[32rpx]" />
             </view>
             <view class="min-w-0 flex-1">
-              <text class="block text-[28rpx] text-primary font-600">
+              <text class="block text-sm text-secondary font-500">
                 查基金估值
               </text>
             </view>
