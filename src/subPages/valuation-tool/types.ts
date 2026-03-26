@@ -54,6 +54,9 @@ export interface FavouriteRealtimeItemServiceResponse {
   nav: number
   navChange: number
   yieldChange: number
+  updateAt?: string | null
+  updatedAt?: string | null
+  updateTime?: string | null
 }
 
 export interface PositionItemServiceResponse {
@@ -184,6 +187,7 @@ export interface ValuationWatchlistFund {
   name: string
   realtimeNav: number | null
   dailyChange: number | null
+  updateAt?: string
   updateTime?: string
   watchlisted: boolean
 }
@@ -192,6 +196,7 @@ export interface ValuationWatchlistMutationInput {
   code: string
   name?: string
   dailyChange?: number | null
+  updateAt?: string
   updateTime?: string
 }
 

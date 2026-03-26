@@ -250,15 +250,19 @@ function normalizeWatchlistItems(
     const dailyChange = 'dailyChange' in item
       ? item.dailyChange
       : getRealtimeYieldChange(realtimeItem) ?? currentItem?.dailyChange
+    const updateAt = getWatchlistUpdateAt(item)
+      || getWatchlistUpdateAt(realtimeItem)
+      || currentItem?.updateAt
     const updateTime = 'updateTime' in item
-      ? item.updateTime || currentTimeText()
-      : currentItem?.updateTime || currentTimeText()
+      ? item.updateTime || formatWatchlistUpdateTime(updateAt) || currentTimeText()
+      : currentItem?.updateTime || formatWatchlistUpdateTime(updateAt) || currentTimeText()
 
     return {
       code: item.code,
       name: item.name,
       realtimeNav: normalizeWatchlistRealtimeNav(realtimeNav),
       dailyChange: normalizeWatchlistDailyChange(dailyChange),
+      updateAt,
       updateTime,
       watchlisted: true,
     } satisfies ValuationWatchlistFund
@@ -272,7 +276,8 @@ function upsertWatchlistItem(input: ValuationWatchlistMutationInput) {
     name: input.name || input.code,
     realtimeNav: null,
     dailyChange: normalizeWatchlistDailyChange(input.dailyChange),
-    updateTime: input.updateTime || currentTimeText(),
+    updateAt: input.updateAt,
+    updateTime: input.updateTime || formatWatchlistUpdateTime(input.updateAt) || currentTimeText(),
     watchlisted: true,
   }
 
@@ -328,6 +333,15 @@ function getRealtimeNav(item?: FavouriteRealtimeItemServiceResponse | null) {
   return item.nav
 }
 
+function getWatchlistUpdateAt(
+  item?: Partial<ValuationWatchlistFund | FavouriteRealtimeItemServiceResponse> | null,
+) {
+  if (!item)
+    return ''
+
+  return item.updateAt || item.updatedAt || item.updateTime || ''
+}
+
 function normalizeWatchlistRealtimeNav(value?: number | null) {
   if (value === null || value === undefined || Number.isNaN(Number(value)))
     return null
@@ -351,4 +365,18 @@ function currentTimeText() {
   const hours = `${currentDate.getHours()}`.padStart(2, '0')
   const minutes = `${currentDate.getMinutes()}`.padStart(2, '0')
   return `${hours}:${minutes}`
+}
+
+function formatWatchlistUpdateTime(value?: string | null) {
+  if (!value)
+    return ''
+
+  if (/^\d{2}:\d{2}$/.test(value))
+    return value
+
+  const normalizedValue = value.replace('T', ' ').trim()
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(normalizedValue))
+    return normalizedValue.slice(0, 16)
+
+  return normalizedValue
 }
