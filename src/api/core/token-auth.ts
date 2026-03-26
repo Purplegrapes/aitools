@@ -51,3 +51,11 @@ export function applyBearerToken(
     ? trimmedToken
     : `Bearer ${trimmedToken}`
 }
+
+export function shouldShowErrorToast(method?: {
+  meta?: {
+    suppressErrorToast?: boolean
+  }
+} | null) {
+  return !method?.meta?.suppressErrorToast
+}

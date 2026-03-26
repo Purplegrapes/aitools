@@ -7,6 +7,7 @@ import {
   AUTH_VISITOR_META,
   shouldRefreshTokenOnSuccess,
   shouldRefreshTokenOnError,
+  shouldShowErrorToast,
 } from '../../src/api/core/token-auth.js'
 
 test('token auth meta keeps visitor and refresh roles explicit', () => {
@@ -49,6 +50,13 @@ test('refreshes protected success-path responses when adapter returns 401 payloa
     shouldRefreshTokenOnSuccess({ statusCode: 401 }, '/shixi-api/oauth/token'),
     false,
   )
+})
+
+test('shows default error toast unless request explicitly suppresses it', () => {
+  assert.equal(shouldShowErrorToast(), true)
+  assert.equal(shouldShowErrorToast({ meta: {} }), true)
+  assert.equal(shouldShowErrorToast({ meta: { suppressErrorToast: false } }), true)
+  assert.equal(shouldShowErrorToast({ meta: { suppressErrorToast: true } }), false)
 })
 
 test('protected request retries automatically after refresh succeeds', async () => {

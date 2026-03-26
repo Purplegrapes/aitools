@@ -12,6 +12,7 @@ import { useEtfUserStore } from '@/store/etfUserStore'
 import { useTampStore } from '@/store/tampStore'
 import { handleExternalRedirect } from '@/subPages/auth/utils/externalRedirect'
 import { useEmbeddedAuth } from '@/subPages/tools/composables/useEmbeddedAuth'
+import { shouldShowErrorToast } from './token-auth'
 import { resolveUnauthorizedFollowUp } from './unauthorized-flow'
 
 // Custom error class for API errors
@@ -59,6 +60,7 @@ async function handleEmbeddedUnauthorized(data?: any) {
 // Handle successful responses
 export async function handleAlovaResponse(
   response: UniApp.RequestSuccessCallbackResult | UniApp.UploadFileSuccessCallbackResult | UniApp.DownloadSuccessData,
+  method?: Method,
 ) {
   // Extract status code and data from UniApp response
   const { statusCode, data } = response as UniNamespace.RequestSuccessCallbackResult
@@ -70,8 +72,10 @@ export async function handleAlovaResponse(
 
   // Handle HTTP error status codes
   if (statusCode >= 400) {
-    const globalToast = useGlobalToast()
-    globalToast.error(`Request failed with status: ${statusCode}`)
+    if (shouldShowErrorToast(method)) {
+      const globalToast = useGlobalToast()
+      globalToast.error(`Request failed with status: ${statusCode}`)
+    }
     throw new ApiError(`Request failed with status: ${statusCode}`, statusCode, data)
   }
 
@@ -121,16 +125,24 @@ export async function handleAlovaError(error: any, method: Method) {
 
   // Handle different types of errors
   if (error.name === 'NetworkError') {
-    globalToast.error('网络错误，请检查您的网络连接')
+    if (shouldShowErrorToast(method)) {
+      globalToast.error('网络错误，请检查您的网络连接')
+    }
   }
   else if (error.name === 'TimeoutError') {
-    globalToast.error('请求超时，请重试')
+    if (shouldShowErrorToast(method)) {
+      globalToast.error('请求超时，请重试')
+    }
   }
   else if (error instanceof ApiError) {
-    globalToast.error(error.message || '请求失败')
+    if (shouldShowErrorToast(method)) {
+      globalToast.error(error.message || '请求失败')
+    }
   }
   else {
-    globalToast.error('发生意外错误')
+    if (shouldShowErrorToast(method)) {
+      globalToast.error('发生意外错误')
+    }
   }
 
   throw error
