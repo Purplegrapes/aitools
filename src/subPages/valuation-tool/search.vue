@@ -275,7 +275,7 @@ function stringifyNullableField(value: unknown) {
         <template v-if="isSuccess">
           <!-- 结果计数 -->
           <view class="mb-2 flex items-center gap-2 px-2">
-            <wd-icon name="check-circle-filled" size="22px" class="text-brand" />
+            <wd-icon name="check-circle-filled" size="22px" class="text-tag" />
             <text class="text-sm text-primary">
               找到 <text class="text-blue-600 text-base font-semibold">
                 {{ searchResults.length }}
@@ -300,11 +300,12 @@ function stringifyNullableField(value: unknown) {
                 <text class="text-xs text-secondary font-mono">
                   {{ item.code }}
                 </text>
-                <view v-if="item.channel" class="rounded-md bg-surfaceSubtle px-1.5 py-0.5">
-                  <text class="text-[10rpx] text-secondary">
-                    {{ item.channel }}
-                  </text>
-                </view>
+                <wd-tag
+                  v-if="item.channel"
+                  mark bg-color="#7894da"
+                >
+                  {{ item.channel }}
+                </wd-tag>
               </view>
             </view>
 

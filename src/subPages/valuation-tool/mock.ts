@@ -22,6 +22,7 @@ import type {
 import {
   buildPortfolioSummary,
   createPositionId,
+  formatFundChannelLabel,
   getPortfolioUnavailableState,
 } from './utils'
 
@@ -127,6 +128,8 @@ export function normalizeFundSearchServiceItem(item: FundSearchServiceItem): Sea
   return {
     code: item.code,
     name: item.name,
+    channel: formatFundChannelLabel(item.channel),
+    subCategoryName: item.subCategoryName ?? null,
     tags: tags.length ? tags : ['基金'],
     summary: buildSearchSummary(item),
     todayTag: inferTodayTag(tags),

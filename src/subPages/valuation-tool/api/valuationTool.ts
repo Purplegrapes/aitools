@@ -17,8 +17,8 @@ import type {
 import { alovaInstance } from '@/api/core/instance'
 import { getStoredUserId } from '@/subPages/auth/utils/loginGuard'
 import { realtime } from '@/subPages/etf/api'
-import { getFallbackPortfolioRecognitionResult } from '../mock'
 import { parsePortfolioImportImageResponse } from '../image-import.js'
+import { getFallbackPortfolioRecognitionResult } from '../mock'
 
 export function getMarketSentiment() {
   return alovaInstance.Get<ApiEnvelope<MarketSentimentServiceResponse>>('/valuation-api/market-pulse/sentiment')
@@ -45,7 +45,11 @@ export function getFundMetrics(code: string) {
 }
 
 export function getFundRealtimeData(code: string) {
-  return alovaInstance.Get<ApiEnvelope<FundRealtimeDataServiceResponse>>(`/valuation-api/funds/${code}/realtime-data`)
+  return alovaInstance.Get<ApiEnvelope<FundRealtimeDataServiceResponse>>(`/valuation-api/funds/${code}/realtime-data`, {
+    meta: {
+      suppressErrorToast: true,
+    },
+  })
 }
 
 export function getFundValuation(code: string) {
@@ -72,6 +76,9 @@ export function getValuationWatchlistRealtime(uid: string) {
     headers: {
       uid,
     },
+    meta: {
+      suppressErrorToast: true,
+    },
   })
 }
 
@@ -87,6 +94,9 @@ export function getPortfolioPositionsRealtime() {
   return alovaInstance.Get<ApiEnvelope<PositionRealtimeItemServiceResponse[]>>('/valuation-api/positions/realtime', {
     headers: {
       uid: getStoredUserId(),
+    },
+    meta: {
+      suppressErrorToast: true,
     },
   })
 }
