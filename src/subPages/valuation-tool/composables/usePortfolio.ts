@@ -292,6 +292,9 @@ export function usePortfolio() {
     items: PositionItemServiceResponse[],
     realtimeItems: PositionRealtimeItemServiceResponse[],
   ) {
+    const existingMetricsMap = new Map(
+      portfolioMetricsState.value.map(item => [normalizeFundCode(item.code), item] as const),
+    )
     const realtimeMap = new Map(
       realtimeItems.map(item => [normalizeFundCode(item.code), item] as const),
     )
@@ -299,6 +302,7 @@ export function usePortfolio() {
     const normalizedItems = items
       .map((item) => {
         const realtimeItem = realtimeMap.get(normalizeFundCode(item.code))
+        const existingMetric = existingMetricsMap.get(normalizeFundCode(item.code))
         const currentAmount = Number(item.totalAmount)
         const cumulativeProfit = Number(item.totalProfit)
         const cumulativeProfitRateRaw = Number(item.totalProfitRate)
@@ -310,15 +314,19 @@ export function usePortfolio() {
         const costAmount = currentAmount - cumulativeProfit
         const shares = 1
         const costNav = costAmount > 0 ? costAmount : currentAmount
-        const currentNav = Number.isFinite(Number(realtimeItem?.nav)) ? Number(realtimeItem?.nav) : null
+        const currentNav = Number.isFinite(Number(realtimeItem?.nav))
+          ? Number(realtimeItem?.nav)
+          : existingMetric?.currentNav ?? null
         const yieldRatio = normalizeYieldRatio(realtimeItem?.yieldChange)
-        const dailyChangeRate = yieldRatio === null ? null : yieldRatio * 100
+        const dailyChangeRate = yieldRatio === null
+          ? existingMetric?.dailyChangeRate ?? null
+          : yieldRatio * 100
         const todayProfit = yieldRatio === null
-          ? null
+          ? existingMetric?.todayProfit ?? null
           : currentAmount - currentAmount / (1 + yieldRatio)
         const updateTime = formatServiceUpdateTime(
           realtimeItem?.updateAt,
-        ) || ''
+        ) || existingMetric?.updateTime || ''
 
         return {
           position: {

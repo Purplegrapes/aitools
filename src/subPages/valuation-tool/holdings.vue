@@ -29,11 +29,11 @@ const {
   summary,
   previewState,
   unavailableState,
-  ensureLoaded,
+  refreshPositions,
 } = usePortfolio()
 
 onShow(() => {
-  ensureLoaded()
+  void refreshPositions()
 })
 
 const isLoadingState = computed(() => previewState.value === 'loading')
