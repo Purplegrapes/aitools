@@ -1,41 +1,19 @@
 import AdapterUniapp from '@alova/adapter-uniapp'
 import { createAlova } from 'alova'
+import { createServerTokenAuthentication } from 'alova/client'
 import vueHook from 'alova/vue'
 import cookie from 'js-cookie'
 import { useEtfUserStore } from '@/store/etfUserStore'
+import type { TokenResponseDto } from '@/subPages/auth/api/types'
 import mockAdapter from '../mock/mockAdapter'
 import { handleAlovaError, handleAlovaResponse } from './handlers'
-
-// ========== Token刷新锁机制 ==========
-// 刷新请求锁，防止并发刷新
-const _refreshLock = { isRefreshing: false }
-
-export function isRefreshing() {
-  return _refreshLock.isRefreshing
-}
-
-export function setRefreshing(value: boolean) {
-  _refreshLock.isRefreshing = value
-}
-
-// 等待刷新的请求队列
-let refreshSubscribers: Array<(token: string) => void> = []
-
-/**
- * 将请求加入刷新等待队列
- */
-export function subscribeTokenRefresh(callback: (token: string) => void) {
-  refreshSubscribers.push(callback)
-}
-
-/**
- * 通知队列中的请求token已刷新
- */
-export function onTokenRefreshed(token: string) {
-  refreshSubscribers.forEach(callback => callback(token))
-  refreshSubscribers = []
-}
-// ========== Token刷新锁机制结束 ==========
+import {
+  applyBearerToken,
+  AUTH_REFRESH_META,
+  AUTH_VISITOR_META,
+  shouldRefreshTokenOnSuccess,
+  shouldRefreshTokenOnError,
+} from './token-auth'
 
 /**
  * 获取主 API 基础 URL
@@ -126,18 +104,20 @@ function getRefreshToken(): string {
   return ''
 }
 
-function isAuthOAuthPath(url: string) {
-  return url.includes('/shixi-api/oauth/') || url.includes('/api/oauth/')
+function ensureMethodHeaders(method: {
+  config: {
+    headers?: Record<string, unknown>
+    params?: Record<string, unknown> | string
+  }
+}) {
+  if (!method.config.headers) {
+    method.config.headers = {}
+  }
+
+  return method.config.headers
 }
 
-function isRefreshRetryableError(error: any) {
-  return Boolean(
-    (error && typeof error.code === 'number' && (error.code === 401 || error.code === 403))
-    || (error && typeof error.statusCode === 'number' && (error.statusCode === 401 || error.statusCode === 403)),
-  )
-}
-
-function requestRefreshToken(refreshToken: string): Promise<string> {
+function requestRefreshToken(refreshToken: string): Promise<TokenResponseDto> {
   return new Promise((resolve, reject) => {
     if (!refreshToken) {
       reject(new Error('missing refresh token'))
@@ -168,16 +148,17 @@ function requestRefreshToken(refreshToken: string): Promise<string> {
         }
         const payload = (data as any)?.data || data || {}
         const nextAccessToken = payload?.access_token || payload?.token || ''
-        const nextRefreshToken = payload?.refresh_token || refreshToken
 
         if (!nextAccessToken || typeof nextAccessToken !== 'string') {
           reject(new Error('refresh token response missing access_token'))
           return
         }
-
-        const userStore = useEtfUserStore()
-        userStore.setAuthTokens(nextAccessToken, nextRefreshToken)
-        resolve(nextAccessToken)
+        resolve({
+          access_token: nextAccessToken,
+          refresh_token: payload?.refresh_token || refreshToken,
+          token_type: payload?.token_type || 'Bearer',
+          expires_in: payload?.expires_in || 0,
+        })
       },
       fail: (error) => {
         reject(error)
@@ -186,36 +167,108 @@ function requestRefreshToken(refreshToken: string): Promise<string> {
   })
 }
 
-async function ensureTokenRefreshed() {
-  const refreshToken = getRefreshToken()
-  if (!refreshToken)
-    throw new Error('missing refresh token')
-
-  if (isRefreshing()) {
-    return new Promise<string>((resolve, reject) => {
-      subscribeTokenRefresh((token) => {
-        if (token)
-          resolve(token)
-        else
-          reject(new Error('refresh token failed'))
-      })
-    })
+function resolveRequestToken(url: string) {
+  if (url.startsWith('/app-api')) {
+    return cookie.get('ticket') || ''
   }
 
-  setRefreshing(true)
-  try {
-    const newToken = await requestRefreshToken(refreshToken)
-    onTokenRefreshed(newToken)
-    return newToken
+  if ((url.startsWith('/api') || url.startsWith('/djapi') || url.startsWith('/shixi-api'))) {
+    return getToken()
   }
-  catch (error) {
-    onTokenRefreshed('')
-    throw error
+
+  return ''
+}
+
+function rewriteRequestUrl(method: {
+  url: string
+}) {
+  if (method.url.startsWith('/app-api')) {
+    const tampBaseURL = getTampBaseURL()
+    if (tampBaseURL) {
+      // #ifndef H5
+      method.url = `${tampBaseURL}${method.url}`
+      // #endif
+    }
+    return
   }
-  finally {
-    setRefreshing(false)
+
+  if (method.url.startsWith('/tools-api')) {
+    const toolsBaseURL = getToolsBaseURL()
+    if (toolsBaseURL) {
+      // #ifndef H5
+      method.url = `${toolsBaseURL}${method.url}`
+      // #endif
+    }
+    return
+  }
+
+  if (method.url.startsWith('/valuation-api')) {
+    const valuationBaseURL = getValuationBaseURL()
+    if (valuationBaseURL) {
+      // #ifndef H5
+      method.url = `${valuationBaseURL}${method.url.replace(/^\/valuation-api/, '')}`
+      // #endif
+    }
+    return
+  }
+
+  if (method.url.startsWith('/shixi-api')) {
+    const authBaseURL = getCommonBaseURL()
+    if (authBaseURL) {
+      // #ifndef H5
+      method.url = `${authBaseURL}${method.url.replace(/^\/shixi-api/, '/api')}`
+      // #endif
+    }
   }
 }
+
+const { onAuthRequired, onResponseRefreshToken } = createServerTokenAuthentication({
+  visitorMeta: AUTH_VISITOR_META,
+  assignToken(method) {
+    const token = resolveRequestToken(method.url)
+    if (!token)
+      return
+
+    applyBearerToken(ensureMethodHeaders(method), token)
+  },
+  refreshTokenOnError: {
+    metaMatches: AUTH_REFRESH_META,
+    isExpired(error, method) {
+      return shouldRefreshTokenOnError(error, `${method?.url || ''}`)
+    },
+    async handler(error, method) {
+      const refreshToken = getRefreshToken()
+      if (!refreshToken) {
+        return handleAlovaError(error, method)
+      }
+
+      try {
+        const refreshedToken = await requestRefreshToken(refreshToken)
+        const userStore = useEtfUserStore()
+        userStore.setAuthTokens(refreshedToken.access_token, refreshedToken.refresh_token)
+      }
+      catch {
+        return handleAlovaError(error, method)
+      }
+    },
+  },
+  refreshTokenOnSuccess: {
+    metaMatches: AUTH_REFRESH_META,
+    isExpired(response, method) {
+      return shouldRefreshTokenOnSuccess(response as { statusCode?: number }, `${method?.url || ''}`)
+    },
+    async handler(_response, method) {
+      const refreshToken = getRefreshToken()
+      if (!refreshToken) {
+        throw new Error('missing refresh token')
+      }
+
+      const refreshedToken = await requestRefreshToken(refreshToken)
+      const userStore = useEtfUserStore()
+      userStore.setAuthTokens(refreshedToken.access_token, refreshedToken.refresh_token)
+    },
+  },
+})
 
 export const alovaInstance = createAlova({
   baseURL: getMainBaseURL(),
@@ -223,92 +276,9 @@ export const alovaInstance = createAlova({
     mockRequest: mockAdapter,
   }),
   statesHook: vueHook,
-  beforeRequest: (method) => {
-    let token = ''
-
-    const isAuthOAuthRequest = method.url.startsWith('/shixi-api/oauth/')
-
-    // ETF/API 鉴权请求走本地 token（auth oauth 公共接口除外）
-    if ((method.url.startsWith('/api') || method.url.startsWith('/djapi') || method.url.startsWith('/shixi-api'))
-      && !isAuthOAuthRequest) {
-      token = getToken()
-    }
-
-    // TAMP API 走 tampStore token， 从同一个域名下的cookie中获取
-    if (method.url.startsWith('/app-api')) {
-      token = cookie.get('ticket')
-    }
-    if (method.url.startsWith('/shixi-api')) {
-      const assetBaseURL = getCommonBaseURL()
-      if (assetBaseURL) {
-        // 在非 H5 环境，需要设置完整 URL 来覆盖 Alova 的 baseURL
-        // #ifndef H5
-        const path = method.url.replace('/shixi-api', '/api')
-        method.url = `${assetBaseURL}${path}`
-        // #endif
-        // #ifdef H5
-        // H5 环境由代理处理，保持 URL 不变
-        // #endif
-      }
-    }
-
-    // TAMP API 使用不同的 baseURL
-    if (method.url.startsWith('/app-api')) {
-      const tampBaseURL = getTampBaseURL()
-      if (tampBaseURL) {
-        // #ifndef H5
-        method.url = `${tampBaseURL}${method.url}`
-        // #endif
-        // #ifdef H5
-        // H5 环境由代理处理，保持 URL 不变
-        // #endif
-      }
-    }
-
-    if (method.url.startsWith('/tools-api')) {
-      const toolsBaseURL = getToolsBaseURL()
-      if (toolsBaseURL) {
-        // #ifndef H5
-        method.url = `${toolsBaseURL}${method.url}`
-        // #endif
-        // #ifdef H5
-        // H5 环境由代理处理，保持 URL 不变
-        // #endif
-      }
-    }
-
-    if (method.url.startsWith('/valuation-api')) {
-      const valuationBaseURL = getValuationBaseURL()
-      if (valuationBaseURL) {
-        // #ifndef H5
-        method.url = `${valuationBaseURL}${method.url.replace(/^\/valuation-api/, '')}`
-        // #endif
-        // #ifdef H5
-        // H5 环境由代理处理，保持 URL 不变
-        // #endif
-      }
-    }
-
-    // Auth API 固定走独立服务
-    if (method.url.startsWith('/shixi-api')) {
-      const authBaseURL = getCommonBaseURL()
-      if (authBaseURL) {
-        // #ifndef H5
-        method.url = `${authBaseURL}${method.url.replace(/^\/shixi-api/, '/api')}`
-        // #endif
-        // #ifdef H5
-        // H5 环境由代理处理，保持 URL 不变
-        // #endif
-      }
-    }
-
-    // 添加 token 到请求头（Bearer 认证）
-    if (token) {
-      const trimmedToken = token.trim()
-      method.config.headers.Authorization = trimmedToken.startsWith('Bearer ')
-        ? trimmedToken
-        : `Bearer ${trimmedToken}`
-    }
+  beforeRequest: onAuthRequired((method) => {
+    ensureMethodHeaders(method)
+    rewriteRequestUrl(method)
 
     // Add content type for POST/PUT/PATCH requests
     if (['POST', 'PUT', 'PATCH'].includes(method.type)) {
@@ -337,43 +307,21 @@ export const alovaInstance = createAlova({
       console.log(`${apiType} Request] ${method.type} ${method.url}`, method.data || method.config.params)
       console.log(`[Environment] ${import.meta.env.VITE_ENV_NAME}`)
     }
-  },
+  }),
 
   // Response handlers
-  responded: {
+  responded: onResponseRefreshToken({
     // Success handler
     onSuccess: handleAlovaResponse,
 
     // Error handler
-    onError: async (error, method) => {
-      const methodRef = method as any
-      const requestUrl = `${method?.url || ''}`
-      const alreadyRetried = Boolean(methodRef.__refreshRetried)
-      const shouldTryRefresh = isRefreshRetryableError(error)
-        && !alreadyRetried
-        && !isAuthOAuthPath(requestUrl)
-
-      if (shouldTryRefresh) {
-        try {
-          await ensureTokenRefreshed()
-          methodRef.__refreshRetried = true
-          if (typeof methodRef.send === 'function') {
-            return await methodRef.send()
-          }
-        }
-        catch {
-          // refresh 失败后走统一错误处理（登出/提示/外跳）
-        }
-      }
-
-      return handleAlovaError(error, method)
-    },
+    onError: handleAlovaError,
 
     // Complete handler - runs after success or error
     onComplete: async () => {
       // Any cleanup or logging can be done here
     },
-  },
+  }),
 
   // Default request timeout (60 seconds)
   timeout: 60000,

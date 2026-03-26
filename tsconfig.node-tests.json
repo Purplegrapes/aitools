@@ -20,6 +20,7 @@
     "src/subPages/auth/utils/authSession.ts",
     "src/subPages/auth/utils/loginGuard.ts",
     "src/subPages/auth/utils/sourceDetector.ts",
-    "src/store/etfUserStore.ts"
+    "src/store/etfUserStore.ts",
+    "src/api/core/token-auth.ts"
   ]
 }

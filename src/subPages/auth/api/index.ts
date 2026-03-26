@@ -1,4 +1,5 @@
 import { alovaInstance } from '../../../api/core/instance.js'
+import { AUTH_REFRESH_META, AUTH_VISITOR_META } from '../../../api/core/token-auth.js'
 export type {
   AuthorizeResponseDto,
   AuthUserProfileDto,
@@ -20,6 +21,8 @@ export function transferH5TicketForToken(params: {
 }) {
   return alovaInstance.Post<TransformTicketVerifyResponseDto>('/shixi-api/oauth/h5/transform-ticket/verify', {
     transform_h5_ticket: params.transferH5Ticket,
+  }, {
+    meta: AUTH_VISITOR_META,
   })
 }
 
@@ -29,20 +32,26 @@ export function tokenBySession(params: {
   return alovaInstance.Post<TokenResponseDto>('/shixi-api/oauth/token', {
     code: params.sessionId,
     grant_type: 'authorization_code',
+  }, {
+    meta: AUTH_VISITOR_META,
   })
 }
 
 export function sendPhoneCode(params: {
   phone: string
 }) {
-  return alovaInstance.Post<SendSmsCodeResponseDto>('/shixi-api/oauth/sms/send', params)
+  return alovaInstance.Post<SendSmsCodeResponseDto>('/shixi-api/oauth/sms/send', params, {
+    meta: AUTH_VISITOR_META,
+  })
 }
 
 export function verifyPhoneCode(params: {
   phone: string
   code: string
 }) {
-  return alovaInstance.Post<AuthorizeResponseDto>('/shixi-api/oauth/sms/verify', params)
+  return alovaInstance.Post<AuthorizeResponseDto>('/shixi-api/oauth/sms/verify', params, {
+    meta: AUTH_VISITOR_META,
+  })
 }
 
 export function exchangeToken(params: {
@@ -52,13 +61,17 @@ export function exchangeToken(params: {
   return alovaInstance.Post<TokenResponseDto>('/shixi-api/oauth/token', {
     code: params.code,
     grant_type: params.grant_type || 'authorization_code',
+  }, {
+    meta: AUTH_VISITOR_META,
   })
 }
 
 export function refreshAccessToken(params: {
   refresh_token: string
 }) {
-  return alovaInstance.Post<TokenResponseDto>('/shixi-api/oauth/token/refresh', params)
+  return alovaInstance.Post<TokenResponseDto>('/shixi-api/oauth/token/refresh', params, {
+    meta: AUTH_REFRESH_META,
+  })
 }
 
 export function getCurrentAuthUser() {
