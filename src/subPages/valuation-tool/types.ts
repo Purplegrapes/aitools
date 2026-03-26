@@ -174,6 +174,8 @@ export interface ApiEnvelope<T> {
 
 export interface SearchResultViewModel extends FundSearchItem {
   todayTag: string
+  channel?: string | null
+  subCategoryName?: string | null
 }
 
 export interface DetailStateMeta {

@@ -421,6 +421,13 @@ export function inferMarketTypeFromChannel(channel?: string | null): FundMarketT
   return channel === 'EXCHANGE' ? 'exchange' : 'otc'
 }
 
+export function formatFundChannelLabel(channel?: string | null) {
+  if (!channel)
+    return null
+
+  return inferMarketTypeFromChannel(channel) === 'exchange' ? '场内' : '场外'
+}
+
 export function getPortfolioValueTone(value?: number | null) {
   if (value === null || value === undefined || Number(value) === 0)
     return 'text-primary'

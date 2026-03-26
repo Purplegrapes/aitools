@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import holdingsReferenceImage from '@/assets/holding.png'
 import { importPortfolioPositionsFromImage } from './api/valuationTool'
 import { usePortfolio } from './composables/usePortfolio'
 import {
@@ -65,12 +66,6 @@ async function handleOpenScreenshotEntry() {
     globalToast.success('持仓截图解析成功')
     router.replace(createHoldingsPath())
   }
-  catch (error) {
-    const errorMessage = `${error}`
-    if (!errorMessage.toLowerCase().includes('cancel')) {
-      globalToast.error(getPortfolioImportImageErrorMessage(error))
-    }
-  }
   finally {
     isUploading.value = false
   }
@@ -78,48 +73,39 @@ async function handleOpenScreenshotEntry() {
 </script>
 
 <template>
-  <view class="overflow-x-hidden bg-page pb-[48rpx] pt-[24rpx]">
-    <view
-      class="pointer-events-none absolute inset-x-0 top-0 h-[320rpx]"
-      style="background: linear-gradient(180deg, rgba(232,241,255,0.96), rgba(248,250,253,0.72) 58%, transparent);"
-    />
-    <view
-      class="pointer-events-none absolute right-[-120rpx] top-[88rpx] h-[240rpx] w-[240rpx] rounded-full opacity-70"
-      style="background: radial-gradient(circle, rgba(120,161,255,0.18), transparent 68%);"
-    />
+  <view class="min-h-full overflow-x-hidden">
+    <view class="mx-auto px-[24rpx]">
+      <view class="flex flex-col items-center pt-[36rpx]">
+        <wd-img
+          :src="holdingsReferenceImage"
+          mode="aspectFit"
+          class="block h-[800rpx] w-full"
+        />
+        <text class="mt-[52rpx] px-[16rpx] text-center text-sm text-secondary leading-[40rpx]">
+          请按示意图上传您各金融平台“持仓”截图
+        </text>
 
-    <view class="relative mx-auto max-w-[702rpx] px-[24rpx]">
-      <view class="flex flex-col gap-[18rpx]">
-        <view
-          class="vt-top-card px-[24rpx] py-[24rpx]"
-          @click="handleOpenManualEntry"
-        >
-          <view class="h-[72rpx] w-[72rpx] flex items-center justify-center rounded-[24rpx] bg-brand-muted text-brand">
-            <view class="i-carbon-edit text-[30rpx]" />
-          </view>
-          <text class="mt-[18rpx] block text-[30rpx] text-primary font-600">
-            手动录入
-          </text>
-          <text class="mt-[10rpx] block text-[24rpx] text-secondary leading-[36rpx]">
-            适合补录少量基金。输入基金、当前持有金额和累计收益，系统会自动换算底层持仓信息。
-          </text>
-        </view>
+        <view class="mt-[56rpx] w-[calc(100%-60rpx)] flex flex-col gap-[24rpx]">
+          <wd-button
+            block
+            size="large"
+            type="primary"
+            custom-class="rounded-xl!"
+            :loading="isUploading"
+            @click="handleOpenScreenshotEntry"
+          >
+            {{ isUploading ? '正在解析截图' : '上传持仓截图' }}
+          </wd-button>
 
-        <view
-          class="vt-top-card px-[24rpx] py-[24rpx]"
-          @click="handleOpenScreenshotEntry"
-        >
-          <view class="h-[72rpx] w-[72rpx] flex items-center justify-center rounded-[24rpx] bg-brand-muted text-brand">
-            <view
-              :class="isUploading ? 'i-carbon-circle-dash animate-spin text-[30rpx]' : 'i-carbon-image-search text-[30rpx]'"
-            />
-          </view>
-          <text class="mt-[18rpx] block text-[30rpx] text-primary font-600">
-            {{ isUploading ? '正在解析截图' : '上传截图' }}
-          </text>
-          <text class="mt-[10rpx] block text-[24rpx] text-secondary leading-[36rpx]">
-            {{ isUploading ? '请稍候，系统正在上传并解析持仓截图。解析成功后会直接回到持仓页。' : '适合一次录入多只基金。点击后直接选图上传，解析成功会回到持仓页并重新拉取最新持仓。' }}
-          </text>
+          <wd-button
+            size="large"
+            block
+            custom-class="bg-[#E0EAFA]! text-brand! rounded-xl!"
+            type="info"
+            @click="handleOpenManualEntry"
+          >
+            手动录入持仓
+          </wd-button>
         </view>
       </view>
     </view>

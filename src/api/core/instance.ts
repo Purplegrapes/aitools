@@ -1,18 +1,18 @@
+import type { TokenResponseDto } from '@/subPages/auth/api/types'
 import AdapterUniapp from '@alova/adapter-uniapp'
 import { createAlova } from 'alova'
 import { createServerTokenAuthentication } from 'alova/client'
 import vueHook from 'alova/vue'
 import cookie from 'js-cookie'
 import { useEtfUserStore } from '@/store/etfUserStore'
-import type { TokenResponseDto } from '@/subPages/auth/api/types'
 import mockAdapter from '../mock/mockAdapter'
 import { handleAlovaError, handleAlovaResponse } from './handlers'
 import {
   applyBearerToken,
   AUTH_REFRESH_META,
   AUTH_VISITOR_META,
-  shouldRefreshTokenOnSuccess,
   shouldRefreshTokenOnError,
+  shouldRefreshTokenOnSuccess,
 } from './token-auth'
 
 /**
@@ -257,7 +257,7 @@ const { onAuthRequired, onResponseRefreshToken } = createServerTokenAuthenticati
     isExpired(response, method) {
       return shouldRefreshTokenOnSuccess(response as { statusCode?: number }, `${method?.url || ''}`)
     },
-    async handler(_response, method) {
+    async handler(_response) {
       const refreshToken = getRefreshToken()
       if (!refreshToken) {
         throw new Error('missing refresh token')

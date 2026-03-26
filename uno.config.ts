@@ -34,6 +34,7 @@ export default defineConfig({
       blue: '#1890FF',
       red: '#F02D30',
       green: '#1AAE52',
+      tag: '#7894da',
     },
   },
   presets: [
