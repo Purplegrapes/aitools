@@ -273,16 +273,6 @@ function stringifyNullableField(value: unknown) {
       <!-- 搜索结果 - 紧凑列表 -->
       <transition-group name="stagger" tag="view" class="mt-4 flex flex-col gap-2">
         <template v-if="isSuccess">
-          <!-- 结果计数 -->
-          <view class="mb-2 flex items-center gap-2 px-2">
-            <wd-icon name="check-circle-filled" size="22px" class="text-tag" />
-            <text class="text-sm text-primary">
-              找到 <text class="text-blue-600 text-base font-semibold">
-                {{ searchResults.length }}
-              </text> 只基金
-            </text>
-          </view>
-
           <!-- 结果列表 -->
           <view
             v-for="(item, index) in searchResults"
