@@ -20,9 +20,6 @@ const emit = defineEmits<{
           <text class="block text-base text-primary font-600">
             持仓明细
           </text>
-          <text class="mt-[6rpx] block text-[22rpx] text-secondary">
-            按基金维度查看累计收益与当日表现
-          </text>
         </view>
       </view>
     </view>
@@ -46,7 +43,7 @@ const emit = defineEmits<{
       @click="emit('select', item.code)"
     >
       <view class="min-w-0 pr-[12rpx]">
-        <text class="block truncate text-sm text-primary font-600">
+        <text class="block truncate text-sm text-primary font-500">
           {{ item.name }}
         </text>
         <text class="mt-[6rpx] block text-xs text-secondary">

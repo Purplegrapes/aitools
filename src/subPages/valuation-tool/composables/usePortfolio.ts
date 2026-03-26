@@ -32,7 +32,7 @@ import { getPortfolioDeleteErrorMessage, isPortfolioDeleteSuccess } from '../pos
 import {
   buildPortfolioSummary,
   createPositionId,
-  formatCurrentTimeLabel,
+  formatServiceUpdateTime,
   isPortfolioPreviewState,
 } from '../utils'
 
@@ -316,6 +316,9 @@ export function usePortfolio() {
         const todayProfit = yieldRatio === null
           ? null
           : currentAmount - currentAmount / (1 + yieldRatio)
+        const updateTime = formatServiceUpdateTime(
+          realtimeItem?.updateAt,
+        ) || ''
 
         return {
           position: {
@@ -340,7 +343,7 @@ export function usePortfolio() {
             dailyChangeRate,
             statusLabel: resolveStatusLabel(cumulativeProfitRate),
             note: '持仓累计收益已同步到最新记录。',
-            updateTime: formatCurrentTimeLabel(),
+            updateTime,
           } satisfies PortfolioPositionMetrics,
         }
       })

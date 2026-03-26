@@ -38,8 +38,8 @@ function formatProfitAmount(value: number) {
 
     <view class="relative z-1">
       <view class="mb-[16rpx] flex items-center justify-between gap-[16rpx]">
-        <text class="text-base text-primary font-500">
-          持仓看板
+        <text class="text-xs text-secondary">
+          {{ realtimeStatusText }}
         </text>
 
         <view
@@ -58,40 +58,31 @@ function formatProfitAmount(value: number) {
           <text class="mt-[8rpx] block text-[46rpx] text-[#183B63] font-700 leading-[1]">
             {{ formatAmount(summary.totalAmount) }}
           </text>
-
-          <view class="mt-[16rpx] flex flex-col items-center">
-            <text class="text-[20rpx] text-[#7A8EA8]">
-              累计收益
-            </text>
-            <text class="mt-[6rpx] block text-[32rpx] font-700 leading-[1.04]" :class="getPortfolioValueTone(summary.totalProfit)">
-              {{ formatProfitAmount(summary.totalProfit) }}
-            </text>
-            <text class="mt-[6rpx] text-[20rpx]" :class="getPortfolioValueTone(summary.totalProfitRate)">
-              {{ formatPercent(summary.totalProfitRate) }}
-            </text>
-          </view>
         </view>
 
-        <view class="realtime-panel mt-[16rpx] rounded-[20rpx] px-[18rpx] py-[14rpx]">
-          <view class="flex items-start justify-between gap-[18rpx]">
-            <view class="min-w-0 flex-1">
+        <view class="realtime-panel mt-[20rpx] rounded-[20rpx] px-[18rpx] py-[16rpx]">
+          <view class="grid grid-cols-2 gap-[18rpx]">
+            <view class="min-w-0 text-left">
               <text class="block text-[20rpx] text-[#7489A4]">
-                实时涨跌幅
+                累计收益
               </text>
-              <text class="mt-[8rpx] block text-[30rpx] font-700 leading-[1.04]" :class="realtimeToneClass">
-                {{ todayUnavailable ? '--' : formatPercent(summary.todayChangeRate) }}
+              <text class="mt-[8rpx] block text-[30rpx] font-700 leading-[1.04]" :class="getPortfolioValueTone(summary.totalProfit)">
+                {{ formatProfitAmount(summary.totalProfit) }}
               </text>
-              <text class="mt-[6rpx] block text-[19rpx] text-[#8397B0]">
-                {{ realtimeStatusText }}
+              <text class="mt-[6rpx] block text-[20rpx] font-500" :class="getPortfolioValueTone(summary.totalProfitRate)">
+                {{ formatPercent(summary.totalProfitRate) }}
               </text>
             </view>
 
-            <view>
-              <text class="block text-[18rpx] text-[#8094AE]">
-                今日盈亏估算
+            <view class="min-w-0 text-right">
+              <text class="block text-[20rpx] text-[#7489A4]">
+                实时收益
               </text>
-              <text class="mt-[30rpx] block text-xl font-500 leading-[1.05]" :class="todayUnavailable ? 'text-[#8CA0BA]' : getPortfolioValueTone(summary.todayProfit)">
+              <text class="mt-[8rpx] block text-[30rpx] font-700 leading-[1.04]" :class="todayUnavailable ? 'text-[#8CA0BA]' : getPortfolioValueTone(summary.todayProfit)">
                 {{ todayUnavailable ? '--' : formatProfitAmount(summary.todayProfit ?? 0) }}
+              </text>
+              <text class="mt-[6rpx] block text-[20rpx] font-500" :class="realtimeToneClass">
+                {{ todayUnavailable ? '--' : formatPercent(summary.todayChangeRate) }}
               </text>
             </view>
           </view>

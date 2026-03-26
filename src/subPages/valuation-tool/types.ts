@@ -70,6 +70,9 @@ export interface PositionItemServiceResponse {
 export interface PositionRealtimeItemServiceResponse {
   code: string
   nav: number
+  updateAt?: string | null
+  updatedAt?: string | null
+  updateTime?: string | null
   yieldChange: number
 }
 
@@ -110,6 +113,9 @@ export interface FundRealtimeDataExchangeResponse {
   channel: 'EXCHANGE'
   nav: number
   premiumRate: number
+  updateAt?: string | null
+  updatedAt?: string | null
+  updateTime?: string | null
   yield_change?: number | null
   yieldChange?: number | null
 }
@@ -117,6 +123,9 @@ export interface FundRealtimeDataExchangeResponse {
 export interface FundRealtimeDataOtcResponse {
   channel: 'OTC'
   nav: number
+  updateAt?: string | null
+  updatedAt?: string | null
+  updateTime?: string | null
   yield_change: number
   yieldChange?: number | null
   nav_change?: number | null
