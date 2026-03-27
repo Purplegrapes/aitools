@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PortfolioPositionMetrics } from '../types'
-import { formatCurrency, formatPercent, getPortfolioValueTone } from '../utils'
+import { formatCurrency, formatPercent, formatRatioToPercent, getPortfolioValueTone } from '../utils'
 
 defineProps<{
   items: PortfolioPositionMetrics[]
@@ -63,7 +63,7 @@ const emit = defineEmits<{
           {{ formatCurrency(item.cumulativeProfit) }}
         </text>
         <text class="mt-[4rpx] block text-xs" :class="getPortfolioValueTone(item.cumulativeProfitRate)">
-          {{ formatPercent(item.cumulativeProfitRate) }}
+          {{ formatRatioToPercent(item.cumulativeProfitRate) }}
         </text>
       </view>
     </view>
