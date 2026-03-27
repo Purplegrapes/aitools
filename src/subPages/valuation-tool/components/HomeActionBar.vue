@@ -22,12 +22,6 @@ function handleOpenHoldings() {
     return
   emit('openHoldings')
 }
-
-function handleOpenNews() {
-  if (props.current === 'news')
-    return
-  emit('openNews')
-}
 </script>
 
 <template>
@@ -52,17 +46,6 @@ function handleOpenNews() {
         <view class="i-carbon-wallet text-[28rpx]" :class="current === 'holdings' ? 'text-inverse' : 'text-brand'" />
         <text>
           持有
-        </text>
-      </view>
-
-      <view
-        class="min-w-0 flex flex-1"
-        :class="current === 'news' ? 'vt-action-primary' : 'vt-action-secondary'"
-        @click="handleOpenNews"
-      >
-        <view class="i-carbon-flash text-[28rpx]" :class="current === 'news' ? 'text-inverse' : 'text-brand'" />
-        <text>
-          快讯
         </text>
       </view>
     </view>

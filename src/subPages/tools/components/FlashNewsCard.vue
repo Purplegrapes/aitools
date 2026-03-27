@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FlashNewsItem } from '../types'
+
 import { formatFlashNewsFullTime, getFlashNewsScoreTone, isFlashNewsHot } from '../utils'
 
 const props = defineProps<{

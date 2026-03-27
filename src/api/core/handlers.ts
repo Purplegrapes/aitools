@@ -7,11 +7,9 @@
  * @FilePath: /wot-starter/src/api/core/handlers.ts
  */
 import type { Method } from 'alova'
-import { useEmbeddedToolStore } from '@/store/embeddedToolStore'
 import { useEtfUserStore } from '@/store/etfUserStore'
 import { useTampStore } from '@/store/tampStore'
 import { handleExternalRedirect } from '@/subPages/auth/utils/externalRedirect'
-import { useEmbeddedAuth } from '@/subPages/tools/composables/useEmbeddedAuth'
 import { shouldShowErrorToast } from './token-auth'
 import { resolveUnauthorizedFollowUp } from './unauthorized-flow'
 
@@ -36,25 +34,6 @@ interface ApiResponse {
   success?: boolean
   total?: number
   more?: boolean
-}
-
-async function handleEmbeddedUnauthorized(data?: any) {
-  const embeddedToolStore = useEmbeddedToolStore()
-  const { recover, isEmbeddedToolPage } = useEmbeddedAuth()
-
-  if (!embeddedToolStore.sessionReady || !isEmbeddedToolPage())
-    return false
-
-  const globalToast = useGlobalToast()
-  const result = await recover()
-
-  if (result.status === 'success') {
-    globalToast.warning({ msg: '登录状态已恢复，请重试当前操作', duration: 1200 })
-    throw new ApiError('登录状态已恢复，请重试当前操作', 401, data)
-  }
-
-  globalToast.error(result.message || '登录已过期，请返回小程序重新进入')
-  throw new ApiError(result.message || '登录已过期，请返回小程序重新进入', 401, data)
 }
 
 // Handle successful responses
@@ -101,9 +80,6 @@ export async function handleAlovaError(error: any, method: Method) {
 
   // 处理401/403错误（如果不是在handleAlovaResponse中处理的）
   if (error instanceof ApiError && (error.code === 401 || error.code === 403)) {
-    if (await handleEmbeddedUnauthorized(error.data))
-      throw error
-
     const userStore = useEtfUserStore()
     const tampStore = useTampStore()
     const followUp = resolveUnauthorizedFollowUp({

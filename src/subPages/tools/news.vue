@@ -2,9 +2,8 @@
 import type { ApiEnvelope, FlashNewsItem, FlashNewsServiceItem } from './types'
 import BasePaging from '@/components/BasePaging.vue'
 import { usePagedRequest } from '@/composables/usePagedRequest'
-import { getLatestNews } from './api/valuationTool'
+import { getLatestNews } from './api'
 import FlashNewsCard from './components/FlashNewsCard.vue'
-import ValuationBottomNav from './components/ValuationBottomNav.vue'
 
 interface BasePagingExpose {
   pagingRef: ZPagingRef<FlashNewsItem> | null
@@ -12,7 +11,7 @@ interface BasePagingExpose {
 }
 
 definePage({
-  name: 'valuation-tool-news',
+  name: 'tool-news',
   layout: 'default',
   style: {
     backgroundColor: '#F5F7FA',

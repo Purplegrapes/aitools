@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { createHoldingsPath, createNewsPath, createValuationHomePath, createWatchlistPath } from '../utils'
+import { createHoldingsPath, createValuationHomePath, createWatchlistPath } from '../utils'
 
 const props = defineProps<{
   current: 'home' | 'watchlist' | 'holdings' | 'news'
@@ -13,12 +13,6 @@ const items = [
     title: '首页',
     icon: 'i-carbon-home',
     path: createValuationHomePath(),
-  },
-  {
-    key: 'news',
-    title: '快讯',
-    icon: 'i-carbon-flash',
-    path: createNewsPath(),
   },
   {
     key: 'watchlist',

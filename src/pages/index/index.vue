@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import performance from '@/assets/performance.png'
 import valuationIcon from '@/assets/valuation.svg'
 /**
  * 首页 - 工具集合
@@ -44,13 +45,13 @@ interface ToolItem {
  */
 const categories = {
   investment: {
-    label: '投资工具',
+    label: '行情工具',
     color: 'bg-indigo-50',
     textColor: 'text-indigo-600',
     iconColor: 'text-indigo-500',
   },
   data: {
-    label: '数据工具',
+    label: '投资工具',
     color: 'bg-cyan-50',
     textColor: 'text-cyan-600',
     iconColor: 'text-cyan-500',
@@ -87,25 +88,26 @@ const allTools: ToolItem[] = [
     id: 'performance',
     name: '业绩分析',
     description: '基金业绩追踪',
-    icon: 'arrow-up-bold',
-    category: 'investment',
+    category: 'data',
+    icon: 'calendar',
   },
   // 数据工具
+  {
+    id: 'calendar',
+    name: '新闻快迅',
+    description: '关注实时热点',
+    icon: performance,
+    route: { name: 'tool-news' },
+    category: 'investment',
+  },
   {
     id: 'etf-valuation',
     name: '今日几星',
     description: 'ETF估值表',
     icon: 'chart-bar',
     category: 'data',
-    route: { name: 'etf' },
+    // route: { name: 'etf' },
     popular: true,
-  },
-  {
-    id: 'calendar',
-    name: '交易日历',
-    description: '交易日查询',
-    icon: 'calendar',
-    category: 'data',
   },
 
   // 其他工具

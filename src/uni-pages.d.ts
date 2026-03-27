@@ -17,7 +17,7 @@ type _LocationUrl =
   "/subPages/tamp/demo" |
   "/subPages/tamp/index" |
   "/subPages/tamp/marketing" |
-  "/subPages/tools/entry" |
+  "/subPages/tools/news" |
   "/subPages/valuation-tool/holdings-add" |
   "/subPages/valuation-tool/holdings-edit" |
   "/subPages/valuation-tool/holdings-sync" |
@@ -25,11 +25,9 @@ type _LocationUrl =
   "/subPages/valuation-tool/holdings" |
   "/subPages/valuation-tool/index" |
   "/subPages/valuation-tool/mine-scan" |
-  "/subPages/valuation-tool/news" |
   "/subPages/valuation-tool/result" |
   "/subPages/valuation-tool/search" |
-  "/subPages/valuation-tool/watchlist" |
-  "/subPages/tools/demo/index";
+  "/subPages/valuation-tool/watchlist";
 
 interface NavigateToOptions {
   url: _LocationUrl;

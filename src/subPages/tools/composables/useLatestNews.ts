@@ -1,5 +1,5 @@
 import type { ApiEnvelope, FlashNewsItem, FlashNewsServiceItem } from '../types'
-import { getLatestNews } from '../api/valuationTool'
+import { getLatestNews } from '../api'
 
 export function useLatestNews(limit = 20) {
   const {
