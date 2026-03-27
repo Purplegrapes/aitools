@@ -25,6 +25,7 @@ type _LocationUrl =
   "/subPages/valuation-tool/holdings" |
   "/subPages/valuation-tool/index" |
   "/subPages/valuation-tool/mine-scan" |
+  "/subPages/valuation-tool/news" |
   "/subPages/valuation-tool/result" |
   "/subPages/valuation-tool/search" |
   "/subPages/valuation-tool/watchlist" |

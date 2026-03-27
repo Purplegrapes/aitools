@@ -61,6 +61,7 @@ declare global {
   const handleExternalRedirect: typeof import('./utils/externalRedirect')['handleExternalRedirect']
   const ignorableWatch: typeof import('@vueuse/core')['ignorableWatch']
   const initVConsole: typeof import('./utils/vconsole')['initVConsole']
+  const initZPagingGlobalConfig: typeof import('./utils/zPaging')['initZPagingGlobalConfig']
   const inject: typeof import('vue')['inject']
   const injectLocal: typeof import('@vueuse/core')['injectLocal']
   const isDefined: typeof import('@vueuse/core')['isDefined']
@@ -274,6 +275,7 @@ declare global {
   const useOnline: typeof import('@vueuse/core')['useOnline']
   const usePageLeave: typeof import('@vueuse/core')['usePageLeave']
   const usePagedQuery: typeof import('./composables/usePagedQuery')['usePagedQuery']
+  const usePagedRequest: typeof import('./composables/usePagedRequest')['usePagedRequest']
   const usePagination: typeof import('alova/client')['usePagination']
   const useParallax: typeof import('@vueuse/core')['useParallax']
   const useParentElement: typeof import('@vueuse/core')['useParentElement']
@@ -432,6 +434,7 @@ declare module 'vue' {
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
     readonly initVConsole: UnwrapRef<typeof import('./utils/vconsole')['initVConsole']>
+    readonly initZPagingGlobalConfig: UnwrapRef<typeof import('./utils/zPaging')['initZPagingGlobalConfig']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
@@ -643,6 +646,7 @@ declare module 'vue' {
     readonly useOnline: UnwrapRef<typeof import('@vueuse/core')['useOnline']>
     readonly usePageLeave: UnwrapRef<typeof import('@vueuse/core')['usePageLeave']>
     readonly usePagedQuery: UnwrapRef<typeof import('./composables/usePagedQuery')['usePagedQuery']>
+    readonly usePagedRequest: UnwrapRef<typeof import('./composables/usePagedRequest')['usePagedRequest']>
     readonly usePagination: UnwrapRef<typeof import('alova/client')['usePagination']>
     readonly useParallax: UnwrapRef<typeof import('@vueuse/core')['useParallax']>
     readonly useParentElement: UnwrapRef<typeof import('@vueuse/core')['useParentElement']>

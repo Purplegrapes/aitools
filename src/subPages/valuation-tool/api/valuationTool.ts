@@ -3,6 +3,7 @@ import type {
   DiscoveryFundValuation,
   FavouriteItemServiceResponse,
   FavouriteRealtimeItemServiceResponse,
+  FlashNewsServiceItem,
   FundDetailServiceResponse,
   FundMetricsServiceResponse,
   FundRealtimeDataServiceResponse,
@@ -26,6 +27,14 @@ export function getMarketSentiment() {
 
 export function getHotSearchFunds() {
   return alovaInstance.Get<ApiEnvelope<{ dataDate: string, items: HotFundServiceItem[] }>>('/valuation-api/market-pulse/hot-funds')
+}
+
+export function getLatestNews(limit: number) {
+  return alovaInstance.Get<ApiEnvelope<FlashNewsServiceItem[]>>('/valuation-api/news/latest', {
+    params: {
+      limit,
+    },
+  })
 }
 
 export function searchFunds(params: { keyword: string }) {

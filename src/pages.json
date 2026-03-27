@@ -264,6 +264,18 @@
           }
         },
         {
+          "path": "valuation-tool/news",
+          "type": "page",
+          "name": "valuation-tool-news",
+          "layout": "default",
+          "style": {
+            "backgroundColor": "#F5F7FA",
+            "navigationBarTitleText": "市场快讯",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
           "path": "valuation-tool/result",
           "type": "page",
           "name": "valuation-tool-result",
