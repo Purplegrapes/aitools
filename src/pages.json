@@ -177,7 +177,7 @@
           "layout": "default",
           "style": {
             "backgroundColor": "#F5F7FA",
-            "navigationBarTitleText": "市场快讯",
+            "navigationBarTitleText": "实时热点",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
           }

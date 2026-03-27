@@ -10,12 +10,17 @@ interface BasePagingExpose {
   reload: (animate?: boolean) => Promise<ZPagingParams.ReturnData<FlashNewsItem>> | undefined
 }
 
+const DEFAULT_NEWS_FILTER = {
+  minScore: 80,
+  recentDay: 1,
+} as const
+
 definePage({
   name: 'tool-news',
   layout: 'default',
   style: {
     backgroundColor: '#F5F7FA',
-    navigationBarTitleText: '市场快讯',
+    navigationBarTitleText: '实时热点',
     navigationBarBackgroundColor: '#F5F7FA',
     navigationBarTextStyle: 'black',
   },
@@ -29,9 +34,9 @@ const pagingRef = computed<ZPagingRef<FlashNewsItem> | null>(() => {
 })
 const hasShown = shallowRef(false)
 
-const { loading: newsLoading, onQuery, reload: refreshNews } = usePagedRequest<ApiEnvelope<FlashNewsServiceItem[]>, FlashNewsItem, [number]>({
+const { loading: newsLoading, onQuery, reload: refreshNews } = usePagedRequest<ApiEnvelope<FlashNewsServiceItem[]>, FlashNewsItem, [{ minScore: number, recentDay: number }]>({
   pagingRef,
-  createMethod: limit => getLatestNews(limit),
+  createMethod: params => getLatestNews(params),
   fetchRaw: async (pageNo, pageSize, _from, sendRequest) => {
     if (pageNo > 1) {
       return {
@@ -40,7 +45,10 @@ const { loading: newsLoading, onQuery, reload: refreshNews } = usePagedRequest<A
       } satisfies ApiEnvelope<FlashNewsServiceItem[]>
     }
 
-    return await sendRequest(pageSize)
+    return await sendRequest({
+      minScore: DEFAULT_NEWS_FILTER.minScore,
+      recentDay: DEFAULT_NEWS_FILTER.recentDay,
+    })
   },
   getList: raw => normalizeNewsItems(raw.data),
   getNoMore: () => true,
