@@ -510,7 +510,7 @@ function toFiniteNumber(value: unknown) {
   return Number.isFinite(numericValue) ? numericValue : null
 }
 
-function formatRatioToPercent(value?: number | null) {
+export function formatRatioToPercent(value?: number | null) {
   const numericValue = toFiniteNumber(value)
   if (numericValue === null)
     return undefined

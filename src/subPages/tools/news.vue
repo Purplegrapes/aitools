@@ -106,7 +106,7 @@ function normalizeNewsItems(items?: FlashNewsServiceItem[]) {
         <view
           v-for="index in 3"
           :key="index"
-          class="border border-line/70 rounded-card bg-surface px-[24rpx] py-[22rpx] shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]"
+          class="border border-line/70 rounded-card bg-surface px-[24rpx] py-[22rpx]"
         >
           <wd-skeleton
             animation="gradient"
