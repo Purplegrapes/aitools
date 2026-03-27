@@ -60,7 +60,7 @@ function formatProfitAmount(value: number) {
           </text>
         </view>
 
-        <view class="realtime-panel mt-[20rpx] rounded-[20rpx] px-[18rpx] py-[16rpx]">
+        <view class="realtime-panel mt-[20rpx] rounded-[20rpx] px-[28rpx] py-[16rpx]">
           <view class="grid grid-cols-2 gap-[18rpx]">
             <view class="min-w-0 text-left">
               <text class="block text-xs text-secondary">
