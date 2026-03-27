@@ -28,10 +28,10 @@ const emit = defineEmits<{
       <text class="text-xs text-secondary">
         基金
       </text>
-      <text class="text-xs text-secondary">
+      <text class="text-right text-xs text-secondary">
         当日收益
       </text>
-      <text class="text-xs text-secondary">
+      <text class="text-right text-xs text-secondary">
         持有收益
       </text>
     </view>
@@ -50,7 +50,7 @@ const emit = defineEmits<{
           {{ item.code }}
         </text>
       </view>
-      <view>
+      <view class="text-right">
         <text class="block text-sm font-600" :class="todayUnavailable ? 'text-secondary' : getPortfolioValueTone(item.todayProfit)">
           {{ todayUnavailable ? '--' : formatCurrency(item.todayProfit) }}
         </text>
@@ -58,7 +58,7 @@ const emit = defineEmits<{
           {{ todayUnavailable ? '暂无估值' : formatPercent(item.dailyChangeRate) }}
         </text>
       </view>
-      <view>
+      <view class="text-right">
         <text class="block text-sm font-600" :class="getPortfolioValueTone(item.cumulativeProfit)">
           {{ formatCurrency(item.cumulativeProfit) }}
         </text>

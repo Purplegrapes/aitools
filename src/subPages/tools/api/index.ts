@@ -1,10 +1,11 @@
 import type { FlashNewsServiceItem } from '../types'
 import { alovaInstance } from '@/api/core/instance'
 
-export function getLatestNews(limit: number) {
+export function getLatestNews(params: { minScore: number, recentDay: number }) {
   return alovaInstance.Get<ApiEnvelope<FlashNewsServiceItem[]>>('/valuation-api/news/latest', {
     params: {
-      limit,
+      minScore: params.minScore,
+      recentDay: params.recentDay,
     },
   })
 }

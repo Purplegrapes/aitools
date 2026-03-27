@@ -1,13 +1,13 @@
 import type { ApiEnvelope, FlashNewsItem, FlashNewsServiceItem } from '../types'
 import { getLatestNews } from '../api'
 
-export function useLatestNews(limit = 20) {
+export function useLatestNews(params: { minScore: number, recentDay: number } = { minScore: 80, recentDay: 1 }) {
   const {
     data,
     loading,
     error,
     send: fetchLatestNews,
-  } = useRequest(() => getLatestNews(limit), {
+  } = useRequest(() => getLatestNews(params), {
     immediate: true,
     onError: () => undefined,
   })

@@ -593,7 +593,6 @@ declare module 'vue' {
     readonly useElementHover: UnwrapRef<typeof import('@vueuse/core')['useElementHover']>
     readonly useElementSize: UnwrapRef<typeof import('@vueuse/core')['useElementSize']>
     readonly useElementVisibility: UnwrapRef<typeof import('@vueuse/core')['useElementVisibility']>
-    readonly useEmbeddedToolStore: UnwrapRef<typeof import('./store/embeddedToolStore')['useEmbeddedToolStore']>
     readonly useEtfUserStore: UnwrapRef<typeof import('./store/etfUserStore')['useEtfUserStore']>
     readonly useEventBus: UnwrapRef<typeof import('@vueuse/core')['useEventBus']>
     readonly useEventListener: UnwrapRef<typeof import('@vueuse/core')['useEventListener']>
