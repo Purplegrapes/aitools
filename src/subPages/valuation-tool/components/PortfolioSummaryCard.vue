@@ -46,16 +46,16 @@ function formatProfitAmount(value: number) {
           class="privacy-toggle h-[52rpx] w-[52rpx] inline-flex items-center justify-center rounded-full"
           @click="isPrivacyMode = !isPrivacyMode"
         >
-          <view :class="isPrivacyMode ? 'i-carbon-view-off' : 'i-carbon-view'" class="text-[30rpx] text-[#6E87A8]" />
+          <view :class="isPrivacyMode ? 'i-carbon-view-off' : 'i-carbon-view'" class="text-base text-primary" />
         </view>
       </view>
 
       <view class="glass-panel rounded-[24rpx] px-[20rpx] py-[18rpx]">
         <view class="flex flex-col items-center text-center">
-          <text class="text-[22rpx] text-[#7388A4]">
+          <text class="text-xs text-secondary">
             总资产
           </text>
-          <text class="mt-[8rpx] block text-[46rpx] text-[#183B63] font-700 leading-[1]">
+          <text class="block text-xl text-primary font-500">
             {{ formatAmount(summary.totalAmount) }}
           </text>
         </view>
@@ -63,25 +63,25 @@ function formatProfitAmount(value: number) {
         <view class="realtime-panel mt-[20rpx] rounded-[20rpx] px-[18rpx] py-[16rpx]">
           <view class="grid grid-cols-2 gap-[18rpx]">
             <view class="min-w-0 text-left">
-              <text class="block text-[20rpx] text-[#7489A4]">
+              <text class="block text-xs text-secondary">
                 累计收益
               </text>
-              <text class="mt-[8rpx] block text-[30rpx] font-700 leading-[1.04]" :class="getPortfolioValueTone(summary.totalProfit)">
+              <text class="mt-[8rpx] block text-base font-500" :class="getPortfolioValueTone(summary.totalProfit)">
                 {{ formatProfitAmount(summary.totalProfit) }}
               </text>
-              <text class="mt-[6rpx] block text-[20rpx] font-500" :class="getPortfolioValueTone(summary.totalProfitRate)">
+              <text class="mt-[6rpx] block text-xs font-500" :class="getPortfolioValueTone(summary.totalProfitRate)">
                 {{ formatPercent(summary.totalProfitRate) }}
               </text>
             </view>
 
             <view class="min-w-0 text-right">
-              <text class="block text-[20rpx] text-[#7489A4]">
+              <text class="block text-xs text-secondary">
                 实时收益
               </text>
-              <text class="mt-[8rpx] block text-[30rpx] font-700 leading-[1.04]" :class="todayUnavailable ? 'text-[#8CA0BA]' : getPortfolioValueTone(summary.todayProfit)">
+              <text class="mt-[8rpx] block text-base font-500" :class="todayUnavailable ? 'text-secondary' : getPortfolioValueTone(summary.todayProfit)">
                 {{ todayUnavailable ? '--' : formatProfitAmount(summary.todayProfit ?? 0) }}
               </text>
-              <text class="mt-[6rpx] block text-[20rpx] font-500" :class="realtimeToneClass">
+              <text class="mt-[6rpx] block text-xs font-500" :class="realtimeToneClass">
                 {{ todayUnavailable ? '--' : formatPercent(summary.todayChangeRate) }}
               </text>
             </view>

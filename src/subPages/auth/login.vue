@@ -198,9 +198,6 @@ onUnmounted(() => {
   <view class="auth-login-page min-h-screen px-[32rpx] pb-[48rpx] pt-[40rpx]">
     <view class="mx-auto">
       <view class="mb-[28rpx]">
-        <text class="block text-lg text-primary font-600">
-          手机号登录
-        </text>
         <text class="mt-[8rpx] block text-sm text-secondary">
           使用手机号快速登录，完成账号身份验证。
         </text>
