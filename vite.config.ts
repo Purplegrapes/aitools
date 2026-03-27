@@ -44,10 +44,6 @@ export default defineConfig({
         target: 'https://tamp-cd-3.betalpha.com',
         changeOrigin: true,
       },
-      '/tools-api': {
-        target: 'https://cngz.yhlsd.com',
-        changeOrigin: true,
-      },
       '/valuation-api': {
         target: 'https://etf-insight.betalpha.com',
         changeOrigin: true,

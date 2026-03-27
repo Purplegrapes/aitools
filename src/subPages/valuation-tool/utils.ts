@@ -31,6 +31,24 @@ export function normalizeKeyword(value: unknown) {
   }
 }
 
+export function formatServiceUpdateTime(value?: string | null) {
+  if (!value)
+    return ''
+
+  const normalizedValue = value.includes('T') ? value : value.replace(' ', 'T')
+  const timestamp = Date.parse(normalizedValue)
+  if (Number.isNaN(timestamp))
+    return value
+
+  const date = new Date(timestamp)
+  const year = date.getFullYear()
+  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const day = `${date.getDate()}`.padStart(2, '0')
+  const hours = `${date.getHours()}`.padStart(2, '0')
+  const minutes = `${date.getMinutes()}`.padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}`
+}
+
 export function createSearchPath() {
   return `/subPages/valuation-tool/search`
 }
@@ -49,6 +67,10 @@ export function createWatchlistPath() {
 
 export function createHoldingsPath() {
   return '/subPages/valuation-tool/holdings'
+}
+
+export function createNewsPath() {
+  return '/subPages/valuation-tool/news'
 }
 
 export function createHoldingsSyncPath() {
@@ -250,7 +272,7 @@ export function mapFundRealtimeDataToIntraday(realtimeData?: FundRealtimeDataSer
   return {
     value: ratio === null ? 0 : ratio * 100,
     unit: '%',
-    updateTime: formatCurrentTime(),
+    updateTime: readRealtimeDataUpdateTimeText(realtimeData) || formatCurrentTime(),
     source: 'estimate',
     explanation: `当前参考净值约为 ${formatMetricNumber(nav, 4)}，较上一交易日净值变动 ${formatSignedNumber(navChange || 0, 4)}，对应盘中参考涨跌 ${formatSignedNumber((ratio || 0) * 100, 2)}%。`,
   }
@@ -296,7 +318,7 @@ export function mapFundRealtimeDataToExchangeQuote(
     currentPrice,
     priceChangeRatio: priceChangeRatio === null ? null : priceChangeRatio * 100,
     premiumRate: premiumRate === null ? null : premiumRate * 100,
-    updateTime: formatCurrentTime(),
+    updateTime: readRealtimeDataUpdateTimeText(realtimeData) || formatCurrentTime(),
     source: 'realtime',
     explanation: `当前参考净值 ${formatMetricNumber(currentPrice, 4)}，盘中参考涨跌 ${formatPercent(priceChangeRatio === null ? null : priceChangeRatio * 100)}，折溢价率 ${formatPercent(premiumRate === null ? null : premiumRate * 100)}。`,
   }
@@ -340,6 +362,19 @@ function readRealtimeDataNavChange(realtimeData?: FundRealtimeDataServiceRespons
 
   const previousNav = nav / (1 + ratio)
   return nav - previousNav
+}
+
+function readRealtimeDataUpdateTimeText(realtimeData?: FundRealtimeDataServiceResponse | null) {
+  if (!realtimeData)
+    return ''
+
+  const payload = realtimeData as FundRealtimeDataServiceResponse & {
+    updateAt?: string | null
+    updatedAt?: string | null
+    updateTime?: string | null
+  }
+
+  return formatServiceUpdateTime(payload.updateAt || payload.updatedAt || payload.updateTime)
 }
 
 function formatCurrentTime() {

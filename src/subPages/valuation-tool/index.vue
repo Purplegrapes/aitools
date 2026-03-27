@@ -7,6 +7,7 @@ import type {
 } from './types'
 import valuationHeader from '@/assets/header.png'
 import { getHotSearchFunds, getMarketSentiment } from './api/valuationTool'
+import HomeActionBar from './components/HomeActionBar.vue'
 import HotSearchList from './components/HotSearchList.vue'
 import RiskNoteCard from './components/RiskNoteCard.vue'
 import SentimentCard from './components/SentimentCard.vue'
@@ -17,7 +18,7 @@ import {
   normalizeHotFundItem,
   normalizeMarketSentimentResponse,
 } from './mock'
-import { createResultPath, createSearchPath } from './utils'
+import { createHoldingsPath, createNewsPath, createResultPath, createSearchPath, createWatchlistPath } from './utils'
 
 definePage({
   name: 'valuation-tool-home',
@@ -65,7 +66,19 @@ function handleSelectHotSearch(item: HotSearchFund) {
 }
 
 function handleOpenSearch() {
-  router.push(createSearchPath(''))
+  router.push(createSearchPath())
+}
+
+function handleOpenWatchlist() {
+  router.push(createWatchlistPath())
+}
+
+function handleOpenHoldings() {
+  router.push(createHoldingsPath())
+}
+
+function handleOpenNews() {
+  router.push(createNewsPath())
 }
 </script>
 
@@ -120,6 +133,12 @@ function handleOpenSearch() {
       </view>
 
       <view class="mt-[18rpx] flex flex-col gap-[18rpx]">
+        <HomeActionBar
+          @open-watchlist="handleOpenWatchlist"
+          @open-holdings="handleOpenHoldings"
+          @open-news="handleOpenNews"
+        />
+
         <view v-if="isLoading" class="border border-line/70 rounded-card bg-surface p-6 text-center shadow-[0_20rpx_60rpx_rgba(17,37,62,0.08)]">
           <wd-loading />
           <text class="mt-3 block text-[22rpx] text-secondary">

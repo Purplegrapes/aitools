@@ -32,6 +32,7 @@ declare module 'vue' {
     WdMessageBox: typeof import('wot-design-uni/components/wd-message-box/wd-message-box.vue')['default']
     WdNotify: typeof import('wot-design-uni/components/wd-notify/wd-notify.vue')['default']
     WdPopup: typeof import('wot-design-uni/components/wd-popup/wd-popup.vue')['default']
+    WdSkeleton: typeof import('wot-design-uni/components/wd-skeleton/wd-skeleton.vue')['default']
     WdSticky: typeof import('wot-design-uni/components/wd-sticky/wd-sticky.vue')['default']
     WdSwitch: typeof import('wot-design-uni/components/wd-switch/wd-switch.vue')['default']
     WdTab: typeof import('wot-design-uni/components/wd-tab/wd-tab.vue')['default']

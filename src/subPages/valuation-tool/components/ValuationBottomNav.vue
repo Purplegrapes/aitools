@@ -2,7 +2,7 @@
 import { createHoldingsPath, createValuationHomePath, createWatchlistPath } from '../utils'
 
 const props = defineProps<{
-  current: 'home' | 'watchlist' | 'holdings'
+  current: 'home' | 'watchlist' | 'holdings' | 'news'
 }>()
 
 const router = useRouter()

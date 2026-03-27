@@ -29,11 +29,11 @@ const {
   summary,
   previewState,
   unavailableState,
-  ensureLoaded,
+  refreshPositions,
 } = usePortfolio()
 
 onShow(() => {
-  ensureLoaded()
+  void refreshPositions()
 })
 
 const isLoadingState = computed(() => previewState.value === 'loading')
@@ -54,7 +54,7 @@ function handleOpenFundDetail(code: string) {
     <view class="pointer-events-none absolute inset-x-0 top-0 h-[360rpx] bg-[linear-gradient(180deg,_rgba(232,241,255,0.96),_rgba(248,250,253,0.72)_58%,_transparent)]" />
     <view class="pointer-events-none absolute inset-x-0 top-[120rpx] h-[220rpx] bg-[radial-gradient(circle_at_top,_rgba(22,120,255,0.08),_transparent_68%)]" />
 
-    <view class="relative mx-auto max-w-[702rpx] flex flex-col gap-[20rpx]">
+    <view class="relative mx-auto flex flex-col gap-[20rpx]">
       <template v-if="isLoadingState">
         <view class="border border-line/70 rounded-[20rpx] bg-surface px-[24rpx] py-[24rpx] shadow-[0_16rpx_40rpx_rgba(17,37,62,0.05)]">
           <SkeletonBlock height="32rpx" width="180rpx" rounded="14rpx" />

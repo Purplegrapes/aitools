@@ -27,7 +27,6 @@ export function getMarketSentiment() {
 export function getHotSearchFunds() {
   return alovaInstance.Get<ApiEnvelope<{ dataDate: string, items: HotFundServiceItem[] }>>('/valuation-api/market-pulse/hot-funds')
 }
-
 export function searchFunds(params: { keyword: string }) {
   return alovaInstance.Post<ApiEnvelope<FundSearchServiceItem[]>>('/valuation-api/funds/search', params)
 }

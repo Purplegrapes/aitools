@@ -171,12 +171,15 @@
           }
         },
         {
-          "path": "tools/entry",
+          "path": "tools/news",
           "type": "page",
-          "name": "tools-entry",
+          "name": "tool-news",
           "layout": "default",
           "style": {
-            "navigationBarTitleText": "工具页跳转中"
+            "backgroundColor": "#F5F7FA",
+            "navigationBarTitleText": "市场快讯",
+            "navigationBarBackgroundColor": "#F5F7FA",
+            "navigationBarTextStyle": "black"
           }
         },
         {
@@ -297,15 +300,6 @@
             "navigationBarTitleText": "自选基金",
             "navigationBarBackgroundColor": "#F5F7FA",
             "navigationBarTextStyle": "black"
-          }
-        },
-        {
-          "path": "tools/demo/index",
-          "type": "page",
-          "name": "tools-demo",
-          "layout": "default",
-          "style": {
-            "navigationBarTitleText": "嵌入式工具页 Demo"
           }
         }
       ]
