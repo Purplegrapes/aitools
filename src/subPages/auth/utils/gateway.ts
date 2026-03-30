@@ -83,9 +83,8 @@ export function hasRequiredGatewayParams(query: Record<string, unknown>) {
 
 export function shouldExchangeTransferTicket(
   source: 'miniprogram' | 'h5' | 'internal',
-  authToken = '',
 ) {
-  return source === 'miniprogram' && !authToken.trim()
+  return source === 'miniprogram'
 }
 
 export function shouldWrapMiniProgramExternalAccess(path: string, query: Record<string, unknown>) {

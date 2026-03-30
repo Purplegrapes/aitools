@@ -1,5 +1,13 @@
+import type {
+  AuthorizeResponseDto,
+  AuthUserProfileDto,
+  SendSmsCodeResponseDto,
+  TokenResponseDto,
+  TransformTicketVerifyResponseDto,
+} from './types.js'
 import { alovaInstance } from '../../../api/core/instance.js'
 import { AUTH_REFRESH_META, AUTH_VISITOR_META } from '../../../api/core/token-auth.js'
+
 export type {
   AuthorizeResponseDto,
   AuthUserProfileDto,
@@ -7,13 +15,6 @@ export type {
   TokenResponseDto,
   TransformTicketVerifyResponseDto,
   VerifyPhoneCodeResponse,
-} from './types.js'
-import type {
-  AuthorizeResponseDto,
-  AuthUserProfileDto,
-  SendSmsCodeResponseDto,
-  TokenResponseDto,
-  TransformTicketVerifyResponseDto,
 } from './types.js'
 
 export function transferH5TicketForToken(params: {
