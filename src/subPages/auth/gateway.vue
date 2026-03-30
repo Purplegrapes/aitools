@@ -14,7 +14,6 @@ import {
   shouldExchangeTransferTicket,
 } from './utils/gateway'
 import { resolveGatewayFailureAction, resolveGatewaySuccessTarget } from './utils/gateway-flow'
-import { getStoredAuthToken } from './utils/loginGuard'
 import { detectAccessMode } from './utils/sourceDetector'
 
 definePage({
@@ -54,7 +53,6 @@ onMounted(async () => {
   const transferH5Ticket = decodeQueryValue(query.transferH5Ticket)
   const loginUrl = decodeQueryValue(query.loginUrl)
   const shopId = decodeQueryValue(query.shopId)
-  const storedAuthToken = getStoredAuthToken()
 
   if (mode === 'external') {
     if (source === 'miniprogram' && !hasRequiredGatewayParams(query)) {
@@ -69,7 +67,7 @@ onMounted(async () => {
       shopId,
     })
 
-    if (shouldExchangeTransferTicket(source, storedAuthToken)) {
+    if (shouldExchangeTransferTicket(source)) {
       try {
         const response = await sendTransferH5TicketExchange({ transferH5Ticket })
         const authSession = extractAuthSessionPayload(response)
