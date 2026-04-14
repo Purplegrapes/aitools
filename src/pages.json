@@ -124,6 +124,42 @@
           }
         },
         {
+          "path": "red-dividend/category",
+          "type": "page",
+          "name": "red-dividend-category",
+          "layout": "default",
+          "style": {
+            "backgroundColor": "#f5f5f5",
+            "navigationBarTitleText": "策略详情",
+            "navigationBarBackgroundColor": "#f5f5f5",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
+          "path": "red-dividend/comparison",
+          "type": "page",
+          "name": "red-dividend-comparison",
+          "layout": "default",
+          "style": {
+            "backgroundColor": "#f5f5f5",
+            "navigationBarTitleText": "策略对比",
+            "navigationBarBackgroundColor": "#f5f5f5",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
+          "path": "red-dividend/index",
+          "type": "page",
+          "name": "red-dividend-home",
+          "layout": "default",
+          "style": {
+            "backgroundColor": "#f5f5f5",
+            "navigationBarTitleText": "红利风向标",
+            "navigationBarBackgroundColor": "#f5f5f5",
+            "navigationBarTextStyle": "black"
+          }
+        },
+        {
           "path": "shixi-guide/asset-detail",
           "type": "page",
           "name": "asset-detail",

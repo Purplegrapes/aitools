@@ -101,6 +101,15 @@ const allTools: ToolItem[] = [
     category: 'investment',
   },
   {
+    id: 'red-dividend',
+    name: '红利风向标',
+    description: '看懂当前更适合哪类红利',
+    icon: valuationIcon,
+    route: { name: 'red-dividend-home' },
+    category: 'investment',
+    popular: true,
+  },
+  {
     id: 'etf-valuation',
     name: '今日几星',
     description: 'ETF估值表',

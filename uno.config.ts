@@ -35,6 +35,8 @@ export default defineConfig({
       red: '#F02D30',
       green: '#1AAE52',
       tag: '#7894da',
+      rdGold: '#C78A31',
+      rdHeroBlack: '#121212',
     },
   },
   presets: [
@@ -68,6 +70,14 @@ export default defineConfig({
     'vt-card-tight': 'rounded-card px-[24rpx] py-[20rpx]',
     'vt-panel': 'rounded-panel px-[24rpx] py-[24rpx]',
     'vt-panel-tight': 'rounded-panel px-[22rpx] py-[22rpx]',
+    'rd-page-shell': 'relative px-[20rpx] pb-[80rpx] pt-[18rpx]',
+    'rd-card': 'rounded-[34rpx] bg-surface px-[24rpx] py-[24rpx] shadow-[0_14rpx_30rpx_rgba(17,37,62,0.04)]',
+    'rd-panel': 'rounded-[38rpx] bg-surface px-[24rpx] py-[24rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.04)]',
+    'rd-panel-soft': 'rounded-[36rpx] bg-surface px-[28rpx] py-[28rpx] shadow-[0_18rpx_38rpx_rgba(17,37,62,0.05)]',
+    'rd-chip': 'rounded-full bg-[#F3EFE8] px-[14rpx] py-[8rpx] text-xs text-secondary',
+    'rd-chip-hero': 'rounded-full bg-white/16 px-[14rpx] py-[8rpx] text-xs text-white',
+    'rd-tag-gold': 'rounded-full bg-[#F5EDE0] px-[18rpx] py-[8rpx] text-sm text-[#C78A31] font-600',
+    'rd-cta-card': 'border border-[#EDE7DE] rounded-[30rpx] bg-surface px-[24rpx] py-[22rpx] shadow-[0_16rpx_34rpx_rgba(42,34,23,0.04)]',
   },
   transformers: [
     transformerDirectives(),

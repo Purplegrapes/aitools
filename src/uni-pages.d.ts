@@ -12,6 +12,9 @@ type _LocationUrl =
   "/subPages/etf/index" |
   "/subPages/etf/performance" |
   "/subPages/etf/profile" |
+  "/subPages/red-dividend/category" |
+  "/subPages/red-dividend/comparison" |
+  "/subPages/red-dividend/index" |
   "/subPages/shixi-guide/asset-detail" |
   "/subPages/shixi-guide/index-list" |
   "/subPages/tamp/demo" |
