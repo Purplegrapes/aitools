@@ -11,14 +11,15 @@ import type {
 } from './types'
 
 const DEFAULT_CATEGORY_CODE: RedDividendCategoryCode = 'CORE_DIVIDEND'
-let currentRedDividendCategoryCode: RedDividendCategoryCode = DEFAULT_CATEGORY_CODE
 
 export function createRedDividendHomePath() {
   return '/subPages/red-dividend/index'
 }
 
-export function createRedDividendCategoryPath() {
-  return '/subPages/red-dividend/category'
+export function createRedDividendCategoryPath(categoryCode?: RedDividendCategoryCode) {
+  if (!categoryCode)
+    return '/subPages/red-dividend/category'
+  return `/subPages/red-dividend/category?categoryCode=${encodeURIComponent(categoryCode)}`
 }
 
 export function createRedDividendComparisonPath() {
@@ -39,26 +40,24 @@ export function normalizeKeyword(value: unknown) {
 
 export function normalizeCategoryCode(value: unknown): RedDividendCategoryCode {
   const normalized = normalizeKeyword(value).toUpperCase()
-  if (normalized === 'BOND_LIKE_DIVIDEND' || normalized === 'CYCLICAL_DIVIDEND' || normalized === 'CORE_DIVIDEND')
+  if (
+    normalized === 'BOND_LIKE_DIVIDEND'
+    || normalized === 'CYCLICAL_DIVIDEND'
+    || normalized === 'CORE_DIVIDEND'
+  ) {
     return normalized
+  }
   return DEFAULT_CATEGORY_CODE
 }
 
-export function getCurrentRedDividendCategoryCode() {
-  return currentRedDividendCategoryCode
-}
-
-export function setCurrentRedDividendCategoryCode(categoryCode: RedDividendCategoryCode) {
-  currentRedDividendCategoryCode = normalizeCategoryCode(categoryCode)
-  return currentRedDividendCategoryCode
-}
-
 export function getEnvelopeData<T>(response?: ApiEnvelope<T> | T | null): T | null {
-  if (!response)
+  if (!response) {
     return null
+  }
 
-  if (typeof response === 'object' && 'data' in response)
+  if (typeof response === 'object' && 'data' in response) {
     return (response as ApiEnvelope<T>).data ?? null
+  }
 
   return response as T
 }

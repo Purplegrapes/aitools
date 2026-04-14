@@ -20,16 +20,15 @@ import {
   getEnvelopeData,
   isRedDividendContextResponse,
   isRedDividendMarketViewResponse,
-  setCurrentRedDividendCategoryCode,
 } from './utils'
 
 definePage({
   name: 'red-dividend-home',
   layout: 'default',
   style: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F4F2EE',
     navigationBarTitleText: '红利风向标',
-    navigationBarBackgroundColor: '#f5f5f5',
+    navigationBarBackgroundColor: '#F4F2EE',
     navigationBarTextStyle: 'black',
   },
 })
@@ -61,8 +60,7 @@ const otherStrategies = computed(() => buildOtherStrategies(context.value, marke
 const isLoading = computed(() => contextLoading.value || marketViewLoading.value)
 
 function handleOpenCategory(categoryCode: typeof recommendedStrategy.value.categoryCode) {
-  setCurrentRedDividendCategoryCode(categoryCode)
-  router.push(createRedDividendCategoryPath())
+  router.push(createRedDividendCategoryPath(categoryCode))
 }
 
 function handleOpenComparison() {
@@ -72,7 +70,7 @@ function handleOpenComparison() {
 
 <template>
   <view class="relative min-h-screen overflow-x-hidden">
-    <view class="pointer-events-none absolute inset-x-0 top-0 h-[420rpx] bg-[linear-gradient(180deg,_#F8F6F1_0%,_#F2EFE9_56%,_rgba(244,242,238,0)_100%)]" />
+    <view class="pointer-events-none absolute inset-x-0 top-0 h-[420rpx] bg-[linear-gradient(180deg,_#818181,_#dfdfdf,_rgba(244,242,238,0)_100%)]" />
     <view class="relative px-[16rpx] pb-[80rpx] pt-[14rpx]">
       <template v-if="isLoading">
         <view class="rounded-card bg-surface p-[24rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)]">

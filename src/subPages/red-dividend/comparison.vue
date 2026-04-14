@@ -15,6 +15,7 @@ import {
 import {
   buildComparisonItems,
   buildMappingNodes,
+  findCategoryByCode,
   findExplanation,
   getEnvelopeData,
   isRedDividendComparisonResponse,
@@ -25,9 +26,9 @@ definePage({
   name: 'red-dividend-comparison',
   layout: 'default',
   style: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F4F2EE',
     navigationBarTitleText: '策略对比',
-    navigationBarBackgroundColor: '#f5f5f5',
+    navigationBarBackgroundColor: '#F4F2EE',
     navigationBarTextStyle: 'black',
   },
 })
@@ -58,9 +59,7 @@ const activeExplanation = computed(() => findExplanation(
   comparison.value.explanations,
   comparison.value.mapping.matchedCategoryCode,
 ))
-const activeCategory = computed(() => {
-  return context.value.categories.find(item => item.categoryCode === comparison.value.mapping.matchedCategoryCode) ?? context.value.categories[0]
-})
+const activeCategory = computed(() => findCategoryByCode(context.value.categories, comparison.value.mapping.matchedCategoryCode))
 </script>
 
 <template>
@@ -75,7 +74,7 @@ const activeCategory = computed(() => {
         当前市场下，为什么更匹配{{ activeCategory.categoryName }}？
       </text>
       <text class="relative z-1 mt-[8rpx] block max-w-[480rpx] text-xs text-white/82 leading-[1.65]">
-        策略核心：衰退期持“债”，复苏期持“核心”，通胀期持“资源
+        策略核心：{{ context.brief.strategyCore }}
       </text>
     </view>
 

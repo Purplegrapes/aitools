@@ -17,35 +17,31 @@ import {
 import {
   createRedDividendComparisonPath,
   findCategoryByCode,
-  getCurrentRedDividendCategoryCode,
   getEnvelopeData,
   isRedDividendContextResponse,
   isRedDividendMarketViewResponse,
   isRedDividendStrategyResponse,
-  setCurrentRedDividendCategoryCode,
+  normalizeCategoryCode,
 } from './utils'
 
 definePage({
   name: 'red-dividend-category',
   layout: 'default',
   style: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F4F2EE',
     navigationBarTitleText: '策略详情',
-    navigationBarBackgroundColor: '#f5f5f5',
+    navigationBarBackgroundColor: '#F4F2EE',
     navigationBarTextStyle: 'black',
   },
 })
 
 const router = useRouter()
-const selectedCategoryCode = ref(getCurrentRedDividendCategoryCode())
-
-onMounted(() => {
-  selectedCategoryCode.value = getCurrentRedDividendCategoryCode()
-})
-
-onShow(() => {
-  selectedCategoryCode.value = getCurrentRedDividendCategoryCode()
-})
+const route = useRoute()
+const initialEntryCategoryCode = normalizeCategoryCode(route.query.categoryCode)
+const selectedCategoryCode = ref<RedDividendStrategyResponse['categoryCode']>(
+  initialEntryCategoryCode,
+)
+const shouldFollowMatchedCategory = ref(!route.query.categoryCode)
 
 const { data: contextResponse } = useRequest(() => getRedDividendContext(), {
   immediate: true,
@@ -76,6 +72,16 @@ const marketView = computed<RedDividendMarketViewResponse>(() => {
   return isRedDividendMarketViewResponse(payload) ? payload : fallbackRedDividendMarketView
 })
 
+watch(
+  marketView,
+  (value) => {
+    if (!shouldFollowMatchedCategory.value)
+      return
+    selectedCategoryCode.value = value.matchedCategoryCode
+  },
+  { immediate: true },
+)
+
 const strategy = computed<RedDividendStrategyResponse>(() => {
   const payload = getEnvelopeData(strategyResponse.value as ApiEnvelope<RedDividendStrategyResponse> | undefined)
   if (isRedDividendStrategyResponse(payload) && payload.categoryCode === selectedCategoryCode.value)
@@ -90,7 +96,8 @@ const isMatchedCategory = computed(() => marketView.value.matchedCategoryCode ==
 function handleSelectCategory(categoryCode: typeof selectedCategoryCode.value) {
   if (categoryCode === selectedCategoryCode.value)
     return
-  selectedCategoryCode.value = setCurrentRedDividendCategoryCode(categoryCode)
+  shouldFollowMatchedCategory.value = false
+  selectedCategoryCode.value = categoryCode
 }
 
 function handleOpenComparison() {
