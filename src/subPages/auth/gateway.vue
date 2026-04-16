@@ -171,9 +171,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <view class="min-h-screen flex items-center justify-center bg-page px-[24rpx]">
-    <view class="rounded-card bg-surface px-[28rpx] py-[24rpx] text-secondary shadow-sm">
-      正在校验登录并跳转...
+  <view class="min-h-screen flex items-center justify-center px-[24rpx]">
+    <view class="px-[36rpx] py-[36rpx]">
+      <wd-loading type="ring" />
     </view>
   </view>
 </template>

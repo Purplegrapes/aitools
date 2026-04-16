@@ -1,20 +1,22 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "target": "ES2020",
+    "rootDir": ".",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "target": "ES2020",
-    "outDir": "tests-dist",
-    "noEmit": false,
-    "types": ["node"],
-    "rootDir": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["node"],
+    "noEmit": false,
+    "outDir": "tests-dist"
   },
   "include": [
     "tests/**/*.ts",
     "tests/**/*.d.ts",
+    "src/subPages/red-dividend/types.ts",
+    "src/subPages/red-dividend/utils.ts",
     "src/subPages/auth/utils/gateway.ts",
     "src/subPages/auth/utils/gateway-flow.ts",
     "src/subPages/auth/utils/authSession.ts",

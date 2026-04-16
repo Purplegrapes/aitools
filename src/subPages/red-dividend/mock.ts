@@ -7,9 +7,9 @@ import type {
 } from './types'
 
 const coverGradientMap: Record<RedDividendCategoryCode, string> = {
-  CORE_DIVIDEND: 'linear-gradient(135deg, #18324d 0%, #335c7a 52%, #9cc8e4 100%)',
-  BOND_LIKE_DIVIDEND: 'linear-gradient(135deg, #20402f 0%, #3d6c54 52%, #b9dbc4 100%)',
-  CYCLICAL_DIVIDEND: 'linear-gradient(135deg, #5a2d10 0%, #a05324 50%, #f1bf6b 100%)',
+  CORE_DIVIDEND: 'radial-gradient(circle at 72% 40%, rgba(255, 204, 112, 0.88) 0%, rgba(255, 204, 112, 0.26) 18%, rgba(255, 204, 112, 0) 42%), radial-gradient(circle at 84% 34%, rgba(176, 199, 241, 0.28) 0%, rgba(176, 199, 241, 0.12) 18%, rgba(176, 199, 241, 0) 40%), linear-gradient(138deg, #202838 0%, #243047 38%, #2f3745 66%, #4b4032 100%)',
+  BOND_LIKE_DIVIDEND: 'radial-gradient(circle at 72% 40%, rgba(244, 210, 146, 0.82) 0%, rgba(244, 210, 146, 0.24) 18%, rgba(244, 210, 146, 0) 42%), radial-gradient(circle at 84% 34%, rgba(190, 214, 203, 0.22) 0%, rgba(190, 214, 203, 0.1) 18%, rgba(190, 214, 203, 0) 40%), linear-gradient(138deg, #202a2f 0%, #243034 38%, #31383a 66%, #4a4035 100%)',
+  CYCLICAL_DIVIDEND: 'radial-gradient(circle at 72% 40%, rgba(255, 187, 108, 0.86) 0%, rgba(255, 187, 108, 0.26) 18%, rgba(255, 187, 108, 0) 42%), radial-gradient(circle at 84% 34%, rgba(202, 193, 226, 0.16) 0%, rgba(202, 193, 226, 0.08) 18%, rgba(202, 193, 226, 0) 40%), linear-gradient(138deg, #2b2324 0%, #332827 38%, #413533 66%, #544434 100%)',
 }
 
 export const fallbackRedDividendContext: RedDividendContextResponse = {
@@ -22,30 +22,30 @@ export const fallbackRedDividendContext: RedDividendContextResponse = {
     {
       categoryCode: 'CORE_DIVIDEND',
       categoryName: '价值红利',
-      shortTag: '核心',
-      homeTagLabel: '价值',
+      shortTag: '中枢',
+      homeTagLabel: '中枢',
       coverImage: coverGradientMap.CORE_DIVIDEND,
-      description: '以价值红利为中枢：品牌护城河及优质现金流，长期持仓的压舱石。',
+      description: '品牌护城河及优质现金流，长期持仓的压舱石。',
       categoryDesc: '长期底仓 · 均衡配置',
       tags: ['底仓', '稳定', '长期'],
     },
     {
       categoryCode: 'BOND_LIKE_DIVIDEND',
       categoryName: '类债红利',
-      shortTag: '类债',
-      homeTagLabel: '类债',
+      shortTag: '避险',
+      homeTagLabel: '避险',
       coverImage: coverGradientMap.BOND_LIKE_DIVIDEND,
-      description: '以类债红利避险：经营极稳如水电，利率下行时的避风港。',
+      description: '经营极稳如水电，利率下行时的避风港。',
       categoryDesc: '防御优先 · 稳定收息',
       tags: ['低波', '稳健', '防御'],
     },
     {
       categoryCode: 'CYCLICAL_DIVIDEND',
       categoryName: '周期红利',
-      shortTag: '周期',
-      homeTagLabel: '周期',
+      shortTag: '搏价',
+      homeTagLabel: '搏价',
       coverImage: coverGradientMap.CYCLICAL_DIVIDEND,
-      description: '以周期红利博价：煤炭石油等稀缺资源，通胀回升时的进攻器。',
+      description: '煤炭石油等稀缺资源，通胀回升时的进攻器。',
       categoryDesc: '景气驱动 · 分红弹性',
       tags: ['周期', '景气', '弹性'],
     },

@@ -129,9 +129,9 @@
           "name": "red-dividend-category",
           "layout": "default",
           "style": {
-            "backgroundColor": "#F4F2EE",
+            "backgroundColor": "#FFFFFF",
             "navigationBarTitleText": "策略详情",
-            "navigationBarBackgroundColor": "#F4F2EE",
+            "navigationBarBackgroundColor": "#FFFFFF",
             "navigationBarTextStyle": "black"
           }
         },
@@ -141,9 +141,9 @@
           "name": "red-dividend-comparison",
           "layout": "default",
           "style": {
-            "backgroundColor": "#F4F2EE",
+            "backgroundColor": "#FFFFFF",
             "navigationBarTitleText": "策略对比",
-            "navigationBarBackgroundColor": "#F4F2EE",
+            "navigationBarBackgroundColor": "#FFFFFF",
             "navigationBarTextStyle": "black"
           }
         },
@@ -153,9 +153,9 @@
           "name": "red-dividend-home",
           "layout": "default",
           "style": {
-            "backgroundColor": "#F4F2EE",
+            "backgroundColor": "#fff",
             "navigationBarTitleText": "红利风向标",
-            "navigationBarBackgroundColor": "#F4F2EE",
+            "navigationBarBackgroundColor": "#fff",
             "navigationBarTextStyle": "black"
           }
         },

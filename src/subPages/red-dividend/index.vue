@@ -13,8 +13,6 @@ import {
   fallbackRedDividendMarketView,
 } from './mock'
 import {
-  buildOtherStrategies,
-  buildRecommendedStrategy,
   createRedDividendCategoryPath,
   createRedDividendComparisonPath,
   getEnvelopeData,
@@ -26,9 +24,9 @@ definePage({
   name: 'red-dividend-home',
   layout: 'default',
   style: {
-    backgroundColor: '#F4F2EE',
+    backgroundColor: '#fff',
     navigationBarTitleText: '红利风向标',
-    navigationBarBackgroundColor: '#F4F2EE',
+    navigationBarBackgroundColor: '#fff',
     navigationBarTextStyle: 'black',
   },
 })
@@ -55,8 +53,12 @@ const marketView = computed<RedDividendMarketViewResponse>(() => {
   return isRedDividendMarketViewResponse(payload) ? payload : fallbackRedDividendMarketView
 })
 
-const recommendedStrategy = computed(() => buildRecommendedStrategy(context.value, marketView.value))
-const otherStrategies = computed(() => buildOtherStrategies(context.value, marketView.value))
+const recommendedStrategy = computed(() => {
+  return context.value.categories.find(item => item.categoryCode === marketView.value.matchedCategoryCode) ?? context.value.categories[0]
+})
+const otherStrategies = computed(() => {
+  return context.value.categories.filter(item => item.categoryCode !== recommendedStrategy.value.categoryCode)
+})
 const isLoading = computed(() => contextLoading.value || marketViewLoading.value)
 
 function handleOpenCategory(categoryCode: typeof recommendedStrategy.value.categoryCode) {
@@ -66,15 +68,23 @@ function handleOpenCategory(categoryCode: typeof recommendedStrategy.value.categ
 function handleOpenComparison() {
   router.push(createRedDividendComparisonPath())
 }
+
+function handleOpenComparisonByKeyboard(event: KeyboardEvent) {
+  if (event.key !== 'Enter' && event.key !== ' ')
+    return
+
+  event.preventDefault()
+  handleOpenComparison()
+}
 </script>
 
 <template>
-  <view class="relative min-h-screen overflow-x-hidden">
-    <view class="pointer-events-none absolute inset-x-0 top-0 h-[420rpx] bg-[linear-gradient(180deg,_#818181,_#dfdfdf,_rgba(244,242,238,0)_100%)]" />
-    <view class="relative px-[16rpx] pb-[80rpx] pt-[14rpx]">
+  <view class="relative min-h-screen overflow-x-hidden bg-surface">
+    <view class="pointer-events-none absolute inset-x-0 top-0 h-[420rpx] bg-[linear-gradient(180deg,_rgba(6,8,10,0.2)_0%,_rgba(6,8,10,0)_74%)]" />
+    <view class="relative">
       <template v-if="isLoading">
-        <view class="rounded-card bg-surface p-[24rpx] shadow-[0_16rpx_36rpx_rgba(17,37,62,0.05)]">
-          <wd-loading />
+        <view class="mx-[16rpx] mt-[18rpx] rd-soft-card-lg bg-rdPaperMuted p-[24rpx] text-center">
+          <wd-loading type="ring" />
           <text class="mt-[18rpx] block text-sm text-secondary">
             正在准备红利风向标...
           </text>
@@ -84,47 +94,59 @@ function handleOpenComparison() {
       <template v-else>
         <MarketSummaryStrip
           :title="context.brief.title"
-          :summary="context.brief.summary"
           :strategy-core="context.brief.strategyCore"
           :market-summary="marketView.summary"
         />
 
-        <view class="mt-[24rpx]">
-          <view class="mb-[16rpx] flex items-center justify-between px-[4rpx]">
-            <text class="text-base text-primary font-medium">
-              本期推荐
-            </text>
-          </view>
-          <StrategyHeroCard :strategy="recommendedStrategy" @select="handleOpenCategory" />
-        </view>
+        <view class="relative z-1 mt-[-26rpx]">
+          <view class="rounded-t-[32rpx] bg-surface pb-[80rpx]">
+            <view class="px-[16rpx] pt-[28rpx]">
+              <view class="mt-[8rpx]">
+                <view class="mb-[20rpx] flex items-center justify-between px-[4rpx]">
+                  <text class="text-base text-primary font-700">
+                    本期推荐
+                  </text>
+                </view>
+                <StrategyHeroCard :strategy="recommendedStrategy" @select="handleOpenCategory" />
+              </view>
 
-        <view class="mt-[24rpx]">
-          <view class="mb-[16rpx] flex items-center justify-between px-[4rpx]">
-            <text class="text-base text-primary font-medium">
-              其他策略
-            </text>
-          </view>
-          <view class="grid grid-cols-2 gap-[16rpx]">
-            <StrategyPosterCard
-              v-for="item in otherStrategies"
-              :key="item.categoryCode"
-              :strategy="item"
-              @select="handleOpenCategory"
-            />
-          </view>
-        </view>
+              <view class="mt-[28rpx]">
+                <view class="mb-[20rpx] flex items-center justify-between px-[4rpx]">
+                  <text class="text-base text-primary font-700">
+                    其他策略
+                  </text>
+                </view>
+                <view class="grid grid-cols-2 gap-[16rpx]">
+                  <StrategyPosterCard
+                    v-for="item in otherStrategies"
+                    :key="item.categoryCode"
+                    :strategy="item"
+                    @select="handleOpenCategory"
+                  />
+                </view>
+              </view>
 
-        <view class="mt-[34rpx] rd-cta-card px-[26rpx] py-[26rpx] shadow-[0_18rpx_40rpx_rgba(42,34,23,0.04)]" @click="handleOpenComparison">
-          <view class="flex items-center justify-between gap-[20rpx]">
-            <view class="min-w-0 flex items-center gap-[12rpx]">
-              <text class="shrink-0 text-sm text-primary font-700">
-                查看策略差异
-              </text>
-              <text class="truncate text-xs text-secondary">
-                分红预估与环境映射
-              </text>
+              <view
+                class="mt-[34rpx] overflow-hidden rd-cta-card px-[26rpx] py-[26rpx] rd-focus-ring"
+                role="button"
+                aria-label="查看策略差异，了解分红预估与环境映射"
+                tabindex="0"
+                @click="handleOpenComparison"
+                @keydown="handleOpenComparisonByKeyboard"
+              >
+                <view class="flex items-center justify-between gap-[20rpx]">
+                  <view class="min-w-0 flex items-center gap-[12rpx]">
+                    <text class="shrink-0 text-sm text-primary font-700">
+                      查看策略差异
+                    </text>
+                    <text class="truncate text-xs text-secondary">
+                      分红预估与环境映射
+                    </text>
+                  </view>
+                  <view class="i-carbon-arrow-right shrink-0 text-sm text-rdGold" />
+                </view>
+              </view>
             </view>
-            <view class="i-carbon-arrow-right shrink-0 text-sm text-secondary" />
           </view>
         </view>
       </template>

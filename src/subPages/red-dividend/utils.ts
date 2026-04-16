@@ -1,16 +1,10 @@
 import type {
   ApiEnvelope,
-  RedDividendCategory,
   RedDividendCategoryCode,
-  RedDividendCompareViewItem,
   RedDividendComparisonResponse,
   RedDividendContextResponse,
-  RedDividendExplanation,
-  RedDividendMappingNodeView,
   RedDividendMarketViewResponse,
 } from './types'
-
-const DEFAULT_CATEGORY_CODE: RedDividendCategoryCode = 'CORE_DIVIDEND'
 
 export function createRedDividendHomePath() {
   return '/subPages/red-dividend/index'
@@ -24,30 +18,6 @@ export function createRedDividendCategoryPath(categoryCode?: RedDividendCategory
 
 export function createRedDividendComparisonPath() {
   return '/subPages/red-dividend/comparison'
-}
-
-export function normalizeKeyword(value: unknown) {
-  if (typeof value !== 'string')
-    return ''
-
-  try {
-    return decodeURIComponent(value).trim()
-  }
-  catch {
-    return value.trim()
-  }
-}
-
-export function normalizeCategoryCode(value: unknown): RedDividendCategoryCode {
-  const normalized = normalizeKeyword(value).toUpperCase()
-  if (
-    normalized === 'BOND_LIKE_DIVIDEND'
-    || normalized === 'CYCLICAL_DIVIDEND'
-    || normalized === 'CORE_DIVIDEND'
-  ) {
-    return normalized
-  }
-  return DEFAULT_CATEGORY_CODE
 }
 
 export function getEnvelopeData<T>(response?: ApiEnvelope<T> | T | null): T | null {
@@ -115,59 +85,6 @@ export function isRedDividendComparisonResponse(value: unknown): value is RedDiv
     && Array.isArray(value.explanations)
 }
 
-export function findCategoryByCode(categories: RedDividendCategory[], categoryCode: RedDividendCategoryCode) {
-  return categories.find(item => item.categoryCode === categoryCode) ?? categories[0]
-}
-
-export function buildRecommendedStrategy(
-  context: RedDividendContextResponse,
-  marketView: RedDividendMarketViewResponse,
-) {
-  return findCategoryByCode(context.categories, marketView.matchedCategoryCode)
-}
-
-export function buildOtherStrategies(
-  context: RedDividendContextResponse,
-  marketView: RedDividendMarketViewResponse,
-) {
-  return context.categories.filter(item => item.categoryCode !== marketView.matchedCategoryCode)
-}
-
-export function buildComparisonItems(
-  comparison: RedDividendComparisonResponse,
-  context: RedDividendContextResponse,
-) {
-  return comparison.dividendCompare.items.map((item): RedDividendCompareViewItem => {
-    const category = findCategoryByCode(context.categories, item.categoryCode)
-    return {
-      ...item,
-      categoryName: category.categoryName,
-      shortTag: category.shortTag,
-    }
-  })
-}
-
-export function buildMappingNodes(
-  comparison: RedDividendComparisonResponse,
-  context: RedDividendContextResponse,
-) {
-  return comparison.mapping.nodes.map((item): RedDividendMappingNodeView => {
-    const category = findCategoryByCode(context.categories, item.categoryCode)
-    return {
-      ...item,
-      categoryName: category.categoryName,
-      shortTag: category.shortTag,
-    }
-  })
-}
-
-export function findExplanation(
-  explanations: RedDividendExplanation[],
-  categoryCode: RedDividendCategoryCode,
-) {
-  return explanations.find(item => item.categoryCode === categoryCode) ?? explanations[0]
-}
-
 export function formatAmount(amount: number) {
   return `${amount.toLocaleString('zh-CN')} 元`
 }
@@ -185,20 +102,4 @@ export function getMappingNodeStyle(xValue: number, yValue: number) {
     left: `${xValue * 100}%`,
     bottom: `${yValue * 100}%`,
   }
-}
-
-export function getCategoryToneClass(categoryCode: RedDividendCategoryCode) {
-  if (categoryCode === 'BOND_LIKE_DIVIDEND')
-    return 'text-success'
-  if (categoryCode === 'CYCLICAL_DIVIDEND')
-    return 'text-warning'
-  return 'text-brand'
-}
-
-export function getCategoryEnvironmentLabel(categoryCode: RedDividendCategoryCode) {
-  if (categoryCode === 'BOND_LIKE_DIVIDEND')
-    return '偏防御环境'
-  if (categoryCode === 'CYCLICAL_DIVIDEND')
-    return '弹性环境'
-  return '平衡环境'
 }

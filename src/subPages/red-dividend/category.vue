@@ -16,31 +16,27 @@ import {
 } from './mock'
 import {
   createRedDividendComparisonPath,
-  findCategoryByCode,
   getEnvelopeData,
   isRedDividendContextResponse,
   isRedDividendMarketViewResponse,
   isRedDividendStrategyResponse,
-  normalizeCategoryCode,
 } from './utils'
 
 definePage({
   name: 'red-dividend-category',
   layout: 'default',
   style: {
-    backgroundColor: '#F4F2EE',
+    backgroundColor: '#FFFFFF',
     navigationBarTitleText: '策略详情',
-    navigationBarBackgroundColor: '#F4F2EE',
+    navigationBarBackgroundColor: '#FFFFFF',
     navigationBarTextStyle: 'black',
   },
 })
 
 const router = useRouter()
 const route = useRoute()
-const initialEntryCategoryCode = normalizeCategoryCode(route.query.categoryCode)
-const selectedCategoryCode = ref<RedDividendStrategyResponse['categoryCode']>(
-  initialEntryCategoryCode,
-)
+const initialEntryCategoryCode = typeof route.query.categoryCode === 'string' ? route.query.categoryCode : ''
+const selectedCategoryCode = ref<string>(initialEntryCategoryCode)
 const shouldFollowMatchedCategory = ref(!route.query.categoryCode)
 
 const { data: contextResponse } = useRequest(() => getRedDividendContext(), {
@@ -53,15 +49,6 @@ const { data: marketViewResponse } = useRequest(() => getRedDividendMarketView()
   onError: () => undefined,
 })
 
-const { data: strategyResponse, loading: strategyLoading } = useRequest(
-  () => getRedDividendStrategy(selectedCategoryCode.value),
-  {
-    immediate: true,
-    watch: [selectedCategoryCode],
-    onError: () => undefined,
-  },
-)
-
 const context = computed<RedDividendContextResponse>(() => {
   const payload = getEnvelopeData(contextResponse.value as ApiEnvelope<RedDividendContextResponse> | undefined)
   return isRedDividendContextResponse(payload) ? payload : fallbackRedDividendContext
@@ -70,6 +57,12 @@ const context = computed<RedDividendContextResponse>(() => {
 const marketView = computed<RedDividendMarketViewResponse>(() => {
   const payload = getEnvelopeData(marketViewResponse.value as ApiEnvelope<RedDividendMarketViewResponse> | undefined)
   return isRedDividendMarketViewResponse(payload) ? payload : fallbackRedDividendMarketView
+})
+
+const currentCategoryCode = computed<RedDividendStrategyResponse['categoryCode']>(() => {
+  return context.value.categories.find(item => item.categoryCode === selectedCategoryCode.value)?.categoryCode
+    ?? marketView.value.matchedCategoryCode
+    ?? fallbackRedDividendMarketView.matchedCategoryCode
 })
 
 watch(
@@ -82,19 +75,30 @@ watch(
   { immediate: true },
 )
 
+const { data: strategyResponse, loading: strategyLoading } = useRequest(
+  () => getRedDividendStrategy(currentCategoryCode.value),
+  {
+    immediate: true,
+    watch: [currentCategoryCode],
+    onError: () => undefined,
+  },
+)
+
 const strategy = computed<RedDividendStrategyResponse>(() => {
   const payload = getEnvelopeData(strategyResponse.value as ApiEnvelope<RedDividendStrategyResponse> | undefined)
-  if (isRedDividendStrategyResponse(payload) && payload.categoryCode === selectedCategoryCode.value)
+  if (isRedDividendStrategyResponse(payload) && payload.categoryCode === currentCategoryCode.value)
     return payload as RedDividendStrategyResponse
 
-  return fallbackRedDividendStrategies[selectedCategoryCode.value]
+  return fallbackRedDividendStrategies[currentCategoryCode.value]
 })
 
-const category = computed(() => findCategoryByCode(context.value.categories, selectedCategoryCode.value))
-const isMatchedCategory = computed(() => marketView.value.matchedCategoryCode === selectedCategoryCode.value)
+const category = computed(() => {
+  return context.value.categories.find(item => item.categoryCode === currentCategoryCode.value) ?? context.value.categories[0]
+})
+const isMatchedCategory = computed(() => marketView.value.matchedCategoryCode === currentCategoryCode.value)
 
-function handleSelectCategory(categoryCode: typeof selectedCategoryCode.value) {
-  if (categoryCode === selectedCategoryCode.value)
+function handleSelectCategory(categoryCode: RedDividendStrategyResponse['categoryCode']) {
+  if (categoryCode === currentCategoryCode.value)
     return
   shouldFollowMatchedCategory.value = false
   selectedCategoryCode.value = categoryCode
@@ -103,81 +107,109 @@ function handleSelectCategory(categoryCode: typeof selectedCategoryCode.value) {
 function handleOpenComparison() {
   router.push(createRedDividendComparisonPath())
 }
+
+function handleOpenComparisonByKeyboard(event: KeyboardEvent) {
+  if (event.key !== 'Enter' && event.key !== ' ')
+    return
+
+  event.preventDefault()
+  handleOpenComparison()
+}
 </script>
 
 <template>
-  <view class="relative min-h-screen overflow-x-hidden bg-[#F4F2EE]">
-    <view
-      class="relative min-h-[250rpx] overflow-hidden bg-rdHeroBlack px-[28rpx] py-[34rpx] text-white shadow-[0_18rpx_36rpx_rgba(17,37,62,0.1)]"
-    >
-      <view class="absolute right-[96rpx] top-[62rpx] h-[140rpx] w-[140rpx] rounded-full bg-[#F3C34C] blur-[14rpx]" />
-      <view class="absolute right-[42rpx] top-[74rpx] h-[120rpx] w-[132rpx] rounded-full bg-[#F27A4A]/80 blur-[18rpx]" />
-      <view class="absolute right-[18rpx] top-[68rpx] h-[132rpx] w-[118rpx] rounded-full bg-[#91A3D8]/64 blur-[24rpx]" />
-      <view class="absolute right-[84rpx] top-[72rpx] h-[124rpx] w-[124rpx] rounded-full bg-[radial-gradient(circle_at_58%_52%,_#FFD36C_0%,_#F6AC48_36%,_#312415_72%,_#111111_100%)] shadow-[0_0_0_8rpx_rgba(0,0,0,0.14)]" />
-      <view
-        v-if="isMatchedCategory"
-        class="absolute right-[20rpx] top-[20rpx] rounded-full bg-white/16 px-[18rpx] py-[10rpx] text-sm font-600"
-      >
-        当前匹配
-      </view>
-      <text class="mt-[36rpx] block text-xl font-700">
-        {{ category.categoryName }}
-      </text>
-      <text class="mt-[8rpx] block text-sm text-white/84">
-        {{ category.categoryDesc }}
-      </text>
-      <view class="mt-[18rpx] flex flex-wrap gap-[10rpx]">
-        <text v-for="tag in category.tags" :key="tag" class="rd-chip-hero">
-          {{ tag }}
-        </text>
+  <view class="relative min-h-screen overflow-x-hidden bg-surface">
+    <view class="pointer-events-none absolute inset-x-0 top-0 h-[420rpx] bg-[linear-gradient(180deg,_rgba(6,8,10,0.2)_0%,_rgba(6,8,10,0)_74%)]" />
+    <view class="relative min-h-[328rpx] overflow-hidden bg-[linear-gradient(180deg,_#090B0E_0%,_#101418_38%,_#171C22_68%,_#1E242B_100%)] px-[16rpx] pb-[72rpx] pt-[18rpx]">
+      <view class="absolute inset-0 bg-[radial-gradient(circle_at_76%_18%,_rgba(201,212,224,0.2)_0%,_rgba(201,212,224,0)_24%)]" />
+      <view class="absolute right-[90rpx] top-[58rpx] h-[110rpx] w-[110rpx] rounded-full bg-[#D2D9E2]/16 blur-[26rpx]" />
+
+      <view class="relative z-1 min-h-[294rpx] flex flex-col pb-[18rpx] pt-[10rpx]">
+        <view class="absolute right-[10rpx] top-[20rpx]">
+          <wd-tag
+            v-if="isMatchedCategory"
+            bg-color="#f5f5f5" type="primary" color="#000" round
+          >
+            当前市场更匹配
+          </wd-tag>
+        </view>
+
+        <view class="mt-[80rpx]">
+          <text class="block text-xl text-white font-700 leading-[1.7]">
+            {{ category.categoryName }}
+          </text>
+          <text class="mt-[8rpx] block text-sm text-white/76 leading-[1.8]">
+            {{ category.description }}
+          </text>
+          <view class="mt-[20rpx] flex flex-wrap gap-[10rpx]">
+            <view
+              v-for="tag in category.tags"
+              :key="tag"
+            >
+              <wd-tag bg-color="#E7DFD1" type="primary" color="#C78A31" round>
+                {{ tag }}
+              </wd-tag>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
 
-    <view class="relative z-1 mt-[-24rpx] overflow-hidden rounded-t-[36rpx] bg-surface shadow-[0_-10rpx_28rpx_rgba(17,37,62,0.06)]">
-      <view class="rd-page-shell pt-[28rpx]">
-        <view class="mt-[20rpx]">
+    <view class="relative z-1 mt-[-28rpx] rd-poster-shell">
+      <view>
+        <view class="px-[16rpx] pt-[28rpx]">
           <CategorySegmentedTabs
             :items="context.categories"
-            :current="selectedCategoryCode"
+            :current="currentCategoryCode"
             @select="handleSelectCategory"
           />
-        </view>
 
-        <view v-if="strategyLoading" class="mt-[24rpx] rd-card">
-          <wd-loading />
-          <text class="mt-[18rpx] block text-sm text-secondary">
-            正在切换策略内容...
-          </text>
-        </view>
-
-        <template v-else>
-          <view :key="selectedCategoryCode" class="mt-[24rpx]">
-            <DividendMetricCard :metric="strategy.metric" :category-name="category.categoryName" />
+          <view v-if="strategyLoading" class="mt-[24rpx] rd-loading-card">
+            <wd-loading type="ring" />
+            <text class="mt-[18rpx] block text-sm text-secondary">
+              正在切换策略内容...
+            </text>
           </view>
 
-          <view :key="`${selectedCategoryCode}-assets`" class="mt-[24rpx]">
-            <view class="mb-[14rpx] flex items-center justify-between">
-              <text class="text-base text-primary font-700">
-                代表资产
-              </text>
+          <template v-else>
+            <view :key="currentCategoryCode" class="mt-[24rpx]">
+              <DividendMetricCard
+                :metric="strategy.metric"
+                :category-name="category.categoryName"
+              />
             </view>
-            <AssetListCard :items="strategy.assetList" />
-          </view>
 
-          <view class="mt-[24rpx] rd-cta-card" @tap="handleOpenComparison">
-            <view class="flex items-center justify-between gap-[20rpx]">
-              <view class="min-w-0 flex items-center gap-[10rpx]">
-                <text class="shrink-0 text-sm text-primary font-700">
-                  查看策略差异
-                </text>
-                <text class="truncate text-xs text-secondary">
-                  分红与环境映射
+            <view :key="`${currentCategoryCode}-assets`" class="mt-[24rpx]">
+              <view class="mb-[14rpx] flex items-center justify-between">
+                <text class="text-base text-primary font-700">
+                  代表资产
                 </text>
               </view>
-              <view class="i-carbon-arrow-right text-sm text-secondary" />
+              <AssetListCard :items="strategy.assetList" />
             </view>
-          </view>
-        </template>
+
+            <view
+              class="mt-[24rpx] overflow-hidden rd-cta-card px-[26rpx] py-[26rpx] rd-focus-ring"
+              role="button"
+              aria-label="查看策略差异，了解分红与环境映射"
+              tabindex="0"
+              @tap="handleOpenComparison"
+              @keydown="handleOpenComparisonByKeyboard"
+            >
+              <view class="flex items-center justify-between gap-[20rpx]">
+                <view class="min-w-0 flex items-center gap-[10rpx]">
+                  <text class="shrink-0 text-sm text-primary font-700">
+                    查看策略差异
+                  </text>
+                  <text class="truncate text-xs text-secondary">
+                    分红与环境映射
+                  </text>
+                </view>
+                <view class="i-carbon-arrow-right text-sm text-rdGold" />
+              </view>
+            </view>
+          </template>
+        </view>
       </view>
     </view>
   </view>
