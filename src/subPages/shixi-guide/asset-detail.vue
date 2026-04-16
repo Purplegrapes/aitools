@@ -408,12 +408,12 @@ const chartOption = computed<EChartsOption>(() => ({
     axisLabel: {
       color: '#94a3b8',
       fontSize: 10,
-      formatter: (v: number) => `${v.toFixed(1)}`,
+      formatter: (v: number) => `${v.toFixed(1)}%`,
     },
   },
   series: [
     {
-      name: '食息率',
+      name: '股息率',
       type: 'line',
       showSymbol: false,
       smooth: true,
